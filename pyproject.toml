@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "peclet-prediction"
+version = "1.0.0"
+description = "Data processing and analysis for Do neural networks think like geomoprhologists?"
+readme = "README.md"
+requires-python = ">3.13.2"
+authors = [
+        {name = "Jo Martin", email = "jo.martin@colorado.edu"}
+]
+
+dependencies = []
+[tool.setuptools]
+packages = []
