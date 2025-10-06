@@ -1,0 +1,14 @@
+#+title: Colab Setup
+This notebook should be run to prepare the colab environment for the training and analysis notebooks
+
+#+begin_src jupyter-python
+!git clone https://github.com/jrymart/neural-spd-inversion.git
+%cd my_study
+
+!pip install -q -r requirements-colab.txt
+
+!pip install -q -e .
+!pip install -q -e ./lib/landlab_torch_tools
+#+end_src
+
+All data and analysis are saved to the colab instance which will be deleted automatically when the colab instance is closed.  The files can be downloaded, or saved to google drive.

@@ -1,0 +1,17 @@
+name: neural-spd-inversion
+channels:
+    - conda-forge
+    - defaults
+dependencies:
+    - python
+    - pooch
+    - numpy
+    - richdem
+    - pytorch
+    - pandas
+    - matplotlib
+    - pip
+    - pip:
+      - -e .
+
+      - -e ./lib/landlab_torch_tools

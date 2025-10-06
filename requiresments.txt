@@ -1,0 +1,6 @@
+numpy
+pooch
+richdem
+pytorch
+pandas
+matplotlib

@@ -1,0 +1,157 @@
+#+title: Data Download and Prep
+
+This project uses a collection of [[https://landlab.csdms.io/][Landlab]] model runs.  This notebook goes over a brief explanation of the model set up and parameters and then downloading and processing of the model runs from Zenodo.
+
+* The Model
+The model uses the following Landlab components:
+- [[https://landlab.csdms.io/generated/api/landlab.components.diffusion.diffusion.html#landlab.components.diffusion.diffusion.LinearDiffuser][LinearDiffuser]]
+- [[https://landlab.csdms.io/generated/api/landlab.components.flow_accum.flow_accumulator.html#landlab.components.flow_accum.flow_accumulator.FlowAccumulator][FlowAccumulat]]or
+- [[https://landlab.csdms.io/generated/api/landlab.components.stream_power.fastscape_stream_power.html#landlab.components.stream_power.fastscape_stream_power.FastscapeEroder][FastscapeEroder]]
+
+  The model is implemented as subclass of the LandlabModel class to allow for batch runs to be orchestrated by the [[https://github.com/jrymart/landlab_batcher/tree/main][Landlab Batcher]] utility.  The code of the model is as follows:
+
+  #+begin_src python
+from landlab.core import load_params
+from landlab.components import LinearDiffuser, FlowAccumulator, FastscapeEroder
+from model_base import LandlabModel
+import numpy as np
+
+class SimpleLem(LandlabModel):
+     def __init__(self, params={}):
+        """Initialize the Model"""
+        super().__init__(params)
+
+        if not ("topographic__elevation" in self.grid.at_node.keys()):
+            self.grid.add_zeros("topographic__elevation", at="node")
+        rng = np.random.default_rng(seed=int(params["seed"]))
+        grid_noise= rng.random(self.grid.number_of_nodes)/10
+        self.grid.at_node["topographic__elevation"] += grid_noise
+        self.topo = self.grid.at_node["topographic__elevation"]
+
+        self.uplift_rate = params["baselevel"]["uplift_rate"]
+        self.diffuser = LinearDiffuser(
+            self.grid,
+            linear_diffusivity = params["diffuser"]["D"]
+            )
+        self.accumulator = FlowAccumulator(self.grid, flow_director="D8")
+        self.eroder = FastscapeEroder(self.grid,
+                                      K_sp=params["streampower"]["k"],
+                                      m_sp=params["streampower"]["m"],
+                                      n_sp=params["streampower"]["n"],
+                                      threshold_sp=params["streampower"]["threshold"])
+
+
+    def update(self, dt):
+        """Advance the model by one time step of duration dt."""
+        if self.current_time % 10000 == 0:
+            print("Model %s on year %d" % (self.run_id, self.current_time))
+        self.topo[self.grid.core_nodes] += self.uplift_rate * dt
+        self.diffuser.run_one_step(dt)
+        self.accumulator.run_one_step()
+        self.eroder.run_one_step(dt)
+        self.current_time += dt
+  #+end_src
+
+  The model is initialized with random noise as elevation, an uplift rate, D8 flow router and accumulator and a diffusion and streampower erosion component with parameters defiend by the study.  The parameters of this study are as follows:
+
+ +-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
+ | Rows (cells) | Columns (cells) | Grid Spacing (m) | Runtime (years) | Timestep (years) | Uplift Rate (\frac{m}{year}) | Diffusivity (\(\frac{m^2}{year}\)) | Streampower K (\(\frac{m^{0.4}}/year\)) | Streampower m | Streampower n |
+ +-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
+ | 300 | 100 | 5 | 3,000,000 | 0.001 | 0.005-0.02 | 0.00015-0.002 | 0.3 | 0.07 |
+ +-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
+This parameter set was run with 10 different random seeds, and 30 linearly spaced values across the parameter range for a dataset of 9000 model runs.  The final Landlab Grids of the model runs along with parameter information and associated database for the Landlab batcher utility, are available on Zenodo: [[https://doi.org/10.5281/zenodo.15311644]].
+
+* Downloading Model Topography
+[[https://www.fatiando.org/pooch/latest/index.html][Pooch]] is used to download the data files from Zenodo
+#+begin_src python
+import pooch
+from config import DATA_PATH, NPY_URL, NPY_HASH, DB_URL, DB_HASH, MODEL_DEM_DIR
+
+DATA_PATH.mdkir(exists_ok=True, parents=True)
+model_dem_paths = pooch.retrieve(url=NPY_URL,
+                           known_hash=NPY_HASH,
+                           path=DATA_PATH,
+                           processor=pooch.Untar(extract_dir=MODEL_DEM_DIR))
+db_path = pooch.retrieve(url=DB_URL,
+                           known_hash=DB_HASH,
+                           path=DATA_PATH)
+#+end_src
+
+* Processing data for Flow Accumulation rasters
+We generate flow accumulation rasters for each model DEM for later analysis
+#+begin_src python
+import richdem as rd
+import numpy as np
+from config import FLOW_METHOD, MODEL_ACC_DIR
+
+acc_paths = []
+for dem_path in model_dem_paths:
+    dem_array = np.load(dem_path)
+    dem_id = os.path.splitext(os.path.split(dem_path)[1])[0]
+    dem = rd.rdarray(dem_array, no_data=-9999)
+    # this step is to ensure consistency in processing with real data
+    dem_filled = rd.FillDepressions(dem, epsilon=False, in_place=False)
+    flow_acc = rd.FlowAccumulation(dem_filled, method=FLOW_METHOD)
+    flow_acc_array = np.array(flow_acc)
+    acc_path = os.path,join(DATA_PATH, MODEL_ACC_DIR, f"{dem_id}.npy)
+    acc_paths.append(acc_path)
+    np.save(acc_path, flow_acc_array)
+#+end_src
+
+* Data Statistics
+We calculate some simple data statistics which will be used for normalizing the data prior to training the neural networks.  We calculate statistics from the portion of the dataset used in training, so as not to taint the dataset with statistical information from the testing set.  While our data is drawn from one distribution, this is beind done as a best practice.
+#+begin_src python
+def get_array_statistics(array_paths, crop):
+    array_total_sum = 0.0
+    array_total_sum_sq = 0.0
+    array_total_count = 0
+    for path in array_paths:
+        data_array=np.load(path)[crop:-crop,crop:-crop]
+        array_total_sum += np.sum(data_array)
+        array_total_sum_sq += np.sum(np.square(data_array))
+        array_total_count += data_array.size
+    array_mean = inputs_total_sum / inputs_total_count
+    variance = (array_total_sum_sq / inputs_total_count) - np.square(inputs.mean)
+    array_std = np.sqrt(variance)
+    return {'inputs_mean': array_mean, 'inputs_std': array_std}
+
+import sqlite3
+import json
+from config import SPLIT_BY_FIELD, TRAINING_FRACTION, PARAM_TABLE, RUN_ID_FIELD, MODEL_DEM_PATH, MODEL_ARRAY_CROP, LABEL_QUERY, OUTPUTS_TABLE, MODEL_STATS_PATH
+#+end_src
+
+We use a parameter in the model parameter database (in this case) the seed to split between
+train and test datasets, so we need to connect to and query the database for runs.
+#+begin_src python
+connection = sqlite3.connect(db_path)
+cursor = connection.cursor()
+cursor.execute(f"SELECT DISTINCT \"{SPLIT_BY_FIELD}\" FROM {PARAM_TABLE}")
+categories = [r[0] for r in cursor.fetchall()]
+split = int((len(categories) * TRAINING_FRACTION))
+train_categories = categories[:split]
+train_filter = f"\"{SPLIT_BY_FIELD}\" IN ({', '.join([str(c) for c in train_categories])})"
+cursor.execute(f"SELECT {RUN_ID_FIELD} FROM {PARAM_TABLE} WHERE {train_filter}")
+model_run_ids = [r[0] for in cursor.fetchall()]
+train_paths = [os.path.join(MODEL_DEM_PATH, "f{name}.npy") for name in model_run_ids]
+acc_paths = [os.path.join(DATA_PATH, MODEL_ACC_PATH "f{name}.npy") for run model_run_ids]
+statistics = {}
+statistics['dem'] = get_array_statistics(train_dem_paths, MODEL_ARRAY_CROP)
+statistics['accumulation'] = get_array_statistics(train_acc_paths, MODEL_ARRAY_CROP)
+#+end_src
+
+Lastly, we need the statistics of the labels we will train the network to infer.
+#+begin_src python
+labels = []
+limit = connection.getlimit(sqlite3.SQLITE_LIMIT_VARIABLE_NUMBER)
+for i in range(0, len(model_run_ids), limit):
+    current_chunk_runs = model_run_ids[i:i+limit]
+    # placeholders are a safe way to programatically construct an SQL query
+    placeholders = ', '.join(['?']*len(current_chunk_runs))
+    cursor.execute(f"SELECT {LABEL_QUERY} FROM {OUTPUTS_TABLE} WHERE {RUN_ID_FIELD} IN ({placeholders})", current_chunk_runs)
+    labels += [l[0] for l in cursor.fetchall()]
+labels = np.array(labels, dtype=np.float64)
+statistcs['labels'] = {'labels_mean': np.mean(labels),
+                       'labels_std' : np.std(labels)}
+with open(MODEL_STATS_PATH, 'w') as f:
+    json.dump(stats, f)
+#+end_src
