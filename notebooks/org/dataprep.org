@@ -80,7 +80,7 @@ db_path = pooch.retrieve(url=DB_URL,
 * Processing data for Flow Accumulation rasters
 We generate flow accumulation rasters for each model DEM for later analysis
 #+begin_src python
-import richdem as rd
+from pysheds.grid import Grid
 import numpy as np
 from config import FLOW_METHOD, MODEL_ACC_DIR
 
@@ -88,11 +88,15 @@ acc_paths = []
 for dem_path in model_dem_paths:
     dem_array = np.load(dem_path)
     dem_id = os.path.splitext(os.path.split(dem_path)[1])[0]
-    dem = rd.rdarray(dem_array, no_data=-9999)
+    grid = Grid()
+    grid.add_gridded_data(dem_array, 'dem')
+    dem = grid.dem
     # this step is to ensure consistency in processing with real data
-    dem_filled = rd.FillDepressions(dem, epsilon=False, in_place=False)
-    flow_acc = rd.FlowAccumulation(dem_filled, method=FLOW_METHOD)
-    flow_acc_array = np.array(flow_acc)
+    pit_filled = grid.fill_pits(dem)
+    flooded = grid.fill_depressions(pit_filled)
+    inflated = grid.resolve_flats(flooded)
+    fdir = grid.flowdir(inflated, routing=FLOW_METHOD)
+    flow_acc_array = grid.accumulation(fdir, routing=FLOW_METHOD)
     acc_path = os.path,join(DATA_PATH, MODEL_ACC_DIR, f"{dem_id}.npy)
     acc_paths.append(acc_path)
     np.save(acc_path, flow_acc_array)

@@ -6,7 +6,7 @@ dependencies:
     - python
     - pooch
     - numpy
-    - richdem
+    - pysheds
     - pytorch
     - pandas
     - matplotlib

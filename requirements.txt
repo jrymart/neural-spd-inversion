@@ -1,6 +1,6 @@
 numpy
 pooch
-richdem
+pysheds
 pytorch
 pandas
 matplotlib

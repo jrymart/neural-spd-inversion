@@ -28,3 +28,4 @@ LABEL_QUERY = "\"model_param.diffuser.D\"/ \"model_param.streampower.k\""
 OUTPUTS_TABLE = "model_run_outputs"
 MODEL_STATS_PATH = os.path.join(DATA_PATH, "model_stats.json")
 NN_SEEDS = [0, 10, 20, 30]
+FLOW_METHOD = 'd8'
