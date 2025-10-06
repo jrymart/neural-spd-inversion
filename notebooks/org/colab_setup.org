@@ -3,9 +3,9 @@ This notebook should be run to prepare the colab environment for the training an
 
 #+begin_src jupyter-python
 !git clone https://github.com/jrymart/neural-spd-inversion.git
-%cd my_study
+%cd neural-spd-inversion
 
-!pip install -q -r requirements-colab.txt
+!pip install -q -r requirements.txt
 
 !pip install -q -e .
 !pip install -q -e ./lib/landlab_torch_tools
