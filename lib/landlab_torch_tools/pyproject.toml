@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "landlab_torch_tools"
+version = "0.1.0"
+authors = [
+        { name="Jo Martin", email="jo.martin@colorado.edu" },
+]
+description = "Tools for using Landlab models in Pytorch"
+readme = "README.md"
+requires-python = ">=3.12.2"
+classifiers = [
+            "Programming Language :: Python :: 3",
+            "License :: OSI Approved :: GPLv3",
+            "Operating System :: OS Independent"
+]
+dependencies = [
+    "numpy",
+    "torch", 
+    "torchvision",
+    "pillow"
+]
+
+[project.urls]
+"Homepage" = "https://github.com/jrymart/landlab_torch_tools"
+"Bug Tracker" = "https://github.com/jrymart/landlab_torch_tools/issues"
