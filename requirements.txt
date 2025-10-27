@@ -4,3 +4,4 @@ pysheds
 pytorch
 pandas
 matplotlib
+landlab

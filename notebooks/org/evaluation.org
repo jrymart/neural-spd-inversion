@@ -1,6 +1,6 @@
 #+title: Evaluation
 
-#+begin_src python
+#+begin_src jupyter-python
 import torch
 from train_peclet_model import PecletModelTrainer
 from ThreeLayerCNNRegressor import ThreeLayerCNNRegressor, JumboThreeLayerCNNRegressor
@@ -9,7 +9,7 @@ import json
 from config import MODEL_STATS_PATH, DB_PATH, MODEL_DEM_PATH, LABEL_QUERY, OUTPUTS_TABLE, WEIGHTS_PATH, NN_SEEDS
 #+end_src
 
-#+begin_src python
+#+begin_src jupyter-python
 with open(MODEL_STATS_PATH, 'r') as f:
     stats = json.load(f)
 retrain = False
@@ -20,7 +20,7 @@ data_types = [{'type': 'dem',
                ]
 #+end_src
 
-#+begin_src python
+#+begin_src jupyter-python
 for seed in NN_SEEDS:
     for data in data_types:
         torch.manual_seed(seed)
@@ -40,7 +40,7 @@ for seed in NN_SEEDS:
 #+end_src
 
 We also train a "jumbo" model with larger layers.
-#+begin_src python
+#+begin_src jupyter-python
 weights_path = os.path.join(WEIGHTS_dir, 'dem_jumbo_run_weights.pt')
 torch.manual_seed(NN_SEEDS[0])
 traier = PecletModelTrainer(DB_PATH,

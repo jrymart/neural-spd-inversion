@@ -12,3 +12,9 @@ This notebook should be run to prepare the colab environment for the training an
 #+end_src
 
 All data and analysis are saved to the colab instance which will be deleted automatically when the colab instance is closed.  The files can be downloaded, or saved to google drive.
+
+#+INCLUDE: "./dataprep.org"
+
+#+INCLUDE: "./training.org"
+
+#+INCLUDE: "./evaluation.org"
