@@ -9,7 +9,7 @@ from train_peclet_model import PecletModelTrainer
 from ThreeLayerCNNRegressor import ThreeLayerCNNRegressor, JumboThreeLayerCNNRegressor
 import json
 
-from config import MODEL_STATS_PATH, DB_PATH, MODEL_DEM_PATH, LABEL_QUERY, OUTPUTS_TABLE, WEIGHTS_PATH, NN_SEEDS
+from config import MODEL_STATS_PATH, DB_PATH, MODEL_DEM_PATH, MODEL_SLOPE_PATH, MODEL_ACC_PATH, MODEL_CURVATURE_PATH, LABEL_QUERY, OUTPUTS_TABLE, WEIGHTS_PATH, NN_SEEDS
 #+end_src
 
 #+begin_src jupyter-python
@@ -19,7 +19,11 @@ retrain = False
 data_types = [{'type': 'dem',
                'data_path': MODEL_DEM_PATH},
               {'type': 'accumulation',
-               'data_path': MODEL_ACC_PATH}
+               'data_path': MODEL_ACC_PATH},
+              {'type': 'slope'm
+               'data_path': MODEL_SLOPE_PATH},
+              {'type': 'curvature',
+               'data_path': MODEL_CURVATURE_PATH}
                ]
 #+end_src
 
@@ -31,14 +35,30 @@ for seed in NN_SEEDS:
         if not os.path.exists(weights_path) or retrain:
             trainer = PecletModelTrainer(DB_PATH,
                                         data['data_path'],
-                                        ThreeLayerCNNRegressor,
-                                        f"SELECT {LABEL_QUERY} FROM {OUTPUTS_TABLE}",
+                                        ThreeLayerCNNRegressor(),
+                                        LABEL_QUERY,
                                         epochs = 50,
                                         learning_rate=0.0001,
                                         ,**stats[data['type']],
                                         ,**stats['labels'])
             trainer.train()
             trainer.save_weights(weights_path)
+        if data['type']=='dem':
+            for second_data in data_types:
+                weights_path = WEIGHTS_PATH / f"dem_{second_data['type']}_{seed}_weights.pt"
+                if not weights_path.exists() or retrain:
+                    inputs_mean = np.stack([v['inputs_mean'] for k,v in statistics.items() if k in ('dem', second_data['type'])])[:, np.newaxis, np.newaxis]
+                    inputs_std= np.stack()[v['inputs_std'] for k,v in statistics.items() if k in ('dem', second_data['type'])])[:, np.newaxis, np.newaxis]
+                    trainer = PecletModelTrainer(DB_PATH,
+                                                 [data['data_path'], second_data['data_path']],
+                                                 ThreeLayerCNNRegressor(channels=2),
+                                                 LABEL_QUERY,
+                                                 epochs = NUM_EPOCHS,
+                                                 learning_rate = LEARNING_RATE,
+                                                 inputs_mean = inputs_mean,
+                                                 inputs_std = inputs_std,
+                                                 **stats['labels']
+                                                 )
 #+end_src
 
 We also train a "jumbo" model with larger layers.
@@ -49,7 +69,7 @@ if not os.path.exists(weights_path) or retrain:
     traier = PecletModelTrainer(DB_PATH,
                                 MODEL_DEM_PATH,
                                 JumboThreeLayerCNNRegressor,
-                                f"SELECT {LABEL_QUERY} FROM {OUTPUTS_TABLE}",
+                                LABEL_QUERY,
                                 epochs = 50,
                                 learning_rate=0.0001,
                                 ,**stats['dem'],
@@ -57,3 +77,4 @@ if not os.path.exists(weights_path) or retrain:
     trainer.train()
     trainer.save_weights(weights_path)
 #+end_src
+*

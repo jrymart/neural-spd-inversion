@@ -62,7 +62,7 @@ class SimpleLem(LandlabModel):
 This parameter set was run with 10 different random seeds, and 30 linearly spaced values across the parameter range for a dataset of 9000 model runs.  The final Landlab Grids of the model runs along with parameter information and associated database for the Landlab batcher utility, are available on Zenodo: [[https://doi.org/10.5281/zenodo.15311644]].
 
 * Downloading Model Topography
-[[https://www.fatiando.org/pooch/latest/index.html][Pooch]] is used to download the data files from Zenodo
+[[https://www.fatiando.org/pooch/latest/index.html][Pooch]] is used to download the data files from Zenodo.  If you have previously downloaded the data pooch should not re-download.
 #+begin_src jupyter-python
 import pooch
 from config import DATA_PATH, NPY_URL, NPY_HASH, DB_URL, DB_HASH, MODEL_DEM_DIR
@@ -74,34 +74,49 @@ model_dem_paths = pooch.retrieve(url=NPY_URL,
                            processor=pooch.Untar(extract_dir=MODEL_DEM_DIR))
 db_path = pooch.retrieve(url=DB_URL,
                            known_hash=DB_HASH,
+                           fname="model_runs.db"
                            path=DATA_PATH)
 #+end_src
 
-* Processing data for Flow Accumulation rasters
+* Processing data for Flow Accumulation, Slope, and Curvature Rasters
 We generate flow accumulation rasters for each model DEM for later analysis
 #+begin_src jupyter-python
 import numpy as np
 import os
 from landlab import RasterModelGrid
 from landlab.components import FlowAccumulator
-from config import FLOW_METHOD, MODEL_ACC_DIR, MODEL_RESOLUTION
+from config import FLOW_METHOD, MODEL_ACC_PATH, MODEL_RESOLUTION, REPROCESS_DATA
 
-acc_paths = []
 for dem_path in model_dem_paths:
+    dem_id = dem_path.stem
+    slope_path = DATA_PATH / MODEL_SLOPE_PATH / f"{dem_id}.npy"
+    curvature_path = DATA_PATH / MODEL_CURV_PATH / f"{dem_id}.npy"
+    acc_path = DATA_PATH / MODEL_ACC_PATH / f"{dem_id}.npy"
+    if slope_path.exists() and curvature_path.exists() and acc_path.exists() and not REPROCESS_DATA:
+        continue
     dem_array = np.load(dem_path)
-    dem_id = os.path.splitext(os.path.split(dem_path)[1])[0]
-    grid = RasterModelGrid(topo.shape, MODEL_RESOLUTION)
-    grid.add_field("node", "topographic__elevation", z, units="m")
-    accumulator = FlowAccumulator(grid, flow_director = FLOW_METHOD)
-    accumulator.run_one_step()
-    # this step is to ensure consistency in processing with real data
-    flow_acc_array = grid.at_node["drainage_area"].reshape(grid.shape)
-    acc_path = os.path.join(DATA_PATH, MODEL_ACC_DIR, f"{dem_id}.npy")
-    acc_paths.append(acc_path)
-    np.save(acc_path, flow_acc_array)
+    if not acc_path.exists() or REPROCESS_DATA:
+        grid = RasterModelGrid(dem_array.shape, MODEL_RESOLUTION)
+        grid.add_field("node", "topographic__elevation", dem_array, units="m")
+        accumulator = FlowAccumulator(grid, flow_director = FLOW_METHOD)
+        accumulator.run_one_step()
+        # this step is to ensure consistency in processing with real data
+        flow_acc_array = grid.at_node["drainage_area"].reshape(grid.shape)
+        np.save(acc_path, flow_acc_array)
+    if not (slope_path.exists() or curvature_path.exists()) or REPROCESS_DATA:
+        dz_dy, dz_dx = np.gradient(dem, MODEL_RESOLUTION)
+    if not slope_path.exists() or REPROCESS_DATA:
+        slope = np.sqrt(dz_dx**2+dz_dy**2)
+        np.save(slope_path, slope)
+    if not curvature_path.exists() or REPROCESS_DATA:
+        dz_xy, dz_xx = np.gradient(dz_dx, MODEL_RESOLUTION)
+        dz_yy, dz_yx = np.gradient(dz_dy, MODEL_RESOLUTION)
+        laplacian = dz_xx+dz_yy
+        np.save(curvature_path, laplacian)
 #+end_src
 
 #+RESULTS:
+
 
 * Data Statistics
 We calculate some simple data statistics which will be used for normalizing the data prior to training the neural networks.  We calculate statistics from the portion of the dataset used in training, so as not to taint the dataset with statistical information from the testing set.  While our data is drawn from one distribution, this is beind done as a best practice.
@@ -115,20 +130,20 @@ def get_array_statistics(array_paths, crop):
         array_total_sum += np.sum(data_array)
         array_total_sum_sq += np.sum(np.square(data_array))
         array_total_count += data_array.size
-    array_mean = inputs_total_sum / inputs_total_count
-    variance = (array_total_sum_sq / inputs_total_count) - np.square(inputs.mean)
+    array_mean = array_total_sum / array_total_count
+    variance = (array_total_sum_sq / array_total_count) - np.square(array_mean)
     array_std = np.sqrt(variance)
     return {'inputs_mean': array_mean, 'inputs_std': array_std}
 
 import sqlite3
 import json
-from config import SPLIT_BY_FIELD, TRAINING_FRACTION, PARAM_TABLE, RUN_ID_FIELD, MODEL_DEM_PATH, MODEL_ARRAY_CROP, LABEL_QUERY, OUTPUTS_TABLE, MODEL_STATS_PATH
+from config import SPLIT_BY_FIELD, TRAINING_FRACTION, PARAM_TABLE, RUN_ID_FIELD, MODEL_DEM_PATH, MODEL_ARRAY_CROP, LABEL_QUERY, OUTPUTS_TABLE, MODEL_STATS_PATH, DB_PATH
 #+end_src
 
 We use a parameter in the model parameter database (in this case) the seed to split between
 train and test datasets, so we need to connect to and query the database for runs.
 #+begin_src jupyter-python
-connection = sqlite3.connect(db_path)
+connection = sqlite3.connect(DB_PATH)
 cursor = connection.cursor()
 cursor.execute(f"SELECT DISTINCT \"{SPLIT_BY_FIELD}\" FROM {PARAM_TABLE}")
 categories = [r[0] for r in cursor.fetchall()]
@@ -136,12 +151,17 @@ split = int((len(categories) * TRAINING_FRACTION))
 train_categories = categories[:split]
 train_filter = f"\"{SPLIT_BY_FIELD}\" IN ({', '.join([str(c) for c in train_categories])})"
 cursor.execute(f"SELECT {RUN_ID_FIELD} FROM {PARAM_TABLE} WHERE {train_filter}")
-model_run_ids = [r[0] for in cursor.fetchall()]
-train_paths = [os.path.join(MODEL_DEM_PATH, "f{name}.npy") for name in model_run_ids]
-acc_paths = [os.path.join(DATA_PATH, MODEL_ACC_PATH "f{name}.npy") for run model_run_ids]
+train_run_ids = [r[0] for r in cursor.fetchall()]
+# TODO don't need need to join, can import path dir
+train_paths = [os.path.join(MODEL_DEM_PATH, f"{name}.npy") for name in train_run_ids]
+acc_paths = [os.path.join(DATA_PATH, MODEL_ACC_PATH, f"{name}.npy") for name in train_run_ids]
+slope_paths = [os.path.join(DATA_PATH, MODEL_SLOPE_PATH, f"{name}.npy") for name in train_run_ids]
+curvature_paths = [os.path.join(DATA_PATH, MODEL_CURV_PATH , f"{name}.npy") for name in train_run_ids]
 statistics = {}
 statistics['dem'] = get_array_statistics(train_dem_paths, MODEL_ARRAY_CROP)
 statistics['accumulation'] = get_array_statistics(train_acc_paths, MODEL_ARRAY_CROP)
+statistics['slope'] = get_array_statistics(train_slope_paths, MODEL_ARRAY_CROP)
+statistics['curvature'] = get_array_statistics(train_curvature_paths, MODEL_ARRAY_CROP)
 #+end_src
 
 Lastly, we need the statistics of the labels we will train the network to infer.
@@ -152,10 +172,10 @@ for i in range(0, len(model_run_ids), limit):
     current_chunk_runs = model_run_ids[i:i+limit]
     # placeholders are a safe way to programatically construct an SQL query
     placeholders = ', '.join(['?']*len(current_chunk_runs))
-    cursor.execute(f"SELECT {LABEL_QUERY} FROM {OUTPUTS_TABLE} WHERE {RUN_ID_FIELD} IN ({placeholders})", current_chunk_runs)
+    cursor.execute(f"{LABEL_QUERY} WHERE {RUN_ID_FIELD} IN ({placeholders})", current_chunk_runs)
     labels += [l[0] for l in cursor.fetchall()]
 labels = np.array(labels, dtype=np.float64)
-statistcs['labels'] = {'labels_mean': np.mean(labels),
+['labels'] = {'labels_mean': np.mean(labels),
                        'labels_std' : np.std(labels)}
 with open(MODEL_STATS_PATH, 'w') as f:
     json.dump(stats, f)
