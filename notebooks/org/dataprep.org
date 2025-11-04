@@ -74,7 +74,7 @@ model_dem_paths = pooch.retrieve(url=NPY_URL,
                            processor=pooch.Untar(extract_dir=MODEL_DEM_DIR))
 db_path = pooch.retrieve(url=DB_URL,
                            known_hash=DB_HASH,
-                           fname="model_runs.db"
+                           fname="model_runs.db",
                            path=DATA_PATH)
 #+end_src
 
@@ -86,8 +86,10 @@ import os
 from landlab import RasterModelGrid
 from landlab.components import FlowAccumulator
 from config import FLOW_METHOD, MODEL_ACC_PATH, MODEL_RESOLUTION, REPROCESS_DATA, MODEL_SLOPE_PATH, MODEL_CURV_PATH
+from pathlib import Path
 
 for dem_path in model_dem_paths:
+    dem_path = Path(dem_path)
     dem_id = dem_path.stem
     slope_path = MODEL_SLOPE_PATH / f"{dem_id}.npy"
     curvature_path = MODEL_CURV_PATH / f"{dem_id}.npy"
@@ -104,7 +106,7 @@ for dem_path in model_dem_paths:
         flow_acc_array = grid.at_node["drainage_area"].reshape(grid.shape)
         np.save(acc_path, flow_acc_array)
     if not (slope_path.exists() or curvature_path.exists()) or REPROCESS_DATA:
-        dz_dy, dz_dx = np.gradient(dem, MODEL_RESOLUTION)
+        dz_dy, dz_dx = np.gradient(dem_array, MODEL_RESOLUTION)
     if not slope_path.exists() or REPROCESS_DATA:
         slope = np.sqrt(dz_dx**2+dz_dy**2)
         np.save(slope_path, slope)
@@ -121,6 +123,7 @@ for dem_path in model_dem_paths:
 * Data Statistics
 We calculate some simple data statistics which will be used for normalizing the data prior to training the neural networks.  We calculate statistics from the portion of the dataset used in training, so as not to taint the dataset with statistical information from the testing set.  While our data is drawn from one distribution, this is beind done as a best practice.
 #+begin_src jupyter-python
+import numpy as np
 def get_array_statistics(array_paths, crop):
     array_total_sum = 0.0
     array_total_sum_sq = 0.0
@@ -152,16 +155,20 @@ train_categories = categories[:split]
 train_filter = f"\"{SPLIT_BY_FIELD}\" IN ({', '.join([str(c) for c in train_categories])})"
 cursor.execute(f"SELECT {RUN_ID_FIELD} FROM {PARAM_TABLE} WHERE {train_filter}")
 train_run_ids = [r[0] for r in cursor.fetchall()]
-# TODO don't need need to join, can import path dir
-train_paths = [os.path.join(MODEL_DEM_PATH, f"{name}.npy") for name in train_run_ids]
-acc_paths = [os.path.join(DATA_PATH, MODEL_ACC_PATH, f"{name}.npy") for name in train_run_ids]
-slope_paths = [os.path.join(DATA_PATH, MODEL_SLOPE_PATH, f"{name}.npy") for name in train_run_ids]
-curvature_paths = [os.path.join(DATA_PATH, MODEL_CURV_PATH , f"{name}.npy") for name in train_run_ids]
-statistics = {}
-statistics['dem'] = get_array_statistics(train_dem_paths, MODEL_ARRAY_CROP)
-statistics['accumulation'] = get_array_statistics(train_acc_paths, MODEL_ARRAY_CROP)
-statistics['slope'] = get_array_statistics(train_slope_paths, MODEL_ARRAY_CROP)
-statistics['curvature'] = get_array_statistics(train_curvature_paths, MODEL_ARRAY_CROP)
+# TODO don't need need to join, can import path dirm fix names also
+train_dem_paths = [MODEL_DEM_PATH / f"{name}.npy" for name in train_run_ids]
+train_acc_paths = [MODEL_ACC_PATH / f"{name}.npy" for name in train_run_ids]
+train_slope_paths = [MODEL_SLOPE_PATH / f"{name}.npy" for name in train_run_ids]
+train_curvature_paths = [MODEL_CURV_PATH / f"{name}.npy" for name in train_run_ids]
+if not RECALCULATE_STATS:
+    with open(MODEL_STATS_PATH, 'r') as f:
+        statistics = json.load(f)
+else:
+    statistics = {}
+data_types = {'dem': train_dem_paths, 'accumulation': train_acc_paths, 'slope': train_slope_paths, 'curvature': train_curvature_paths}
+for data_type in data_types.keys():
+    if RECALCULATE_STATS or data_type not in statistics:
+        statistics[data_type] = get_array_statistics(data_types[data_type], MODEL_ARRAY_CROP)
 #+end_src
 
 Lastly, we need the statistics of the labels we will train the network to infer.

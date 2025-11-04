@@ -4,6 +4,7 @@ import numpy as np
 from torch.utils.data import Dataset
 from torchvision.transforms import ToTensor, Lambda
 import torch
+import pathlib
 
 class SineTopographyDataset(Dataset):
 
@@ -74,9 +75,12 @@ class LandlabBatchDataset(Dataset):
     def __getitem__(self, idx):
         run_name = self.runs[idx]
         if type(self.dataset_dir) == str:
+            dir = pathlib.Path(self.dataset_dir)
             data_paths = [dir / f"{run_name}.npy"]
         data_paths = []
-        for dir in dataset_dir:
+        for dir in data_paths:
+            if type(dir) == str:
+                dir = pathlib.Path(dir)
             data_paths.append(dir/ f"{run_name}.npy")
         self.cursor.execute(f"{self.label_query} WHERE model_run_id = '{run_name}'")
         label = self.cursor.fetchone()[0]
@@ -101,6 +105,7 @@ class LandlabBatchDataset(Dataset):
 def get_dataset_stats(db_path, dataset_dir, filter_query="", trim=5):
     """
     Get the mean and std of the dataset.
+    CURRENTLY BROKEN todo: fix for multi-channel data
     """
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()

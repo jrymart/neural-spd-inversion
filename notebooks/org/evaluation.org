@@ -6,17 +6,21 @@ from train_peclet_model import PecletModelTrainer
 from ThreeLayerCNNRegressor import ThreeLayerCNNRegressor, JumboThreeLayerCNNRegressor
 import json
 
-from config import MODEL_STATS_PATH, DB_PATH, MODEL_DEM_PATH, LABEL_QUERY, OUTPUTS_TABLE, WEIGHTS_PATH, NN_SEEDS
+from config import MODEL_STATS_PATH, DB_PATH, MODEL_DEM_PATH, LABEL_QUERY, OUTPUTS_TABLE, WEIGHTS_PATH, NN_SEEDS, MODEL_ACC_PATH, RESULTS_PATH, NUM_EPOCHS, LEARNING_RATE
 #+end_src
 
 #+begin_src jupyter-python
 with open(MODEL_STATS_PATH, 'r') as f:
-    stats = json.load(f)
+    statistics = json.load(f)
 retrain = False
 data_types = [{'type': 'dem',
                'data_path': MODEL_DEM_PATH},
               {'type': 'accumulation',
-               'data_path': MODEL_ACC_PATH}
+               'data_path': MODEL_ACC_PATH},
+              {'type': 'slope',
+               'data_path': MODEL_SLOPE_PATH},
+              {'type': 'curvature',
+               'data_path': MODEL_CURV_PATH}
                ]
 #+end_src
 
@@ -24,35 +28,58 @@ data_types = [{'type': 'dem',
 for seed in NN_SEEDS:
     for data in data_types:
         torch.manual_seed(seed)
-        weights_path = os.path.join(WEIGHTS_DIR, f"{data['type']_{seed}_weights.pt")
-        trainer = PecletModelTrainer(DB_PATH,
-                                    data['data_path'],
-                                    ThreeLayerCNNRegressor,
-                                    f"SELECT {LABEL_QUERY} FROM {OUTPUTS_TABLE}",
-                                    epochs = 50,
-                                    learning_rate=0.0001,
-                                    ,**stats[data['type']],
-                                    ,**stats['labels'])
-        trainer.load_weights(weights_path)
-        trainer.evaluate()
-        csv_path = os.path.join(RESULTS_DIR, f"{data['type']}_{seed}_results.csv")
-        trainer.test_df.to_csv(csv_path)
+        weights_path = WEIGHTS_PATH / f"{data['type']}_{seed}_weights.pt"
+        if not os.path.exists(weights_path) or retrain:
+            trainer = PecletModelTrainer(DB_PATH,
+                                        data['data_path'],
+                                        ThreeLayerCNNRegressor(),
+                                        LABEL_QUERY,
+                                        epochs = NUM_EPOCHS,
+                                        learning_rate = LEARNING_RATE,
+                                        ,**statistics[data['type']],
+                                        ,**statistics['labels'])
+            trainer.load_weights(weights_path)
+            trainer.evaluate()
+            csv_path = RESULTS_DIR / f"{data['type']}_{seed}_results.csv")
+            trainer.test_df.to_csv(csv_path)
+
+        if data['type']=='dem':
+            for second_data in data_types:
+                weights_path = WEIGHTS_PATH / f"dem_{second_data['type']}_{seed}_weights.pt"
+                if not weights_path.exists() or retrain:
+                    inputs_mean = np.stack([v['inputs_mean'] for k,v in statistics.items() if k in ('dem', second_data['type'])])[:, np.newaxis, np.newaxis]
+                    inputs_std= np.stack([v['inputs_std'] for k,v in statistics.items() if k in ('dem', second_data['type'])])[:, np.newaxis, np.newaxis]
+                    trainer = PecletModelTrainer(DB_PATH,
+                                                 [data['data_path'], second_data['data_path']],
+                                                 ThreeLayerCNNRegressor(channels=2),
+                                                 LABEL_QUERY,
+                                                 epochs = NUM_EPOCHS,
+                                                 learning_rate = LEARNING_RATE,
+                                                 inputs_mean = inputs_mean,
+                                                 inputs_std = inputs_std,
+                                                 ,**statistics['labels']
+                                                 )
+                    trainer.load_weights(weights_path)
+                    trainer.evaluate()
+                    csv_path = RESULTS_DIR / f"dem_{second_data['type']}_{seed}_results.csv}"
+                    trainer.test_df.to_csv(csv_path)
+
 #+end_src
 
 We also train a "jumbo" model with larger layers.
 #+begin_src jupyter-python
-weights_path = os.path.join(WEIGHTS_dir, 'dem_jumbo_run_weights.pt')
+weights_path = WEIGHTS_PATH / 'dem_jumbo_run_weights.pt'
 torch.manual_seed(NN_SEEDS[0])
 traier = PecletModelTrainer(DB_PATH,
                             MODEL_DEM_PATH,
                             JumboThreeLayerCNNRegressor,
-                            f"SELECT {LABEL_QUERY} FROM {OUTPUTS_TABLE}",
-                            epochs = 50,
-                            learning_rate=0.0001,
+                            LABEL_QUERY,
+                            epochs = NUM_EPOCHS,
+                            learning_rate = LEARNING_RATE,
                             ,**stats['dem'],
                             ,**stats['labels'])
 trainer.load_weights(weights_path)
 trainer.evaluate()
-csv_path = os.path.join(RESULTS_DIR, 'dem_jumbo_run_results.pt')
+csv_path = RESULTS_DIR / 'dem_jumbo_run_results.pt')
 trainer.test_df.to_csv(csv_path)
 #+end_src
