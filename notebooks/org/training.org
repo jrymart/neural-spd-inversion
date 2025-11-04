@@ -9,7 +9,7 @@ from train_peclet_model import PecletModelTrainer
 from ThreeLayerCNNRegressor import ThreeLayerCNNRegressor, JumboThreeLayerCNNRegressor
 import json
 
-from config import MODEL_STATS_PATH, DB_PATH, MODEL_DEM_PATH, MODEL_SLOPE_PATH, MODEL_ACC_PATH, MODEL_CURVATURE_PATH, LABEL_QUERY, OUTPUTS_TABLE, WEIGHTS_PATH, NN_SEEDS
+from config import MODEL_STATS_PATH, DB_PATH, MODEL_DEM_PATH, MODEL_SLOPE_PATH, MODEL_ACC_PATH, MODEL_CURV_PATH, LABEL_QUERY, WEIGHTS_PATH, NN_SEEDS
 #+end_src
 
 #+begin_src jupyter-python
@@ -23,7 +23,7 @@ data_types = [{'type': 'dem',
               {'type': 'slope'm
                'data_path': MODEL_SLOPE_PATH},
               {'type': 'curvature',
-               'data_path': MODEL_CURVATURE_PATH}
+               'data_path': MODEL_CURV_PATH}
                ]
 #+end_src
 
@@ -31,7 +31,7 @@ data_types = [{'type': 'dem',
 for seed in NN_SEEDS:
     for data in data_types:
         torch.manual_seed(seed)
-        weights_path = os.path.join(WEIGHTS_DIR, f"{data['type']_{seed}_weights.pt")
+        weights_path = os.path.join(WEIGHTS_DIR, f"{data['type']}_{seed}_weights.pt")
         if not os.path.exists(weights_path) or retrain:
             trainer = PecletModelTrainer(DB_PATH,
                                         data['data_path'],

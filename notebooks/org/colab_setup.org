@@ -7,8 +7,8 @@ This notebook should be run to prepare the colab environment for the training an
 
 !pip install -q -r requirements.txt
 
-!pip install -q -e .
-!pip install -q -e ./lib/landlab_torch_tools
+!pip install -q .
+!pip install -q ./lib/landlab_torch_tools
 #+end_src
 
 All data and analysis are saved to the colab instance which will be deleted automatically when the colab instance is closed.  The files can be downloaded, or saved to google drive.

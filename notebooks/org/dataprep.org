@@ -79,19 +79,19 @@ db_path = pooch.retrieve(url=DB_URL,
 #+end_src
 
 * Processing data for Flow Accumulation, Slope, and Curvature Rasters
-We generate flow accumulation rasters for each model DEM for later analysis
+We generate flow accumulation roasters for each model DEM for later analysis
 #+begin_src jupyter-python
 import numpy as np
 import os
 from landlab import RasterModelGrid
 from landlab.components import FlowAccumulator
-from config import FLOW_METHOD, MODEL_ACC_PATH, MODEL_RESOLUTION, REPROCESS_DATA
+from config import FLOW_METHOD, MODEL_ACC_PATH, MODEL_RESOLUTION, REPROCESS_DATA, MODEL_SLOPE_PATH, MODEL_CURV_PATH
 
 for dem_path in model_dem_paths:
     dem_id = dem_path.stem
-    slope_path = DATA_PATH / MODEL_SLOPE_PATH / f"{dem_id}.npy"
-    curvature_path = DATA_PATH / MODEL_CURV_PATH / f"{dem_id}.npy"
-    acc_path = DATA_PATH / MODEL_ACC_PATH / f"{dem_id}.npy"
+    slope_path = MODEL_SLOPE_PATH / f"{dem_id}.npy"
+    curvature_path = MODEL_CURV_PATH / f"{dem_id}.npy"
+    acc_path = MODEL_ACC_PATH / f"{dem_id}.npy"
     if slope_path.exists() and curvature_path.exists() and acc_path.exists() and not REPROCESS_DATA:
         continue
     dem_array = np.load(dem_path)
@@ -141,7 +141,7 @@ from config import SPLIT_BY_FIELD, TRAINING_FRACTION, PARAM_TABLE, RUN_ID_FIELD,
 #+end_src
 
 We use a parameter in the model parameter database (in this case) the seed to split between
-train and test datasets, so we need to connect to and query the database for runs.
+train and test Datasets, so we need to connect to and query the database for runs.
 #+begin_src jupyter-python
 connection = sqlite3.connect(DB_PATH)
 cursor = connection.cursor()
@@ -168,15 +168,15 @@ Lastly, we need the statistics of the labels we will train the network to infer.
 #+begin_src jupyter-python
 labels = []
 limit = connection.getlimit(sqlite3.SQLITE_LIMIT_VARIABLE_NUMBER)
-for i in range(0, len(model_run_ids), limit):
-    current_chunk_runs = model_run_ids[i:i+limit]
+for i in range(0, len(train_run_ids), limit):
+    current_chunk_runs = train_run_ids[i:i+limit]
     # placeholders are a safe way to programatically construct an SQL query
     placeholders = ', '.join(['?']*len(current_chunk_runs))
     cursor.execute(f"{LABEL_QUERY} WHERE {RUN_ID_FIELD} IN ({placeholders})", current_chunk_runs)
     labels += [l[0] for l in cursor.fetchall()]
 labels = np.array(labels, dtype=np.float64)
-['labels'] = {'labels_mean': np.mean(labels),
+statistics['labels'] = {'labels_mean': np.mean(labels),
                        'labels_std' : np.std(labels)}
 with open(MODEL_STATS_PATH, 'w') as f:
-    json.dump(stats, f)
+    json.dump(statistics, f)
 #+end_src

@@ -66,7 +66,7 @@ class LandlabBatchDataset(Dataset):
         self.labels_mean = labels_mean
         self.labels_std = labels_std
         self.data_transform = transform
-        self.tensor_transform = ToTensor(dtype=torch.float32)
+        #self.tensor_transform = ToTensor(dtype=torch.float32)
 
     def __len__(self):
         return len(self.runs)
@@ -80,7 +80,7 @@ class LandlabBatchDataset(Dataset):
             data_paths.append(dir/ f"{run_name}.npy")
         self.cursor.execute(f"{self.label_query} WHERE model_run_id = '{run_name}'")
         label = self.cursor.fetchone()[0]
-        data_arrays = np.stack([np.load(data_path) for data_path in data_paths])
+        data_array = np.stack([np.load(data_path) for data_path in data_paths])
         if data_array.ndim == 2:
             data_array = data_array.astype(np.float32)[self.trim:-self.trim, self.trim:-self.trim]
         else:
@@ -90,11 +90,11 @@ class LandlabBatchDataset(Dataset):
             label =(label - self.labels_mean) / self.labels_std
         
         # Convert to tensor first
-        data_tensor = self.tensor_transform(data_array)
+        data_tensor = torch.tensor(data_array, dtype=torch.float32)
         
         # Apply data transform (can be a single transform, Compose, or list of transforms)
-        if self.data_transform:
-            data_tensor = self.data_transform(data_tensor)
+        #if self.data_transform:
+        #    data_tensor = self.data_transform(data_tensor)
             
         return data_tensor, torch.tensor(label, dtype=torch.float32)
 
