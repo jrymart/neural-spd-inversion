@@ -52,7 +52,9 @@ class LandlabBatchDataset(Dataset):
         self.db_path = db_path
         self.conn = sqlite3.connect(db_path)
         self.cursor = self.conn.cursor()
-        self.dataset_dir = dataset_dir
+        if type(dataset_dir) is not list:
+            dataset_dir = [dataset_dir]
+        self.dataset_dirs = dataset_dir
         self.label_query = label_query
         self.filter_query = filter_query
         self.cursor.execute(f"SELECT model_run_id FROM model_run_params {self.filter_query}")
@@ -75,10 +77,7 @@ class LandlabBatchDataset(Dataset):
     def __getitem__(self, idx):
         run_name = self.runs[idx]
         data_paths = []
-        if type(self.dataset_dir) == str:
-            dir = pathlib.Path(self.dataset_dir)
-            data_paths = [dir / f"{run_name}.npy"]
-        for dir in data_paths:
+        for dir in self.dataset_dirs:
             if type(dir) == str:
                 dir = pathlib.Path(dir)
             data_paths.append(dir/ f"{run_name}.npy")
