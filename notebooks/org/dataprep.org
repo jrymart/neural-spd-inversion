@@ -140,7 +140,7 @@ def get_array_statistics(array_paths, crop):
 
 import sqlite3
 import json
-from config import SPLIT_BY_FIELD, TRAINING_FRACTION, PARAM_TABLE, RUN_ID_FIELD, MODEL_DEM_PATH, MODEL_ARRAY_CROP, LABEL_QUERY, OUTPUTS_TABLE, MODEL_STATS_PATH, DB_PATH
+from config import SPLIT_BY_FIELD, TRAINING_FRACTION, PARAM_TABLE, RUN_ID_FIELD, MODEL_DEM_PATH, MODEL_ARRAY_CROP, LABEL_QUERY, OUTPUTS_TABLE, MODEL_STATS_PATH, DB_PATH, RECALCULATE_STATS
 #+end_src
 
 We use a parameter in the model parameter database (in this case) the seed to split between

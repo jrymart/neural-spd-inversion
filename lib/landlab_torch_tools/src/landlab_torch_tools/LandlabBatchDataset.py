@@ -74,10 +74,10 @@ class LandlabBatchDataset(Dataset):
 
     def __getitem__(self, idx):
         run_name = self.runs[idx]
+        data_paths = []
         if type(self.dataset_dir) == str:
             dir = pathlib.Path(self.dataset_dir)
             data_paths = [dir / f"{run_name}.npy"]
-        data_paths = []
         for dir in data_paths:
             if type(dir) == str:
                 dir = pathlib.Path(dir)
