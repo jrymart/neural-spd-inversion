@@ -8,8 +8,23 @@ import torch
 from train_peclet_model import PecletModelTrainer
 from ThreeLayerCNNRegressor import ThreeLayerCNNRegressor, JumboThreeLayerCNNRegressor
 import json
+import os
+import numpy as np
 
 from config import MODEL_STATS_PATH, DB_PATH, MODEL_DEM_PATH, MODEL_SLOPE_PATH, MODEL_ACC_PATH, MODEL_CURV_PATH, LABEL_QUERY, WEIGHTS_PATH, NN_SEEDS, NUM_EPOCHS, LEARNING_RATE, RETRAIN_MODELS
+#+end_src
+
+#+begin_src jupyter-python
+from config import IN_COLAB MODEL_DIM_DIR, MODEL_ACC_DIR, MODEL_LOG_ACC_DIR, MODEL_SLOPE_DIR, MODEL_CURV_DIR, TAR_DIR
+from pathlib import Path
+if IN_COLAB:
+    !cp -r {DATA_PATH} /content/data
+    DATA_PATH = Path("/content/data")
+    MODEL_DEM_PATH = DATA_PATH / MODEL_DEM_DIR / TAR_DIR
+    MODEL_ACC_PATH = DATA_PATH / MODEL_ACC_DIR
+    MODEL_SLOPE_PATH = DATA_PATH / MODEL_SLOPE_DIR
+    MODEL_CURV_PATH = DATA_PATH / MODEL_CURV_DIR
+    MODEL_LOG_ACC_PATH = DATA_PATH / MODEL_LOG_ACC_DIR
 #+end_src
 
 #+begin_src jupyter-python
@@ -20,6 +35,8 @@ data_types = [{'type': 'dem',
                'data_path': MODEL_DEM_PATH},
               {'type': 'accumulation',
                'data_path': MODEL_ACC_PATH},
+              {'type': 'log_accumulation',
+               'data_path': MODEL_LOG_ACC_PATH},
               {'type': 'slope',
                'data_path': MODEL_SLOPE_PATH},
               {'type': 'curvature',
@@ -32,7 +49,7 @@ for seed in NN_SEEDS:
     for data in data_types:
         torch.manual_seed(seed)
         weights_path = WEIGHTS_PATH / f"{data['type']}_{seed}_weights.pt"
-        if not os.path.exists(weights_path) or RETRAIN_MODELS:
+        if not weights_path.exists() or RETRAIN_MODELS:
             trainer = PecletModelTrainer(DB_PATH,
                                         data['data_path'],
                                         ThreeLayerCNNRegressor(),
@@ -63,8 +80,8 @@ for seed in NN_SEEDS:
 
 We also train a "jumbo" model with larger layers.
 #+begin_src jupyter-python
-weights_path = os.path.join(WEIGHTS_dir, 'dem_jumbo_run_weights.pt')
-if not os.path.exists(weights_path) or RETRAIN_MODELS:
+weights_path = WEIGHTS_dir / 'dem_jumbo_run_weights.pt'
+if not weights_path.exists() or RETRAIN_MODELS:
     torch.manual_seed(NN_SEEDS[0])
     trainer = PecletModelTrainer(DB_PATH,
                                 MODEL_DEM_PATH,

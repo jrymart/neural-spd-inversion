@@ -35,6 +35,7 @@ else:
 DB_PATH = DATA_PATH / "model_runs.db"
 MODEL_DEM_DIR = "model_dems"
 MODEL_ACC_DIR = "model_flowaccs"
+MODEL_LOG_ACC_DIR = "model_log_flowaccs"
 MODEL_SLOPE_DIR = "model_slopes"
 MODEL_CURV_DIR = "model_curvatures"
 TAR_DIR = "model_run_topography"
@@ -42,6 +43,7 @@ MODEL_DEM_PATH = os.path.join(DATA_PATH, MODEL_DEM_DIR, TAR_DIR)
 MODEL_STATS_PATH = os.path.join(DATA_PATH, "model_stats.json")
 MODEL_DEM_PATH = DATA_PATH / MODEL_DEM_DIR / "model_run_topography"
 MODEL_ACC_PATH = DATA_PATH / MODEL_ACC_DIR
+MODEL_LOG_ACC_PATH = DATA_PATH / MODEL_LOG_ACC_DIR
 MODEL_SLOPE_PATH = DATA_PATH / MODEL_SLOPE_DIR
 MODEL_CURV_PATH = DATA_PATH / MODEL_CURV_DIR
 CREATE_DIRS = True

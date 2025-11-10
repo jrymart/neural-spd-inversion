@@ -85,7 +85,7 @@ import numpy as np
 import os
 from landlab import RasterModelGrid
 from landlab.components import FlowAccumulator
-from config import FLOW_METHOD, MODEL_ACC_PATH, MODEL_RESOLUTION, REPROCESS_DATA, MODEL_SLOPE_PATH, MODEL_CURV_PATH
+from config import FLOW_METHOD, MODEL_ACC_PATH, MODEL_LOG_ACC_PATH, MODEL_RESOLUTION, REPROCESS_DATA, MODEL_SLOPE_PATH, MODEL_CURV_PATH
 from pathlib import Path
 
 for dem_path in model_dem_paths:
@@ -94,6 +94,7 @@ for dem_path in model_dem_paths:
     slope_path = MODEL_SLOPE_PATH / f"{dem_id}.npy"
     curvature_path = MODEL_CURV_PATH / f"{dem_id}.npy"
     acc_path = MODEL_ACC_PATH / f"{dem_id}.npy"
+    log_acc_path = MODEL_LOG_ACC_PATH / f"{dem_id}".npy
     if slope_path.exists() and curvature_path.exists() and acc_path.exists() and not REPROCESS_DATA:
         continue
     dem_array = np.load(dem_path)
@@ -105,6 +106,8 @@ for dem_path in model_dem_paths:
         # this step is to ensure consistency in processing with real data
         flow_acc_array = grid.at_node["drainage_area"].reshape(grid.shape)
         np.save(acc_path, flow_acc_array)
+        log_acc_array = np.log10(flow_acc_array)
+        np.save(log_ac_path, log_acc_array)
     if not (slope_path.exists() or curvature_path.exists()) or REPROCESS_DATA:
         dz_dy, dz_dx = np.gradient(dem_array, MODEL_RESOLUTION)
     if not slope_path.exists() or REPROCESS_DATA:
@@ -160,12 +163,13 @@ train_dem_paths = [MODEL_DEM_PATH / f"{name}.npy" for name in train_run_ids]
 train_acc_paths = [MODEL_ACC_PATH / f"{name}.npy" for name in train_run_ids]
 train_slope_paths = [MODEL_SLOPE_PATH / f"{name}.npy" for name in train_run_ids]
 train_curvature_paths = [MODEL_CURV_PATH / f"{name}.npy" for name in train_run_ids]
+train_logacc_paths = [MODEL_LOG_ACC_PATH / f"{name}.npy" for name in train_run_ids]
 if not RECALCULATE_STATS:
     with open(MODEL_STATS_PATH, 'r') as f:
         statistics = json.load(f)
 else:
     statistics = {}
-data_types = {'dem': train_dem_paths, 'accumulation': train_acc_paths, 'slope': train_slope_paths, 'curvature': train_curvature_paths}
+data_types = {'dem': train_dem_paths, 'accumulation': train_acc_paths, 'log_accumulation': train_logacc_paths, slope': train_slope_paths, 'curvature': train_curvature_paths}
 for data_type in data_types.keys():
     if RECALCULATE_STATS or data_type not in statistics:
         statistics[data_type] = get_array_statistics(data_types[data_type], MODEL_ARRAY_CROP)
