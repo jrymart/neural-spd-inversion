@@ -1,0 +1,42 @@
+#+title: Performance Baseline
+#+PROPERTY: header-args:python :python /home/jo/micromamba/envs/torchland/bin/python :session perfbaseline
+
+#+begin_src python
+import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
+from plot_style_seaborn import set_style, get_figsize, COLORS, SNS_PALETTE
+#+end_src
+
+#+RESULTS:
+: None
+:results graphics file output :file boxplot.svg
+
+#+begin_src python
+rmse_df = pd.read_csv("../../../analysis/overall_performance.csv")
+rmse_df = rmse_df[rmse_df['value']=="D/K"]
+one_part_df = rmse_df[rmse_df['parts']==1]
+two_part_df = rmse_df[rmse_df['parts']==2]
+def plot_performance(ax):
+    sns.boxplot(data=rmse_df, x="dem_baseline", y="labels",
+                order=['Elevation', 'Slope', 'Curvature', 'Flow Accumulation', '$\\log_{10}(\\text{Flow Accumulation})$', 'Elevation, Elevation', 'Elevation, Slope', 'Elevation, Curvature', 'Elevation, Flow Accumulation'])
+    ax.axvline(0, color='black', linestyle='--', linewidth=1)
+    ax.axhspan(4.5,8, alpha=0.2, color='blue', label='Two Band Inputs')
+    ax.set_ylabel("Input Data")
+    ax.set_xlabel("Performance Change Relative to Elevation (%)")
+#+end_src
+
+#+RESULTS:
+: None
+
+#+begin_src python
+set_style('poster')
+fig, ax = plt.subplots(figsize=get_figsize('poster', aspect_ratio=1.5))
+plot_performance(ax)
+fig.tight_layout()
+fig.savefig('performance.png', bbox_inches='tight', dpi=300, facecolor='white', edgecolor='none')
+plt.close(fig)
+#+end_src
+
+#+RESULTS:
+: None

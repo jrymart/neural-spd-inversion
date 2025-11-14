@@ -1,0 +1,342 @@
+#+title: Analysis
+#+PROPERTY: header-args:python :python /home/jo/micromamba/envs/torchland/bin/python :session sinforms
+
+We want to understand performance of the neural networks, and how these vary across weight initialization and for data input.  To do this we need to load in our test results, and calculate some errors, and control to a baseline.
+#+begin_src python
+import os
+import pandas as pd
+import seaborn as sns
+from sklearn.metrics import root_mean_squared_error
+import matplotlib.pyplot as plt
+from pathlib import Path
+import numpy as np
+#+end_src
+
+#+RESULTS:
+: None
+
+Set up some lists to keep track of error values.
+#+begin_src python
+results_dir = Path("../../results")
+dfs = []
+nrmses = []
+rmses = []
+seeds = []
+datas = []
+count = []
+values = []
+mean_perc_errs = []
+mean_perc_errs_std = []
+#+end_src
+
+#+RESULTS:
+: None
+
+Now load every file (that is specific network performance) both to merge them together, and to calculate error.
+#+begin_src python
+for f in os.listdir(results_dir):
+    if f.endswith('.csv') is False:
+        continue
+    parts = f.split('_')
+    seed = parts[-2]
+    data = '_'.join(parts[:-2])
+    df = pd.read_csv(results_dir / f)
+    df['seed'] = [seed]*len(df)
+    df['data'] = [data]*len(df)
+    df['values'] = ["D/K"]*len(df)
+    df['parts'] = [len(parts[:-2])]*len(df)
+    count.append(len(parts[:-2]))
+    dfs.append(df)
+    perc_err = np.abs(df['true_labels'] - df['predictions'])/df['true_labels']
+    mean_perc_err = np.mean(perc_err)
+    mean_perc_err_std = np.std(perc_err)
+    mean_perc_errs.append(mean_perc_err)
+    mean_perc_errs_std.append(mean_perc_err_std)
+    rmse = root_mean_squared_error(df['true_labels'], df['predictions'])
+    rmses.append(rmse)
+    nrmse = rmse/(np.ptp(df['true_labels']))
+    nrmses.append(nrmse)
+    seeds.append(seed)
+    datas.append(data)
+    values.append("D/K")
+#+END_SRC
+
+#+RESULTS:
+: None
+#+begin_src python
+for f in os.listdir(results_dir / "KD_results"):
+    if f.endswith('.csv') is False:
+        continue
+    parts = f.split('_')
+    seed = parts[-2]
+    data = '_'.join(parts[:-2])
+    df = pd.read_csv(results_dir / "KD_results" / f)
+    df['seed'] = [seed]*len(df)
+    df['data'] = [data]*len(df)
+    df['value'] = ["K/D"]*len(df)
+    df['parts'] = [len(parts[:-2])]*len(df)
+    count.append(len(parts[:-2]))
+    dfs.append(df)
+    perc_err = np.abs(df['true_labels'] - df['predictions'])/df['true_labels']
+    mean_perc_err = np.mean(perc_err)
+    mean_perc_err_std = np.std(perc_err)
+    mean_perc_errs.append(mean_perc_err)
+    mean_perc_errs_std.append(mean_perc_err_std)
+    rmse = root_mean_squared_error(df['true_labels'], df['predictions'])
+    rmses.append(rmse)
+    nrmse = rmse/(np.ptp(df['true_labels']))
+    nrmses.append(nrmse)
+    seeds.append(seed)
+    datas.append(data)
+    values.append("K/D")
+#+END_SRC
+
+#+RESULTS:
+: None
+
+Now create our dataframes for analysis
+#+BEGIN_SRC python
+all_df = pd.concat(dfs)
+rmse_df = pd.DataFrame({
+    'data': datas,
+    'seed': seeds,
+    'nrmse': nrmses,
+    'rmse': rmses,
+    'parts': count,
+    'mean_perc_err': mean_perc_errs,
+    'mean_perc_err_std': mean_perc_errs_std,
+    'value': values
+})
+label_map = {'dem': 'Elevation',
+         'slope': 'Slope',
+         'curvature': 'Curvature',
+         'accumulation': 'Flow Accumulation',
+         'logaccumulation': '$\\log_{10}(\\text{Flow Accumulation})$',
+         'dem_dem': 'Elevation, Elevation',
+         'dem_slope': 'Elevation, Slope',
+         'dem_curvature': 'Elevation, Curvature',
+         'dem_accumulation': 'Elevation, Flow Accumulation'}
+rmse_df['labels'] = rmse_df['data'].map(label_map)
+all_df['labels'] = all_df['data'].map(label_map)
+dem_1part = rmse_df[(rmse_df['data'] == 'dem') & (rmse_df['parts'] == 1)]['nrmse'].mean()
+dem_2part = rmse_df[(rmse_df['data'] == 'dem_dem') & (rmse_df['parts'] == 2)]['nrmse'].mean()
+#+end_src
+
+#+RESULTS:
+
+Now we use the DEM based network, and the DEMx2 based networks as baselines.
+#+begin_src python
+# Calculate percentage improvements for all models
+dem_baseline = rmse_df[(rmse_df['data'] == 'dem') & (rmse_df['parts'] == 1) & (rmse_df['value']=="D/K")]['nrmse'].mean()
+dem_dem_baseline = rmse_df[(rmse_df['data'] == 'dem_dem') & (rmse_df['parts'] == 2) & rmse_df['value']=="D/K"]['nrmse'].mean()
+baseline_names = ['dem_baseline', 'dem_dem_baseline']
+baselines = [dem_baseline, dem_dem_baseline]
+improvements = [[] for _ in baselines]
+for index, row in rmse_df.iterrows():
+    parts = row['parts']
+    nrmse = row['nrmse']
+    for i, baseline in enumerate(baselines):
+        improvements[i].append((baseline-nrmse)/baseline*100)
+
+for i, name in enumerate(baseline_names):
+    rmse_df[name] = improvements[i]
+#+end_src
+
+#+RESULTS:
+
+Now we save the dataframes for plotting later.
+
+#+begin_src python
+from pathlib import Path
+analysis_dir = Path("../../analysis")
+analysis_dir.mkdir(exist_ok=True)
+rmse_path = analysis_dir / "overall_performance.csv"
+rmse_df.to_csv(rmse_path)
+test_path = analysis_dir / "all_test_performance.csv"
+all_df.to_csv(test_path)
+#+end_src
+
+#+RESULTS:
+
+error_fig, ax = plt.subplots(figsize=(8, 6))
+ax.bar(rmse_df['data'], rmse_df['mean_perc_err'], yerr=rmse_df['mean_perc_err_std'], capsize=5)
+ax.set_ylabel('Mean Percentage Error (%)')
+ax.set_title('Mean Percentage Error by Model Type')
+error_fig.tight_layout()
+error_fig.show()
+error_fig.savefig("../../results/figures/mean_percentage_error.png", dpi=300)
+
+
+improvement_fig, axs = plt.subplots(1, 2, figsize=(12, 6))
+ax1, ax2 = axs
+p1_sorted_idx = np.argsort(p1_improvements)
+p1_improvements = [p1_improvements[i] for i in p1_sorted_idx]
+p1_lower_errors = [p1_lower_errors[i] for i in p1_sorted_idx]
+p1_upper_errors = [p1_upper_errors[i] for i in p1_sorted_idx]
+p1_labels = [p1_labels[i] for i in p1_sorted_idx]
+
+ax1.barh(p1_labels, p1_improvements, xerr=[p1_lower_errors, p1_upper_errors], capsize=5)
+ax1.axvline(0, color='black', linestyle='--', linewidth=1)
+ax1.set_xlabel('% Improvement over Baseline')
+ax1.set_title('Performance Improvement vs Baseline DEM Model')
+ax1.grid(axis='x', alpha=0.3)
+
+p2_sorted_idx = np.argsort(p2_improvements)
+p2_improvements = [p2_improvements[i] for i in p2_sorted_idx]
+p2_lower_errors = [p2_lower_errors[i] for i in p2_sorted_idx]
+p2_upper_errors = [p2_upper_errors[i] for i in p2_sorted_idx]
+p2_labels = [p2_labels[i] for i in p2_sorted_idx]
+
+ax2.barh(p2_labels, p2_improvements, xerr=[p2_lower_errors, p2_upper_errors], capsize=5)
+ax2.axvline(0, color='black', linestyle='--', linewidth=1)
+ax2.set_xlabel('% Improvement over Baseline')
+ax2.set_title('Performance Improvement vs Baseline DEM Model')
+ax2.grid(axis='x', alpha=0.3)
+improvement_fig.tight_layout()
+improvement_fig.show()
+
+raw_performance_fig, axs = plt.subplots(1, 2, figsize=(14, 6))
+
+# 1-part models
+part1_data = all_df[all_df['parts'] == 1]
+sns.scatterplot(data=part1_data, x='true_labels', y='predictions',
+                hue='data', style='seed', alpha=0.5, s=20, ax=axs[0])
+
+axs[0].set_xscale('log')
+axs[0].set_yscale('log')
+axs[0].set_xlabel('True D/K (log scale)')
+axs[0].set_ylabel('Predicted D/K (log scale)')
+axs[0].set_title('1-Part Model Predictions')
+axs[0].legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+axs[0].grid(alpha=0.3)
+# Add 1:1 line
+min_val = min(part1_data['true_labels'].min(), part1_data['predictions'].min())
+max_val = max(part1_data['true_labels'].max(), part1_data['predictions'].max())
+axs[0].plot([min_val, max_val], [min_val, max_val], 'k--', linewidth=2, label='1:1 line')#, zorder=0)
+# histogram of data in background
+ax02 = axs[0].twinx()
+ax02.hist(part1_data['true_labels'], bins=50, color='gray', alpha=0.3)
+
+# 2-part models
+part2_data = all_df[all_df['parts'] == 2]
+sns.scatterplot(data=part2_data, x='true_labels', y='predictions',
+                hue='data', style='seed', alpha=0.5, s=20, ax=axs[1])
+
+axs[1].set_xscale('log')
+axs[1].set_yscale('log')
+axs[1].set_xlabel('True D/K (log scale)')
+axs[1].set_ylabel('Predicted D/K (log scale)')
+axs[1].set_title('2-Part Model Predictions')
+axs[1].legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+axs[1].grid(alpha=0.3)
+# Add 1:1 line
+min_val = min(part2_data['true_labels'].min(), part2_data['predictions'].min())
+max_val = max(part2_data['true_labels'].max(), part2_data['predictions'].max())
+axs[1].plot([min_val, max_val], [min_val, max_val], 'k--', linewidth=2, label='1:1 line')#, zorder=0)
+ax12 = axs[1].twinx()
+ax12.hist(part2_data['true_labels'], bins=50, color='gray', alpha=0.3)
+
+
+
+raw_performance_fig.tight_layout()
+raw_performance_fig.show()
+
+def moving_window_nrmse(y_true, y_pred, window_frac=0.2):
+    """Calculate NRMSE in a moving window along sorted true values"""
+    sorted_idx = np.argsort(y_true)
+    y_true_sorted = y_true[sorted_idx]
+    y_pred_sorted = y_pred[sorted_idx]
+
+    window_size = int(len(y_true) * window_frac)
+    nrmses = []
+    centers = []
+
+    for i in range(len(y_true) - window_size):
+        window_true = y_true_sorted[i:i+window_size]
+        window_pred = y_pred_sorted[i:i+window_size]
+
+        rmse = root_mean_squared_error(window_true, window_pred)#np.sqrt(np.mean((window_true - window_pred)**2))
+        nrmse = rmse / np.ptp(window_true)
+
+        nrmses.append(nrmse)
+        centers.append(np.mean(window_true))
+
+    return np.array(centers), np.array(nrmses)
+
+window_nrmse_fig, (ax5, ax6) = plt.subplots(1, 2, figsize=(14, 6))
+one_part_data = all_df[all_df['parts'] == 1]
+for data_type in sorted(one_part_data['data'].unique()):
+    data_subset = all_df[all_df['data'] == data_type]
+
+    # Calculate for each seed and average
+    all_centers = []
+    all_nrmses = []
+
+    for seed in data_subset['seed'].unique():
+        seed_data = data_subset[data_subset['seed'] == seed]
+        centers, nrmses = moving_window_nrmse(
+            seed_data['true_labels'].values,
+            seed_data['predictions'].values,
+            window_frac=0.1
+        )
+        all_centers.append(centers)
+        all_nrmses.append(nrmses)
+
+    # Average across seeds (they should have same length if same dataset)
+    if len(all_nrmses) > 0:
+        mean_nrmse = np.mean(all_nrmses, axis=0)
+        mean_centers = np.mean(all_centers, axis=0)
+
+        ax5.plot(mean_centers, mean_nrmse, linewidth=2, label=data_type)
+
+ax5.set_xlabel('True D/K Value')
+ax5.set_ylabel('Local NRMSE')
+ax5.set_title('Rolling NRMSE: 1-Part Models')
+ax5.legend()
+ax5.grid(alpha=0.3)
+
+# 2-part models rolling NRMSE
+two_part_data = all_df[all_df['parts'] == 2]
+for data_type in sorted(two_part_data['data'].unique()):
+    data_subset = all_df[all_df['data'] == data_type]
+
+    # Calculate for each seed and average
+    all_centers = []
+    all_nrmses = []
+
+    for seed in data_subset['seed'].unique():
+        seed_data = data_subset[data_subset['seed'] == seed]
+        centers, nrmses = moving_window_nrmse(
+            seed_data['true_labels'].values,
+            seed_data['predictions'].values,
+            window_frac=0.1
+        )
+        all_centers.append(centers)
+        all_nrmses.append(nrmses)
+
+    # Average across seeds
+    if len(all_nrmses) > 0:
+        mean_nrmse = np.mean(all_nrmses, axis=0)
+        mean_centers = np.mean(all_centers, axis=0)
+
+        ax6.plot(mean_centers, mean_nrmse, linewidth=2, label=data_type)
+
+ax6.set_xlabel('True D/K Value')
+ax6.set_ylabel('Local NRMSE')
+ax6.set_title('Rolling NRMSE: 2-Part Models')
+ax6.legend()
+ax6.grid(alpha=0.3)
+ax5.set_xscale('log')
+ax6.set_xscale('log')
+
+window_nrmse_fig.tight_layout()
+window_nrmse_fig.show()
+
+improvement_fig.savefig("../../results/figures/improvement_over_baseline.png", dpi=300)
+raw_performance_fig.savefig("../../results/figures/raw_performance_scatter.png", dpi=300)
+window_nrmse_fig.savefig("../../results/figures/rolling_nrmse.png", dpi=300)
+
+
+#+end_src
+
+#+RESULTS:

@@ -1,0 +1,74 @@
+#+title: Sine Landscapes
+#+PROPERTY: header-args:python :python /home/jo/micromamba/envs/neural-spd-inversion/bin/python :session sineforms
+
+To test what the network has learned about valley spacing we see what patterns, if any, exist in the performance of the network when given a series of "landscapes" that are really 2d sine waves with various periods.
+
+#+begin_src python
+from landlab_torch_tools import SineTopographyDataset
+from matplotlib import pyplot as plt
+#+end_src
+
+#+RESULTS:
+: None
+
+#+begin_src python :results graphics file output :file sine_topography_example.svg
+sineset = SineTopographyDataset(90, 290, 'y')
+fig, axs = plt.subplots(1,2)
+v0 = axs[0].imshow(sineset[0][0].squeeze(), cmap='gray', extent=(0,90*5,0,290*5))
+axs[0].set_title(f"Valley Spacing {(290*5)/sineset[0][1]:.0f} m")
+v1 = axs[1].imshow(sineset[10][0].squeeze(), cmap='gray', extent=(0,90*5,0,290*5))
+axs[1].set_title(f"Valley Spacing {(290*5)/sineset[10][1]:.0f} m")
+fig.colorbar(v0, ax=axs[0])
+fig.colorbar(v1, ax=axs[1])
+
+#+end_src
+
+#+RESULTS:
+[[file:sine_topography_example.svg]]
+#+begin_src python
+from ThreeLayerCNNRegressor import ThreeLayerCNNRegressor
+import json
+import torch
+from torch.utils.data import DataLoader
+import numpy as np
+#+end_src
+
+#+RESULTS:
+: None
+
+#+begin_src python
+MODEL_STATS_PATH = "../../model_stats.json"
+DEM_WEIGHT_PATH = "../../weights/dem_10_weights.pt"
+with open(MODEL_STATS_PATH, 'r') as f:
+    stats = json.load(f)
+labels_mean = stats['labels']['labels_mean']
+labels_std = stats['labels']['labels_std']
+
+model = ThreeLayerCNNRegressor()
+model.load_state_dict(torch.load(DEM_WEIGHT_PATH))
+loader = DataLoader(sineset, 64, shuffle=False)
+model.eval()
+valleys = []
+norm_labels = []
+with torch.no_grad():
+    for i, (data, valley) in enumerate(loader):
+        data = data.float()
+        valley = valley.float()
+        norm_label = model(data)
+        valleys += valley
+        norm_labels += norm_label
+labels = [l*labels_std + labels_mean for l in norm_labels]
+valley_spacing = (290*5)/np.array(valleys)
+#+end_src
+
+#+RESULTS:
+: None
+
+#+begin_src python :results graphics file output :file sine_performance.png
+plt.scatter(valley_spacing, labels)
+plt.xlabel('valley spacing')
+plt.ylabel('D/K')
+#+end_src
+
+#+RESULTS:
+[[file:sine_performance.png]]

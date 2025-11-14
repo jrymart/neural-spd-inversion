@@ -1,0 +1,59 @@
+#+title: Raw Performance
+
+#+PROPERTY: header-args:python :python /home/jo/micromamba/envs/torchland/bin/python :session rawperf
+
+#+begin_src python
+import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
+import numpy as np
+#+end_src
+
+#+RESULTS:
+: None
+
+#+begin_src python
+all_df = pd.read_csv("../../../analysis/all_test_performance.csv")
+all_df['log_true'] = np.log10(all_df['true_labels'])
+all_df['log_pred'] = np.log10(all_df['predictions'])
+one_part_df = all_df[all_df['parts']==1]
+two_part_df = all_df[all_df['parts']==2]
+all_df_filtered = all_df[all_df['log_pred']>0]
+outliers_removed = len(all_df) - len(all_df_filtered)
+outlier_counts = dict(all_df[all_df['log_pred']<=0]['data'].value_counts())
+min_val = np.min([all_df_filtered['log_true'].min(), all_df_filtered['log_pred'].min()])
+max_val = np.max([all_df_filtered['log_true'].max(), all_df_filtered['log_pred'].max()])
+#+end_src
+
+#+RESULTS:
+: None
+
+#+begin_src python
+def add_histogram(x,y, **kwargs):
+    ax = plt.gca()
+    ax2 = ax.twinx()
+    ax2.hist(x, bins=30, alpha=0.1)#, bins=bins, color=COLORS['histogram'], alpha=0.6)
+#+end_src
+
+#+RESULTS:
+: None
+
+#+begin_src python
+g = sns.FacetGrid(all_df_filtered, col='true_labels', col_wrap=5, height=3)
+g.map(add_histogram, 'log_true', 'log_pred')
+g.map(sns.kdeplot, 'log_true', 'log_pred', levels=5, color='red',fill=True, alpha=0.9)#, alpha=0.5)
+g.map(plt.scatter, 'log_true', 'log_pred', alpha=0.01, s=.1, color='black')
+g.map(lambda **kwargs: plt.plot([min_val, max_val], [min_val, max_val], ls='--', c='gray'))
+#, bins=30, cmin=1, cmap='Blues', alpha=0.6)
+
+facet_datas = [d[1]['data'].iloc[0] for d in g.facet_data()]
+for i, ax in enumerate(g.axes.flat):
+    data_name = facet_datas[i]
+    count = outlier_counts.get(data_name, 0)
+    if count>0:
+        ax.text(0.05, 0.95, f"{count} outliers removed for visibility", transform=ax.transAxes,
+                verticalalignment='top', fontsize=8)
+g.savefig("raw_performance_kde.svg")
+#+end_src
+
+#+RESULTS:

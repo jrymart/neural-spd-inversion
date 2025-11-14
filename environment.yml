@@ -10,6 +10,8 @@ dependencies:
     - pytorch
     - pandas
     - matplotlib
+    - seaborn
+    - scikit-learn
     - pip
     - pip:
       - -e .
