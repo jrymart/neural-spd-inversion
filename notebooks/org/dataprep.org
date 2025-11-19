@@ -78,46 +78,41 @@ db_path = pooch.retrieve(url=DB_URL,
                            path=DATA_PATH)
 #+end_src
 
+
+
+* Noiseing the dataset
+We also want to add noise to the dataset to see how that impacts performance and across different metrics
+
+#+begin_src python
+import numpy as np
+from pathlib import Path
+from config import NOISE_LEVELS, DATA_PATH, MODEL_DEM_DIR
+model_dem_paths = [Path(path) for path in model_dem_paths]
+for noise in NOISE_LEVELS:
+    new_dem_dir = DATA_PATH / str(noise).replace('.', '_') / MODEL_DEM_DIR
+    if noise == 0:
+        !cp -r model_dem_paths[0].anchor new_dem_dir
+        continue
+    for dem_path in model_dem_paths:
+        dem_path = Path(dem_path)
+        dem_array = np.load(dem_path)
+        dem_noisy = dem_array + np.random.normal(0, noise, dem_array.shape)
+        noise_path = new_dem_dir / dem_path.name
+#+end_src
+
 * Processing data for Flow Accumulation, Slope, and Curvature Rasters
 We generate flow accumulation roasters for each model DEM for later analysis
 #+begin_src jupyter-python
 import numpy as np
 import os
-from landlab import RasterModelGrid
-from landlab.components import FlowAccumulator
-from config import FLOW_METHOD, MODEL_ACC_PATH, MODEL_LOG_ACC_PATH, MODEL_RESOLUTION, REPROCESS_DATA, MODEL_SLOPE_PATH, MODEL_CURV_PATH
-from pathlib import Path
-
-for dem_path in model_dem_paths:
-    dem_path = Path(dem_path)
-    dem_id = dem_path.stem
-    slope_path = MODEL_SLOPE_PATH / f"{dem_id}.npy"
-    curvature_path = MODEL_CURV_PATH / f"{dem_id}.npy"
-    acc_path = MODEL_ACC_PATH / f"{dem_id}.npy"
-    log_acc_path = MODEL_LOG_ACC_PATH / f"{dem_id}".npy
-    if slope_path.exists() and curvature_path.exists() and acc_path.exists() and not REPROCESS_DATA:
-        continue
-    dem_array = np.load(dem_path)
-    if not acc_path.exists() or REPROCESS_DATA:
-        grid = RasterModelGrid(dem_array.shape, MODEL_RESOLUTION)
-        grid.add_field("node", "topographic__elevation", dem_array, units="m")
-        accumulator = FlowAccumulator(grid, flow_director = FLOW_METHOD)
-        accumulator.run_one_step()
-        # this step is to ensure consistency in processing with real data
-        flow_acc_array = grid.at_node["drainage_area"].reshape(grid.shape)
-        np.save(acc_path, flow_acc_array)
-        log_acc_array = np.log10(flow_acc_array)
-        np.save(log_ac_path, log_acc_array)
-    if not (slope_path.exists() or curvature_path.exists()) or REPROCESS_DATA:
-        dz_dy, dz_dx = np.gradient(dem_array, MODEL_RESOLUTION)
-    if not slope_path.exists() or REPROCESS_DATA:
-        slope = np.sqrt(dz_dx**2+dz_dy**2)
-        np.save(slope_path, slope)
-    if not curvature_path.exists() or REPROCESS_DATA:
-        dz_xy, dz_xx = np.gradient(dz_dx, MODEL_RESOLUTION)
-        dz_yy, dz_yx = np.gradient(dz_dy, MODEL_RESOLUTION)
-        laplacian = dz_xx+dz_yy
-        np.save(curvature_path, laplacian)
+from config import TOPO_DERIVATIVES, REPROCESS_DATA
+for noise, derivative, dem_path in product(NOISE_LEVELS, TOPO_DERIVATIVES, model_dem_path):
+    derivative_name, deriviative_function = derivative
+    derivative_path = DATA_PATH / str(noise).replace('.', '_') / derivative_name / dem_path.name
+    if (not derivative_path.exists()) or REPROCESS_DATA:
+        dem_array = np.load(dem_path)
+        derivative = derivative_function(dem_array)
+        np.save(derivative_path, derivative)
 #+end_src
 
 #+RESULTS:
@@ -140,15 +135,12 @@ def get_array_statistics(array_paths, crop):
     variance = (array_total_sum_sq / array_total_count) - np.square(array_mean)
     array_std = np.sqrt(variance)
     return {'inputs_mean': array_mean, 'inputs_std': array_std}
-
 import sqlite3
 import json
 from config import SPLIT_BY_FIELD, TRAINING_FRACTION, PARAM_TABLE, RUN_ID_FIELD, MODEL_DEM_PATH, MODEL_ARRAY_CROP, LABEL_QUERY, OUTPUTS_TABLE, MODEL_STATS_PATH, DB_PATH, RECALCULATE_STATS
 #+end_src
 
-We use a parameter in the model parameter database (in this case) the seed to split between
-train and test Datasets, so we need to connect to and query the database for runs.
-#+begin_src jupyter-python
+#+begin_src python
 connection = sqlite3.connect(DB_PATH)
 cursor = connection.cursor()
 cursor.execute(f"SELECT DISTINCT \"{SPLIT_BY_FIELD}\" FROM {PARAM_TABLE}")
@@ -158,36 +150,46 @@ train_categories = categories[:split]
 train_filter = f"\"{SPLIT_BY_FIELD}\" IN ({', '.join([str(c) for c in train_categories])})"
 cursor.execute(f"SELECT {RUN_ID_FIELD} FROM {PARAM_TABLE} WHERE {train_filter}")
 train_run_ids = [r[0] for r in cursor.fetchall()]
-# TODO don't need need to join, can import path dirm fix names also
-train_dem_paths = [MODEL_DEM_PATH / f"{name}.npy" for name in train_run_ids]
-train_acc_paths = [MODEL_ACC_PATH / f"{name}.npy" for name in train_run_ids]
-train_slope_paths = [MODEL_SLOPE_PATH / f"{name}.npy" for name in train_run_ids]
-train_curvature_paths = [MODEL_CURV_PATH / f"{name}.npy" for name in train_run_ids]
-train_logacc_paths = [MODEL_LOG_ACC_PATH / f"{name}.npy" for name in train_run_ids]
+#+end_src
+
+#+begin_src python
 if not RECALCULATE_STATS:
     with open(MODEL_STATS_PATH, 'r') as f:
         statistics = json.load(f)
 else:
     statistics = {}
-data_types = {'dem': train_dem_paths, 'accumulation': train_acc_paths, 'log_accumulation': train_logacc_paths, slope': train_slope_paths, 'curvature': train_curvature_paths}
-for data_type in data_types.keys():
-    if RECALCULATE_STATS or data_type not in statistics:
-        statistics[data_type] = get_array_statistics(data_types[data_type], MODEL_ARRAY_CROP)
+datasets = TOPOGRAPHIC_DERIVATIVES + [MODEL_DEM_DIR]
+for noise in NOISE_LEVELS:
+    noise = str(noise).replace('.', '_')
+    if noise not in statistics:
+        statistics[noise] = {}
+    noise_stats = statistics[noise]
+    for derivative, derivative_f in TOPOGRAPHIC_DERIVATIVES:
+        if derivative not in statistics:
+            dataset_path = DATA_PATH / noise / deriviative
+            dataset_paths = [dataset_path / f"{name}.npy" for name in train_run_ids]
+            noise_stats[derivative] = get_array_statistics(dataset_paths,MODEL_ARRAY_CROP)
+
 #+end_src
+
+We use a parameter in the model parameter database (in this case) the seed to split between
+train and test Datasets, so we need to connect to and query the database for runs.
 
 Lastly, we need the statistics of the labels we will train the network to infer.
 #+begin_src jupyter-python
-labels = []
+from config import LABELS
 limit = connection.getlimit(sqlite3.SQLITE_LIMIT_VARIABLE_NUMBER)
-for i in range(0, len(train_run_ids), limit):
-    current_chunk_runs = train_run_ids[i:i+limit]
-    # placeholders are a safe way to programatically construct an SQL query
-    placeholders = ', '.join(['?']*len(current_chunk_runs))
-    cursor.execute(f"{LABEL_QUERY} WHERE {RUN_ID_FIELD} IN ({placeholders})", current_chunk_runs)
-    labels += [l[0] for l in cursor.fetchall()]
-labels = np.array(labels, dtype=np.float64)
-statistics['labels'] = {'labels_mean': np.mean(labels),
-                       'labels_std' : np.std(labels)}
+for label_name, label_query in LABELS.items():
+    label_values = []
+    for i in range(0, len(train_run_ids), limit):
+        current_chunk_runs = train_run_ids[i:i+limit]
+        # placeholders are a safe way to programatically construct an SQL query
+        placeholders = ', '.join(['?']*len(current_chunk_runs))
+        cursor.execute(f"{LABEL_QUERY} WHERE {RUN_ID_FIELD} IN ({placeholders})", current_chunk_runs)
+        label_values += [l[0] for l in cursor.fetchall()]
+    label_values = np.array(label_values, dtype=np.float64)
+    statistics[label_name] = {'labels_mean': np.mean(label_values),
+                        'labels_std' : np.std(label_values)}
 with open(MODEL_STATS_PATH, 'w') as f:
     json.dump(statistics, f)
 #+end_src

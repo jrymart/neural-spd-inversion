@@ -20,36 +20,22 @@ from pathlib import Path
 if IN_COLAB:
     !cp -r {DATA_PATH} /content/data
     DATA_PATH = Path("/content/data")
-    MODEL_DEM_PATH = DATA_PATH / MODEL_DEM_DIR / TAR_DIR
-    MODEL_ACC_PATH = DATA_PATH / MODEL_ACC_DIR
-    MODEL_SLOPE_PATH = DATA_PATH / MODEL_SLOPE_DIR
-    MODEL_CURV_PATH = DATA_PATH / MODEL_CURV_DIR
-    MODEL_LOG_ACC_PATH = DATA_PATH / MODEL_LOG_ACC_DIR
 #+end_src
 
 #+begin_src jupyter-python
 with open(MODEL_STATS_PATH, 'r') as f:
     statistics = json.load(f)
-retrain = False
-data_types = [{'type': 'dem',
-               'data_path': MODEL_DEM_PATH},
-              {'type': 'accumulation',
-               'data_path': MODEL_ACC_PATH},
-              {'type': 'log_accumulation',
-               'data_path': MODEL_LOG_ACC_PATH},
-              {'type': 'slope',
-               'data_path': MODEL_SLOPE_PATH},
-              {'type': 'curvature',
-               'data_path': MODEL_CURV_PATH}
-               ]
 #+end_src
 
 #+begin_src jupyter-python
-for seed in NN_SEEDS:
-    for data in data_types:
+for seed, noise, data_type, label in product(SEEDS, NOISE, DATA_TYPES, LABELS.items):
+        label_key, label_query = label
         torch.manual_seed(seed)
-        weights_path = WEIGHTS_PATH / f"{data['type']}_{seed}_weights.pt"
+        weights_path = WEIGHTS_PATH / f"n{noise.replace('.','_')}_{data_type}_{seed}_{label_key}_weights.pt"
+        dataset_path = DATA_PATH / str(noise).replace('.','_') / data_type
         if not weights_path.exists() or RETRAIN_MODELS:
+            label_stats = statistics[label_key]
+            data_stats = statistics[str(noise).replace('.','_')][data_type]
             trainer = PecletModelTrainer(DB_PATH,
                                         data['data_path'],
                                         ThreeLayerCNNRegressor(),
@@ -60,22 +46,22 @@ for seed in NN_SEEDS:
                                         ,**statistics['labels'])
             trainer.train()
             trainer.save_weights(weights_path)
-        if data['type']=='dem':
-            for second_data in data_types:
-                weights_path = WEIGHTS_PATH / f"dem_{second_data['type']}_{seed}_weights.pt"
-                if not weights_path.exists() or RETRAIN_MODELS:
-                    inputs_mean = np.stack([v['inputs_mean'] for k,v in statistics.items() if k in ('dem', second_data['type'])])[:, np.newaxis, np.newaxis]
-                    inputs_std= np.stack([v['inputs_std'] for k,v in statistics.items() if k in ('dem', second_data['type'])])[:, np.newaxis, np.newaxis]
-                    trainer = PecletModelTrainer(DB_PATH,
-                                                 [data['data_path'], second_data['data_path']],
-                                                 ThreeLayerCNNRegressor(channels=2),
-                                                 LABEL_QUERY,
-                                                 epochs = NUM_EPOCHS,
-                                                 learning_rate = LEARNING_RATE,
-                                                 inputs_mean = inputs_mean,
-                                                 inputs_std = inputs_std,
-                                                 **statistics['labels']
-                                                 )
+        # if data['type']=='dem':
+        #     for second_data in data_types:
+        #         weights_path = WEIGHTS_PATH / f"dem_{second_data['type']}_{seed}_weights.pt"
+        #         if not weights_path.exists() or RETRAIN_MODELS:
+        #             inputs_mean = np.stack([v['inputs_mean'] for k,v in statistics.items() if k in ('dem', second_data['type'])])[:, np.newaxis, np.newaxis]
+        #             inputs_std= np.stack([v['inputs_std'] for k,v in statistics.items() if k in ('dem', second_data['type'])])[:, np.newaxis, np.newaxis]
+        #             trainer = PecletModelTrainer(DB_PATH,
+        #                                          [data['data_path'], second_data['data_path']],
+        #                                          ThreeLayerCNNRegressor(channels=2),
+        #                                          LABEL_QUERY,
+        #                                          epochs = NUM_EPOCHS,
+        #                                          learning_rate = LEARNING_RATE,
+        #                                          inputs_mean = inputs_mean,
+        #                                          inputs_std = inputs_std,
+        #                                          **statistics['labels']
+        #                                          )
 #+end_src
 
 We also train a "jumbo" model with larger layers.

@@ -1,5 +1,8 @@
 from pathlib import Path
 import os
+from topographic_derivatives import slope, curvature, flow_accumulation
+import numpy as np
+from itertools import product
 
 # REPROCESSING SETTINGS
 REPROCESS_DATA = False
@@ -32,8 +35,25 @@ else:
     WEIGHTS_PATH = PROJECT_ROOT / "model_weights"
     RESULTS_PATH = PROJECT_ROOT / "results"
 
-DB_PATH = DATA_PATH / "model_runs.db"
+NOISE_LEVELS = [0,0.1]
+TOPO_DERIVATIVES = {
+                    'slope': slope,
+                    'curvature': curvature,
+                    'flow_accumulation': lambda x: flow_accumulation(x, MODEL_RESOLUTION, FLOW_METHOD),
+                    'log10_flow_accumulation': lambda x: np.log10(flow_accumulation(x, MODEL_RESOLUTION, FLOW_METHOD))}
+
 MODEL_DEM_DIR = "model_dems"
+DATA_TYPES = [MODEL_DEM_DIR] + list(TOPO_DERIVATIVES.keys())
+
+NOISE_PATHS = [DATA_PATH / f"noise_level_{str(nl).replace('.', '_')}" for nl in NOISE_LEVELS]
+LABELS = {'DoK':"SELECT \"model_param.diffuser.D\"/ \"model_param.streampower.k\" FROM model_run_params",
+          'KoD': "SELECT \"model_param.streampower.k\"/ \"model_param.diffuser.D\" FROM model_run_params"}
+
+for noise, deriviative in product(NOISE_LEVELS, DATA_TYPES):
+    dataset_path = DATA_PATH / str(noise).replace('.', '_') / deriviative
+    dataset_path.mkdir(parents=True, exist_ok=True)
+
+DB_PATH = DATA_PATH / "model_runs.db"
 MODEL_ACC_DIR = "model_flowaccs"
 MODEL_LOG_ACC_DIR = "model_log_flowaccs"
 MODEL_SLOPE_DIR = "model_slopes"

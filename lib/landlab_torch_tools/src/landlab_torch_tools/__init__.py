@@ -1,4 +1,4 @@
-from .LandlabBatchDataset import LandlabBatchDataset, build_datasets_from_db
+from .LandlabBatchDataset import LandlabBatchDataset, build_datasets_from_db, SineTopographyDataset
 from .shuffling_augmentations import HorizontalSwap, GridShuffle, ImageDataset
 from .threshold_dataset import ThresholdDataset, MultiThresholdDataset, AdaptiveThresholdDataset
 
@@ -10,5 +10,6 @@ __all__ = [
     'ThresholdDataset',
     'MultiThresholdDataset',
     'AdaptiveThresholdDataset',
-    'build_datasets_from_db'
+    'build_datasets_from_db',
+    'SineTopographyDataset'
     ]

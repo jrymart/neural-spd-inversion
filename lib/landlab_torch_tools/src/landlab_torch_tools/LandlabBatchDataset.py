@@ -8,7 +8,7 @@ import pathlib
 
 class SineTopographyDataset(Dataset):
 
-    def __init__(self, width, height, orientation='y', valleys = np.arange(3,100)):
+    def __init__(self, width, height, orientation='y', valleys = np.arange(3,100),norm_to_zero=True):
         """
         Initialize the dataset with a sine wave topography.
         :param width: Width of the topography.
@@ -20,6 +20,7 @@ class SineTopographyDataset(Dataset):
         self.height = height
         self.orientation = orientation
         self.valleys = valleys
+        self.norm_to_zero = norm_to_zero
 
     def __len__(self):
         return len(self.valleys)
@@ -33,6 +34,8 @@ class SineTopographyDataset(Dataset):
             z = np.sin(x)
         else:
             z = np.sin(y)+np.sin(x)
+        if self.norm_to_zero:
+            z = z - z.min()
         z = z.astype(np.float32)
         return ToTensor()(z), torch.tensor(self.valleys[idx], dtype=torch.float32)
 
