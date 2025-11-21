@@ -83,7 +83,7 @@ db_path = pooch.retrieve(url=DB_URL,
 * Noiseing the dataset
 We also want to add noise to the dataset to see how that impacts performance and across different metrics
 
-#+begin_src python
+#+begin_src jupyter-python
 import numpy as np
 from pathlib import Path
 from config import NOISE_LEVELS, DATA_PATH, MODEL_DEM_DIR
@@ -140,7 +140,7 @@ import json
 from config import SPLIT_BY_FIELD, TRAINING_FRACTION, PARAM_TABLE, RUN_ID_FIELD, MODEL_DEM_PATH, MODEL_ARRAY_CROP, LABEL_QUERY, OUTPUTS_TABLE, MODEL_STATS_PATH, DB_PATH, RECALCULATE_STATS
 #+end_src
 
-#+begin_src python
+#+begin_src jupyter-python
 connection = sqlite3.connect(DB_PATH)
 cursor = connection.cursor()
 cursor.execute(f"SELECT DISTINCT \"{SPLIT_BY_FIELD}\" FROM {PARAM_TABLE}")
@@ -152,23 +152,22 @@ cursor.execute(f"SELECT {RUN_ID_FIELD} FROM {PARAM_TABLE} WHERE {train_filter}")
 train_run_ids = [r[0] for r in cursor.fetchall()]
 #+end_src
 
-#+begin_src python
+#+begin_src jupyter-python
 if not RECALCULATE_STATS:
     with open(MODEL_STATS_PATH, 'r') as f:
         statistics = json.load(f)
 else:
     statistics = {}
-datasets = TOPOGRAPHIC_DERIVATIVES + [MODEL_DEM_DIR]
 for noise in NOISE_LEVELS:
     noise = str(noise).replace('.', '_')
     if noise not in statistics:
         statistics[noise] = {}
     noise_stats = statistics[noise]
-    for derivative, derivative_f in TOPOGRAPHIC_DERIVATIVES:
+    for data_type in DATA_TYPES
         if derivative not in statistics:
-            dataset_path = DATA_PATH / noise / deriviative
+            dataset_path = DATA_PATH / noise / data_type 
             dataset_paths = [dataset_path / f"{name}.npy" for name in train_run_ids]
-            noise_stats[derivative] = get_array_statistics(dataset_paths,MODEL_ARRAY_CROP)
+            noise_stats[data_type] = get_array_statistics(dataset_paths,MODEL_ARRAY_CROP)
 
 #+end_src
 

@@ -34,6 +34,7 @@ for seed, noise, data_type, label in product(SEEDS, NOISE, DATA_TYPES, LABELS.it
         weights_path = WEIGHTS_PATH / f"n{noise.replace('.','_')}_{data_type}_{seed}_{label_key}_weights.pt"
         dataset_path = DATA_PATH / str(noise).replace('.','_') / data_type
         if not weights_path.exists() or RETRAIN_MODELS:
+            print("Training {weights_path}")
             label_stats = statistics[label_key]
             data_stats = statistics[str(noise).replace('.','_')][data_type]
             trainer = PecletModelTrainer(DB_PATH,
@@ -46,6 +47,8 @@ for seed, noise, data_type, label in product(SEEDS, NOISE, DATA_TYPES, LABELS.it
                                         ,**statistics['labels'])
             trainer.train()
             trainer.save_weights(weights_path)
+        else:
+            print("{weights_path} exists, skipping")
         # if data['type']=='dem':
         #     for second_data in data_types:
         #         weights_path = WEIGHTS_PATH / f"dem_{second_data['type']}_{seed}_weights.pt"
