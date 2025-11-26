@@ -105,7 +105,8 @@ We generate flow accumulation roasters for each model DEM for later analysis
 #+begin_src jupyter-python
 import numpy as np
 import os
-from config import TOPO_DERIVATIVES, REPROCESS_DATA
+import itertools as product
+from config import TOPO_DERIVATIVES.items(), REPROCESS_DATA
 for noise, derivative, dem_path in product(NOISE_LEVELS, TOPO_DERIVATIVES, model_dem_path):
     derivative_name, deriviative_function = derivative
     derivative_path = DATA_PATH / str(noise).replace('.', '_') / derivative_name / dem_path.name
