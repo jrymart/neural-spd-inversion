@@ -10,7 +10,7 @@ The model uses the following Landlab components:
 
   The model is implemented as subclass of the LandlabModel class to allow for batch runs to be orchestrated by the [[https://github.com/jrymart/landlab_batcher/tree/main][Landlab Batcher]] utility.  The code of the model is as follows:
 
-#+begin_src jupyter-python
+#+begin_src python
 from landlab.core import load_params
 from landlab.components import LinearDiffuser, FlowAccumulator, FastscapeEroder
 from model_base import LandlabModel
@@ -86,18 +86,21 @@ We also want to add noise to the dataset to see how that impacts performance and
 #+begin_src jupyter-python
 import numpy as np
 from pathlib import Path
-from config import NOISE_LEVELS, DATA_PATH, MODEL_DEM_DIR
+from config import NOISE_LEVELS, DATA_PATH, MODEL_DEM_DIR, REPROCESS_DATA
 model_dem_paths = [Path(path) for path in model_dem_paths]
+old_dem_dir = model_dem_paths[0].parent
 for noise in NOISE_LEVELS:
     new_dem_dir = DATA_PATH / str(noise).replace('.', '_') / MODEL_DEM_DIR
-    if noise == 0:
-        !cp -r model_dem_paths[0].anchor new_dem_dir
+    if noise == 0 and (len(list(old_dem_dir.iterdir())) > len(list(new_dem_dir.iterdir())) or REPROCESS_DATA):
+        !cp -r {old_dem_dir} {new_dem_dir}
         continue
     for dem_path in model_dem_paths:
-        dem_path = Path(dem_path)
-        dem_array = np.load(dem_path)
-        dem_noisy = dem_array + np.random.normal(0, noise, dem_array.shape)
         noise_path = new_dem_dir / dem_path.name
+        if (not noise_path,exists()) or REPROCESS_DATA :
+            dem_path = Path(dem_path)
+            dem_array = np.load(dem_path)
+            dem_noisy = dem_array + np.random.normal(0, noise, dem_array.shape)
+            noise_path = new_dem_dir / dem_path.name
 #+end_src
 
 * Processing data for Flow Accumulation, Slope, and Curvature Rasters
