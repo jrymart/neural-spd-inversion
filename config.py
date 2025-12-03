@@ -9,48 +9,69 @@ REPROCESS_DATA = False
 RECALCULATE_STATS = False
 RETRAIN_MODELS = False
 
-# COLAB DETECTION
+# ENVIRONMENT DETECTION
 try:
     import google.colab
     IN_COLAB = True
 except ImportError:
     IN_COLAB = False
 
-# PATH AND DIRECORY SETUP
+# HPC ENVIRONMENT DETECTION
+IN_HPC = os.path.exists('/scratch') and any(Path('/scratch').glob('*/'))
+
+# HPC PATH CONFIGURATION (update these for your cluster)
+HPC_USERNAME = os.getenv('USER', 'username')  # Auto-detect or set manually
+HPC_HOME = Path(f"/home/{HPC_USERNAME}")
+HPC_PROJECTS = Path(f"/projects/{HPC_USERNAME}")  
+HPC_SCRATCH = Path(f"/scratch/alpine/{HPC_USERNAME}")  # Update 'alpine' for your cluster
+
+# MAIN PATH SETUP
 if IN_COLAB:
     PROJECT_ROOT = Path("/content/neural-spd-inversion")
+    USE_GOOGLE_DRIVE = True
+    if USE_GOOGLE_DRIVE:
+        from google.colab import drive
+        drive.mount('/content/drive')
+        DRIVE_PATH = Path("/content/drive/MyDrive")
+        DATA_PATH = DRIVE_PATH / "neural-spd-inversion" / "data"
+        WEIGHTS_PATH = DRIVE_PATH / "neural-spd-inversion" / "weights"
+        RESULTS_PATH = DRIVE_PATH / "neural-spd-inversion" / "results"
+    else:
+        DATA_PATH = PROJECT_ROOT / "data"
+        WEIGHTS_PATH = PROJECT_ROOT / "weights" 
+        RESULTS_PATH = PROJECT_ROOT / "results"
+elif IN_HPC:
+    PROJECT_ROOT = HPC_HOME / "neural-spd-inversion"  # Source code in /home
+    DATA_PATH = HPC_PROJECTS / "neural-spd-inversion" / "data"  # Data in /projects
+    WEIGHTS_PATH = HPC_PROJECTS / "neural-spd-inversion" / "weights"  # Results in /projects
+    RESULTS_PATH = HPC_PROJECTS / "neural-spd-inversion" / "results"
+    # Scratch paths for fast I/O during jobs
+    SCRATCH_DATA_PATH = HPC_SCRATCH / "neural-spd-inversion" / "data"
+    SCRATCH_WEIGHTS_PATH = HPC_SCRATCH / "neural-spd-inversion" / "weights"
+    SCRATCH_RESULTS_PATH = HPC_SCRATCH / "neural-spd-inversion" / "results"
 else:
+    # Local development
     PROJECT_ROOT = Path(__file__).parent.absolute()
-USE_GOOGLE_DRIVE = True
-
-if IN_COLAB and USE_GOOGLE_DRIVE:
-    from google.colab import drive
-    drive.mount('/content/drive')
-    DRIVE_PATH = Path("/content/drive/MyDrive")
-    DATA_PATH = DRIVE_PATH / "neural-spd-inversion" / "data"
-    WEIGHTS_PATH = DRIVE_PATH / "neural-spd-inversion" / "weights"
-    RESULTS_PATH = DRIVE_PATH / "neural-spd-inversion" / "results"
-else:
     DATA_PATH = PROJECT_ROOT / "data"
-    WEIGHTS_PATH = PROJECT_ROOT / "model_weights"
+    WEIGHTS_PATH = PROJECT_ROOT / "weights"
     RESULTS_PATH = PROJECT_ROOT / "results"
 
 NOISE_LEVELS = [0,0.1]
 TOPO_DERIVATIVES = {
                     'slope': slope,
                     'curvature': curvature,
-                    'flow_accumulation': lambda x: flow_accumulation(x, MODEL_RESOLUTION, FLOW_METHOD),
-                    'log10_flow_accumulation': lambda x: np.log10(flow_accumulation(x, MODEL_RESOLUTION, FLOW_METHOD))}
+                    'flowacc': lambda x: flow_accumulation(x, MODEL_RESOLUTION, FLOW_METHOD),
+                    'log10flowacc': lambda x: np.log10(flow_accumulation(x, MODEL_RESOLUTION, FLOW_METHOD))}
 
-MODEL_DEM_DIR = "model_dems"
+MODEL_DEM_DIR = "elevation"
 DATA_TYPES = [MODEL_DEM_DIR] + list(TOPO_DERIVATIVES.keys())
 
-NOISE_PATHS = [DATA_PATH / f"noise_level_{str(nl).replace('.', '_')}" for nl in NOISE_LEVELS]
-LABELS = {'DoK':"SELECT \"model_param.diffuser.D\"/ \"model_param.streampower.k\" FROM model_run_params",
-          'KoD': "SELECT \"model_param.streampower.k\"/ \"model_param.diffuser.D\" FROM model_run_params"}
+NOISE_PATHS = [DATA_PATH / f"noise_level_{str(nl).replace('.', '-')}" for nl in NOISE_LEVELS]
+LABELS = {'logDoK':"SELECT log(\"model_param.diffuser.D\"/ \"model_param.streampower.k\") FROM model_run_params",
+          'logKoD': "SELECT log(\"model_param.streampower.k\"/ \"model_param.diffuser.D\") FROM model_run_params"}
 
 for noise, deriviative in product(NOISE_LEVELS, DATA_TYPES):
-    dataset_path = DATA_PATH / str(noise).replace('.', '_') / deriviative
+    dataset_path = DATA_PATH / str(noise).replace('.', '-') / deriviative
     dataset_path.mkdir(parents=True, exist_ok=True)
 
 DB_PATH = DATA_PATH / "model_runs.db"
@@ -59,9 +80,8 @@ MODEL_LOG_ACC_DIR = "model_log_flowaccs"
 MODEL_SLOPE_DIR = "model_slopes"
 MODEL_CURV_DIR = "model_curvatures"
 TAR_DIR = "model_run_topography"
-MODEL_DEM_PATH = os.path.join(DATA_PATH, MODEL_DEM_DIR, TAR_DIR)
-MODEL_STATS_PATH = os.path.join(DATA_PATH, "model_stats.json")
 MODEL_DEM_PATH = DATA_PATH / MODEL_DEM_DIR / "model_run_topography"
+MODEL_STATS_PATH = DATA_PATH / "model_stats.json"
 MODEL_ACC_PATH = DATA_PATH / MODEL_ACC_DIR
 MODEL_LOG_ACC_PATH = DATA_PATH / MODEL_LOG_ACC_DIR
 MODEL_SLOPE_PATH = DATA_PATH / MODEL_SLOPE_DIR
@@ -94,8 +114,22 @@ OUTPUTS_TABLE = "model_run_outputs"
 SPLIT_BY_FIELD = 'model_param.seed'
 RUN_ID_FIELD = "model_run_id"
 
-#Training settings
+# Training settings
 NN_SEEDS = [0, 10, 20, 30]
 TRAINING_FRACTION = 0.8
 NUM_EPOCHS = 50
 LEARNING_RATE = 0.0001
+
+# SLURM configuration
+SLURM_JOB_NAME = 'neural-spd-training'
+SLURM_PARTITION = 'gpu'  # Change based on your cluster
+SLURM_NODES = 1
+SLURM_NTASKS = 1
+SLURM_CPUS_PER_TASK = 4
+SLURM_MEMORY = '32G'
+SLURM_TIME = '24:00:00'
+SLURM_GPUS = 1  # Set to 0 if no GPU needed
+SLURM_MAIL_TYPE = 'END,FAIL'
+SLURM_MAIL_USER = 'your-email@domain.com'  # Update with actual email
+SLURM_OUTPUT = 'logs/slurm-%j.out'
+SLURM_ERROR = 'logs/slurm-%j.err'
