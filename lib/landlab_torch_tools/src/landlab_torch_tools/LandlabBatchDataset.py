@@ -99,8 +99,8 @@ class LandlabBatchDataset(Dataset):
         data_tensor = torch.tensor(data_array, dtype=torch.float32)
         
         # Apply data transform (can be a single transform, Compose, or list of transforms)
-        #if self.data_transform:
-        #    data_tensor = self.data_transform(data_tensor)
+        if self.data_transform:
+            data_tensor = self.data_transform(data_tensor)
             
         return data_tensor, torch.tensor(label, dtype=torch.float32)
 

@@ -1,5 +1,5 @@
 #+title: Data Download and Prep
-
+#+PROPERTY: header-args:jupyter-python :tangle dataprep.py
 This project uses a collection of [[https://landlab.csdms.io/][Landlab]] model runs.  This notebook goes over a brief explanation of the model set up and parameters and then downloading and processing of the model runs from Zenodo.
 
 * The Model
@@ -10,7 +10,7 @@ The model uses the following Landlab components:
 
   The model is implemented as subclass of the LandlabModel class to allow for batch runs to be orchestrated by the [[https://github.com/jrymart/landlab_batcher/tree/main][Landlab Batcher]] utility.  The code of the model is as follows:
 
-#+begin_src python
+#+begin_src python 
 from landlab.core import load_params
 from landlab.components import LinearDiffuser, FlowAccumulator, FastscapeEroder
 from model_base import LandlabModel
@@ -92,7 +92,7 @@ old_dem_dir = model_dem_paths[0].parent
 for noise in NOISE_LEVELS:
     new_dem_dir = DATA_PATH / str(noise).replace('.', '-') / MODEL_DEM_DIR
     if noise == 0 and (len(list(old_dem_dir.iterdir())) > len(list(new_dem_dir.iterdir())) or REPROCESS_DATA):
-        !cp -r {old_dem_dir} {new_dem_dir}
+        old_dem_dir.rename(new_dem_dir)
         continue
     for dem_path in model_dem_paths:
         noise_path = new_dem_dir / dem_path.name
@@ -189,7 +189,7 @@ for label_name, label_query in LABELS.items():
         current_chunk_runs = train_run_ids[i:i+limit]
         # placeholders are a safe way to programatically construct an SQL query
         placeholders = ', '.join(['?']*len(current_chunk_runs))
-        cursor.execute(f"{LABEL_QUERY} WHERE {RUN_ID_FIELD} IN ({placeholders})", current_chunk_runs)
+        cursor.execute(f"{label_query} WHERE {RUN_ID_FIELD} IN ({placeholders})", current_chunk_runs)
         label_values += [l[0] for l in cursor.fetchall()]
     label_values = np.array(label_values, dtype=np.float64)
     statistics[label_name] = {'labels_mean': np.mean(label_values),

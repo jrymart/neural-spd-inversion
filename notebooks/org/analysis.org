@@ -11,20 +11,23 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 import numpy as np
 import re
+from itertools import prodcut
 #+end_src
 
 #+RESULTS:
-: None
 
 Set up some lists to keep track of error values.
 #+begin_src python
-results_dir = Path("../../results")
+d1 = Path("../../results")
+d2 = Path("../../noise_results")
 dfs = []
 nrmses = []
 rmses = []
 seeds = []
 datas = []
 count = []
+targets = []
+noise_levels = []
 values = []
 mean_perc_errs = []
 mean_perc_errs_std = []
@@ -35,18 +38,24 @@ mean_perc_errs_std = []
 
 Now load every file (that is specific network performance) both to merge them together, and to calculate error.
 #+begin_src python
-for f in os.listdir(results_dir):
-    if f.endswith('.csv') is False:
+d1_files = list(os.listdir(d1))
+d2_files = list(os.listdir(d2))
+files = d1_files + d2_files
+ds = [d1]*len(d1_files)+[d2]*len(d2_files)
+for i, f in enumerate(files):
+    d = ds[i]
+    if not f[0]=='n':
         continue
-    parts = f.split('_')
-    seed = parts[-2]
-    data = '_'.join(parts[:-2])
-    df = pd.read_csv(results_dir / f)
-    df['seed'] = [seed]*len(df)
-    df['data'] = [data]*len(df)
-    df['values'] = ["D/K"]*len(df)
-    df['parts'] = [len(parts[:-2])]*len(df)
-    count.append(len(parts[:-2]))
+    noise, data_type, seed, target, _ = f.split('_')
+    if noise == 'n0':
+        noise = 0
+    elif noise == 'n0-1':
+        noise = 0.1
+    df = pd.read_csv(d / f)
+    df['seed'] = [int(seed)]*len(df)
+    df['data'] = [data_type]*len(df)
+    df['target'] = [target]*len(df)
+    df['noise'] = [noise]*len(df)
     dfs.append(df)
     perc_err = np.abs(df['true_labels'] - df['predictions'])/df['true_labels']
     mean_perc_err = np.mean(perc_err)
@@ -58,38 +67,9 @@ for f in os.listdir(results_dir):
     nrmse = rmse/(np.ptp(df['true_labels']))
     nrmses.append(nrmse)
     seeds.append(seed)
-    datas.append(data)
-    values.append("D/K")
-#+END_SRC
-
-#+RESULTS:
-: None
-#+begin_src python
-for f in os.listdir(results_dir / "KD_results"):
-    if f.endswith('.csv') is False:
-        continue
-    parts = f.split('_')
-    seed = parts[-2]
-    data = '_'.join(parts[:-2])
-    df = pd.read_csv(results_dir / "KD_results" / f)
-    df['seed'] = [seed]*len(df)
-    df['data'] = [data]*len(df)
-    df['value'] = ["K/D"]*len(df)
-    df['parts'] = [len(parts[:-2])]*len(df)
-    count.append(len(parts[:-2]))
-    dfs.append(df)
-    perc_err = np.abs(df['true_labels'] - df['predictions'])/df['true_labels']
-    mean_perc_err = np.mean(perc_err)
-    mean_perc_err_std = np.std(perc_err)
-    mean_perc_errs.append(mean_perc_err)
-    mean_perc_errs_std.append(mean_perc_err_std)
-    rmse = root_mean_squared_error(df['true_labels'], df['predictions'])
-    rmses.append(rmse)
-    nrmse = rmse/(np.ptp(df['true_labels']))
-    nrmses.append(nrmse)
-    seeds.append(seed)
-    datas.append(data)
-    values.append("K/D")
+    datas.append(data_type)
+    targets.append(target)
+    noise_levels.append(noise)
 #+END_SRC
 
 #+RESULTS:
@@ -101,49 +81,42 @@ all_df = pd.concat(dfs)
 rmse_df = pd.DataFrame({
     'data': datas,
     'seed': seeds,
+    'target': targets,
+    'noise': noise_levels,
     'nrmse': nrmses,
     'rmse': rmses,
-    'parts': count,
     'mean_perc_err': mean_perc_errs,
     'mean_perc_err_std': mean_perc_errs_std,
-    'value': values
 })
-label_map = {'dem': 'Elevation',
-         'slope': 'Slope',
-         'curvature': 'Curvature',
-         'accumulation': 'Flow Accumulation',
-         'logaccumulation': '$\\log_{10}(\\text{Flow Accumulation})$',
-         'dem_dem': 'Elevation, Elevation',
-         'dem_slope': 'Elevation, Slope',
-         'dem_curvature': 'Elevation, Curvature',
-         'dem_accumulation': 'Elevation, Flow Accumulation'}
-rmse_df['labels'] = rmse_df['data'].map(label_map)
-all_df['labels'] = all_df['data'].map(label_map)
-dem_1part = rmse_df[(rmse_df['data'] == 'dem') & (rmse_df['parts'] == 1)]['nrmse'].mean()
-dem_2part = rmse_df[(rmse_df['data'] == 'dem_dem') & (rmse_df['parts'] == 2)]['nrmse'].mean()
+# label_map = {'dem': 'Elevation',
+#          'slope': 'Slope',
+#          'curvature': 'Curvature',
+#          'accumulation': 'Flow Accumulation',
+#          'logaccumulation': '$\\log_{10}(\\text{Flow Accumulation})$',
+#          'dem_dem': 'Elevation, Elevation',
+#          'dem_slope': 'Elevation, Slope',
+#          'dem_curvature': 'Elevation, Curvature',
+#          'dem_accumulation': 'Elevation, Flow Accumulation'}
+# rmse_df['labels'] = rmse_df['data'].map(label_map)
+# all_df['labels'] = all_df['data'].map(label_map)
+# dem_1part = rmse_df[(rmse_df['data'] == 'dem') & (rmse_df['parts'] == 1)]['nrmse'].mean()
+# dem_2part = rmse_df[(rmse_df['data'] == 'dem_dem') & (rmse_df['parts'] == 2)]['nrmse'].mean()
 #+end_src
 
 #+RESULTS:
+: None
 
 Now we use the DEM based network, and the DEMx2 based networks as baselines.
 #+begin_src python
 # Calculate percentage improvements for all models
-dem_baseline = rmse_df[(rmse_df['data'] == 'dem') & (rmse_df['parts'] == 1) & (rmse_df['value']=="D/K")]['nrmse'].mean()
-dem_dem_baseline = rmse_df[(rmse_df['data'] == 'dem_dem') & (rmse_df['parts'] == 2) & rmse_df['value']=="D/K"]['nrmse'].mean()
-baseline_names = ['dem_baseline', 'dem_dem_baseline']
-baselines = [dem_baseline, dem_dem_baseline]
-improvements = [[] for _ in baselines]
+dem_baseline = rmse_df[(rmse_df['data'] == 'dem') & (rmse_df['target']=="DoK")]['nrmse'].mean()
 for index, row in rmse_df.iterrows():
-    parts = row['parts']
     nrmse = row['nrmse']
-    for i, baseline in enumerate(baselines):
-        improvements[i].append((baseline-nrmse)/baseline*100)
-
-for i, name in enumerate(baseline_names):
-    rmse_df[name] = improvements[i]
+    row['improvement'] = (dem_baseline-nrmse)/dem_baseline*100
 #+end_src
 
 #+RESULTS:
+: None
 
 Now we save the dataframes for plotting later.
 
@@ -158,6 +131,7 @@ all_df.to_csv(test_path)
 #+end_src
 
 #+RESULTS:
+: None
 
 error_fig, ax = plt.subplots(figsize=(8, 6))
 ax.bar(rmse_df['data'], rmse_df['mean_perc_err'], yerr=rmse_df['mean_perc_err_std'], capsize=5)

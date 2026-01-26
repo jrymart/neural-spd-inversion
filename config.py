@@ -6,7 +6,7 @@ from itertools import product
 
 # REPROCESSING SETTINGS
 REPROCESS_DATA = False
-RECALCULATE_STATS = False
+RECALCULATE_STATS = True
 RETRAIN_MODELS = False
 
 # ENVIRONMENT DETECTION
@@ -65,10 +65,11 @@ TOPO_DERIVATIVES = {
 
 MODEL_DEM_DIR = "elevation"
 DATA_TYPES = [MODEL_DEM_DIR] + list(TOPO_DERIVATIVES.keys())
-
 NOISE_PATHS = [DATA_PATH / f"noise_level_{str(nl).replace('.', '-')}" for nl in NOISE_LEVELS]
-LABELS = {'logDoK':"SELECT log(\"model_param.diffuser.D\"/ \"model_param.streampower.k\") FROM model_run_params",
-          'logKoD': "SELECT log(\"model_param.streampower.k\"/ \"model_param.diffuser.D\") FROM model_run_params"}
+LABELS = {'DoK':"SELECT \"model_param.diffuser.D\"/ \"model_param.streampower.k\" FROM model_run_params",
+          'KoD':"SELECT \"model_param.streampower.k\"/ \"model_param.diffuser.D\" FROM model_run_params",
+          'logDoK':"SELECT log(\"model_param.diffuser.D\"/ \"model_param.streampower.k\") FROM model_run_params",
+          'logKoD':"SELECT log(\"model_param.streampower.k\"/ \"model_param.diffuser.D\") FROM model_run_params"}
 
 for noise, deriviative in product(NOISE_LEVELS, DATA_TYPES):
     dataset_path = DATA_PATH / str(noise).replace('.', '-') / deriviative
@@ -108,7 +109,7 @@ MODEL_ARRAY_CROP = 5
 FLOW_METHOD = 'FlowDirectorD8'
 
 # DB SETTINGS
-LABEL_QUERY = "SELECT \"model_param.diffuser.D\"/ \"model_param.streampower.k\" FROM model_run_params"
+#LABEL_QUERY = "SELECT \"model_param.diffuser.D\"/ \"model_param.streampower.k\" FROM model_run_params"
 PARAM_TABLE = "model_run_params"
 OUTPUTS_TABLE = "model_run_outputs"
 SPLIT_BY_FIELD = 'model_param.seed'
