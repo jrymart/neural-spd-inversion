@@ -1,5 +1,6 @@
 #+title: Analysis
 #+PROPERTY: header-args:python :python /home/jo/micromamba/envs/torchland/bin/python :session sinforms
+#+PROPERTY: header-args:python :tangle analysis.py
 
 We want to understand performance of the neural networks, and how these vary across weight initialization and for data input.  To do this we need to load in our test results, and calculate some errors, and control to a baseline.
 #+begin_src python

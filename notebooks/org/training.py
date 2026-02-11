@@ -1,11 +1,3 @@
-#+title: Training
-#+PROPERTY: header-args:jupyter-python :tangle training.py
-
-* Training Neural Networks to Infer the Peclet Number
-
-This notebook trains convolutional neural networks to infer the D/K ratio of 2D streampower-diffusion landscape evolution models
-
-#+begin_src jupyter-python
 import torch
 from train_peclet_model import PecletModelTrainer
 from ThreeLayerCNNRegressor import ThreeLayerCNNRegressor, JumboThreeLayerCNNRegressor
@@ -22,22 +14,16 @@ WEIGHTS_PATH = Path(os.getenv('WEIGHTS_PATH', WEIGHTS_PATH))
 MODEL_STATS_PATH = DATA_PATH / "model_stats.json"
 DB_PATH = DATA_PATH / "model_runs.db"
 from itertools import product
-#+end_src
 
-#+begin_src jupyter-python
 from config import IN_COLAB, MODEL_ACC_DIR, MODEL_LOG_ACC_DIR, MODEL_SLOPE_DIR, MODEL_CURV_DIR, TAR_DIR
 from pathlib import Path
 if IN_COLAB:
     !cp -r {DATA_PATH} /content/data
     DATA_PATH = Path("/content/data")
-#+end_src
 
-#+begin_src jupyter-python
 with open(MODEL_STATS_PATH, 'r') as f:
     statistics = json.load(f)
-#+end_src
 
-#+begin_src jupyter-python
 for seed, noise, data_type, label in product(NN_SEEDS, NOISE_LEVELS, DATA_TYPES, LABELS.items()):
         label_key, label_query = label
         torch.manual_seed(seed)
@@ -75,10 +61,7 @@ for seed, noise, data_type, label in product(NN_SEEDS, NOISE_LEVELS, DATA_TYPES,
         #                                          inputs_std = inputs_std,
         #                                          **statistics['labels']
         #                                          )
-#+end_src
 
-We also train a "jumbo" model with larger layers.
-#+begin_src jupyter-python
 weights_path = WEIGHTS_PATH / 'dem_jumbo_run_weights.pt'
 if not weights_path.exists() or RETRAIN_MODELS:
     torch.manual_seed(NN_SEEDS[0])
@@ -98,4 +81,3 @@ if not weights_path.exists() or RETRAIN_MODELS:
                                 **label_stats)
     trainer.train()
     trainer.save_weights(weights_path)
-#+end_src
