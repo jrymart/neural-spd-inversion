@@ -1,5 +1,5 @@
 #+title: Data Download and Prep
-#+PROPERTY: header-args:jupyter-python :tangle dataprep.py
+#+PROPERTY: header-args:jupyter-python :tangle ../../scripts/dataprep.py
 This project uses a collection of [[https://landlab.csdms.io/][Landlab]] model runs.  This notebook goes over a brief explanation of the model set up and parameters and then downloading and processing of the model runs from Zenodo.
 
 * The Model
