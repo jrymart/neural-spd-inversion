@@ -10,7 +10,7 @@ authors = [
 dependencies = ["pooch",
                 "numpy",
                 "landlab",
-                "pytorch",
+                "torch",
                 "pandas",
                 "matplotlib",
                 "seaborn",
