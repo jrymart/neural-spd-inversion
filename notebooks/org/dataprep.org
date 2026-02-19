@@ -87,20 +87,27 @@ We also want to add noise to the dataset to see how that impacts performance and
 import numpy as np
 from pathlib import Path
 from neural_spd.config import NOISE_LEVELS, DATA_PATH, MODEL_DEM_DIR, REPROCESS_DATA
+rng = np.random.default_rng(seed=0)
 model_dem_paths = [Path(path) for path in model_dem_paths]
 old_dem_dir = model_dem_paths[0].parent
 for noise in NOISE_LEVELS:
     new_dem_dir = DATA_PATH / str(noise).replace('.', '-') / MODEL_DEM_DIR
-    if noise == 0 and (len(list(old_dem_dir.iterdir())) > len(list(new_dem_dir.iterdir())) or REPROCESS_DATA):
-        old_dem_dir.rename(new_dem_dirPlotting function looks good, but you should take your xlabel and ylabel as inputs (-0.5)
-)
+    if noise == 0:
+        new_dem_dir.parent.mkdir(parents=True, exist_ok=True)
+        if not new_dem_dir.exists():
+                old_dem_dir.rename(new_dem_dir)
+        else:
+            import shutil
+            for f in old_dem_dir.iterdir():
+                shutil.move(str(f), str(new_dem_dir / f.name))
+            old_dem_dir.rmdir()
         continue
     for dem_path in model_dem_paths:
         noise_path = new_dem_dir / dem_path.name
         if (not noise_path.exists()) or REPROCESS_DATA :
             dem_path = Path(dem_path)
             dem_array = np.load(dem_path)
-            dem_noisy = dem_array + np.random.normal(0, noise, dem_array.shape)
+            dem_noisy = dem_array + rng.normal(0, noise, dem_array.shape)
             noise_path = new_dem_dir / dem_path.name
             np.save(noise_path, dem_noisy)
 #+end_src
@@ -108,17 +115,35 @@ for noise in NOISE_LEVELS:
 * Processing data for Flow Accumulation, Slope, and Curvature Rasters
 We generate flow accumulation roasters for each model DEM for later analysis
 #+begin_src jupyter-python
-import numpy as np
-import os
-from itertools import product
-from neural_spd.config import TOPO_DERIVATIVES, REPROCESS_DATA
-for noise, derivative, dem_path in product(NOISE_LEVELS, TOPO_DERIVATIVES.items(), model_dem_paths):
-    derivative_name, derivative_function = derivative
-    derivative_path = DATA_PATH / str(noise).replace('.', '-') / derivative_name / dem_path.name
+def generate_derivative(args):
+    noise, (derivative_name, derivative_function), dem_path = args
+    derivative_path = DATA_PATH / str(noise).replace('.', '-') / derivative_name /dem_path.name
     if (not derivative_path.exists()) or REPROCESS_DATA:
+        dem_path = DATA_PATH / str(noise).replace('.','-') / MODEL_DEM_DIR / dem_path.name
         dem_array = np.load(dem_path)
         derivative = derivative_function(dem_array)
         np.save(derivative_path, derivative)
+
+import numpy as np
+import os
+from itertools import product
+from concurrent.futures import ProcessPoolExecutor
+from neural_spd.config import TOPO_DERIVATIVES, REPROCESS_DATA
+#setup directories
+for noise in NOISE_LEVELS:
+        noise_str = str(noise).replace('.', '-')
+        for deriv_name in TOPO_DERIVATIVES.keys():
+            (DATA_PATH / noise_str / deriv_name).mkdir(parents=True, exist_ok=True)
+            
+derivatives = list(product(NOISE_LEVELS, TOPO_DERIVATIVES.items(), model_dem_paths))
+num_cpus = int(os.environ.get('SLURM_CPUS_PER_TASK', 1))
+if __name__ == "__main__" and num_cpus>1:
+    with ProcessPoolExecutor(max_workers=num_cpus) as executer:
+        list(executer.map(generate_derivative, derivatives))
+else:
+    for derivative in derivatives:
+        generate_derivative(derivative)
+
 #+end_src
 
 #+RESULTS:
@@ -128,6 +153,32 @@ for noise, derivative, dem_path in product(NOISE_LEVELS, TOPO_DERIVATIVES.items(
 We calculate some simple data statistics which will be used for normalizing the data prior to training the neural networks.  We calculate statistics from the portion of the dataset used in training, so as not to taint the dataset with statistical information from the testing set.  While our data is drawn from one distribution, this is beind done as a best practice.
 #+begin_src jupyter-python
 import numpy as np
+def compute_partial_stats(args):
+    paths, crop = args
+    p_sum = 0.0
+    p_sum_sq = 0.0
+    p_count = 0
+    for path in paths:
+        data = np.load(path)[crop:-crop, crop:-crop]
+        p_sum += np.sum(data)
+        p_sum_sq +=  np.sum(np.square(data))
+        p_count += data.size
+    return p_sum, p_sum_sq, p_count
+
+def get_parallel_statistics(all_paths, crop, num_cpus):
+    chunks = np.array_split(all_paths, num_cpus)
+    tasks = [(list(chunk), crop) for chunk in chunks]
+    with ProcessPoolExecutor(max_workers=num_cpus) as executor:
+        results = list(executor.map(compute_partial_stats, tasks))
+
+    total_sum = sum(r[0] for r in results)
+    total_sum_sq = sum(r[1] for r in results)
+    total_count = sum(r[2] for r in results)
+
+    mean = total_sum / total_count
+    variance = (total_sum_sq / total_count) - np.square(mean)
+    return {'inputs_mean': mean, 'inputs_std': np.sqrt(variance)}
+
 def get_array_statistics(array_paths, crop):
     array_total_sum = 0.0
     array_total_sum_sq = 0.0
@@ -176,7 +227,10 @@ for noise in NOISE_LEVELS:
         if data_type not in noise_stats or RECALCULATE_STATS:
             dataset_path = DATA_PATH / noise / data_type 
             dataset_paths = [dataset_path / f"{name}.npy" for name in train_run_ids]
-            noise_stats[data_type] = get_array_statistics(dataset_paths,MODEL_ARRAY_CROP)
+            if __name__ == '__main__' and num_cpus>1:
+                noise_stats[data_type] = get_parallel_statistics(dataset_paths, MODEL_ARRAY_CROP, num_cpus)
+            else:
+                noise_stats[data_type] = get_array_statistics(dataset_paths,MODEL_ARRAY_CROP)
 
 #+end_src
 
@@ -282,7 +336,7 @@ for row_idx, data_type in enumerate(data_types):
 plt.tight_layout()
 if not IS_HEADLESS:
     plt.show()
-plt.save(PLOTS_PATH / "noise_validation.png")
+plt.savefig(PLOTS_PATH / "noise_validation.png")
 
 print("✓ Validation plot complete!")
 print("Check that:")

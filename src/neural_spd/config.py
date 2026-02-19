@@ -4,6 +4,12 @@ from topographic_derivatives import slope, curvature, flow_accumulation
 import numpy as np
 from itertools import product
 
+def flowacc(x):
+    return flow_accumulation(x, MODEL_RESOLUTION, FLOW_METHOD)
+
+def log10flowacc(x):
+    return np.log10(flow_accumulation(x, MODEL_RESOLUTION, FLOW_METHOD))
+
 # REPROCESSING SETTINGS
 REPROCESS_DATA = False
 RECALCULATE_STATS = True
@@ -50,8 +56,8 @@ NOISE_LEVELS = [0,0.1]
 TOPO_DERIVATIVES = {
                     'slope': slope,
                     'curvature': curvature,
-                    'flowacc': lambda x: flow_accumulation(x, MODEL_RESOLUTION, FLOW_METHOD),
-                    'log10flowacc': lambda x: np.log10(flow_accumulation(x, MODEL_RESOLUTION, FLOW_METHOD))}
+                    'flowacc': flowacc,
+                    'log10flowacc': log10flowacc}
 
 MODEL_DEM_DIR = "elevation"
 DATA_TYPES = [MODEL_DEM_DIR] + list(TOPO_DERIVATIVES.keys())

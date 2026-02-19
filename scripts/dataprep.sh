@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=data-prep
-#SBATCH --output=logs/prep_%j.log
-#SBATCH --partition=compute
+#SBATCH --output=logs/dataprep_%j.log
+#SBATCH --qos=blanca-csdms
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=4    # Data prep usually benefits from more CPUs

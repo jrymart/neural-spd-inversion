@@ -6,7 +6,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=1G
-#SBATCH --time=00:15:00
+#SBATCH --time=00:5:00
 
 # 1. Environment Preparation
 # Load the base Python module available on your cluster
