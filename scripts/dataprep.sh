@@ -4,8 +4,8 @@
 #SBATCH --qos=blanca-csdms
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=4    # Data prep usually benefits from more CPUs
-#SBATCH --mem=16G            # Adjust based on your dataset size
+#SBATCH --cpus-per-task=16    # Data prep usually benefits from more CPUs
+#SBATCH --mem=64G            # Adjust based on your dataset size
 #SBATCH --time=02:00:00
 
 # 1. Load your cluster's base Python (same as in your setup script)
