@@ -23,3 +23,6 @@ build-backend = "hatchling.build"
 
 [tool.uv.sources]
 landlab_torch_tools = { path = "./lib/landlab_torch_tools", editable = true }
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/neural_spd"]

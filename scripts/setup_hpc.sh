@@ -11,6 +11,7 @@
 # 1. Environment Preparation
 # Load the base Python module available on your cluster
 
+export UV_CACHE_DIR="/projects/joma0457/.uv_cache"
 export UV_INSTALL_DIR="$HOME/.local/bin"
 export PATH="$UV_INSTALL_DIR:$PATH"
 
