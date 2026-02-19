@@ -3,7 +3,7 @@ name = "neural-spd-inversion"
 version = "1.0.0"
 description = "Data processing and analysis for Do neural networks think like geomoprhologists?"
 readme = "README.md"
-requires-python = ">3.10"
+requires-python = ">3.12.2"
 authors = [
         {name = "Jo Martin", email = "jo.martin@colorado.edu"}
 ]
@@ -15,11 +15,11 @@ dependencies = ["pooch",
                 "matplotlib",
                 "seaborn",
                 "scikit-learn",
-                "landlab-torch-tools"]
+                "landlab_torch_tools"]
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
-[tools.uv.sources]
-landlab-torch-tools = { path = "./lib/landlab_torch_tools", editable = true }
+[tool.uv.sources]
+landlab_torch_tools = { path = "./lib/landlab_torch_tools", editable = true }

@@ -1,11 +1,11 @@
 #!/bin/bash
 #SBATCH --job-name=uv-init
 #SBATCH --output=logs/setup_%j.log
-#SBATCH --partition=compute
+#SBATCH --qos=blanca-csdms
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=2
-#SBATCH --mem=4G
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=1G
 #SBATCH --time=00:15:00
 
 # 1. Environment Preparation
