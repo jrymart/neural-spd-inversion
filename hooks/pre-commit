@@ -1,0 +1,19 @@
+#!/bin/bash
+
+for f in $(git diff --cached --name-only | grep '\.org$'); do
+    if [[ "$f" == *".git"* ]]; then
+        continue
+    fi
+
+    emacs --batch \
+        --eval "(require 'ob-tangle)" \
+        --eval "(org-babel-tangle-file \"$f\")"
+    git add -u
+    
+    filename=$(basename "$f" .org)
+    jupyter_file="notebooks/jupyter/${filename}.ipynb"
+
+    pandoc "$f" -o "$jupyter_file"
+
+    git add "$jupyter_file"
+done

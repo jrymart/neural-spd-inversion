@@ -16,14 +16,10 @@ try:
 except ImportError:
     IN_COLAB = False
 
-# HPC ENVIRONMENT DETECTION
-IN_HPC = os.path.exists('/scratch') and any(Path('/scratch').glob('*/'))
-
-# HPC PATH CONFIGURATION (update these for your cluster)
-HPC_USERNAME = os.getenv('USER', 'username')  # Auto-detect or set manually
-HPC_HOME = Path(f"/home/{HPC_USERNAME}")
-HPC_PROJECTS = Path(f"/projects/{HPC_USERNAME}")  
-HPC_SCRATCH = Path(f"/scratch/alpine/{HPC_USERNAME}")  # Update 'alpine' for your cluster
+if not os.environ.get('DISPLAY') or 'SLURM_JOB_ID' in os.environ:
+    IS_HEADLESS = True
+else:
+    IS_HEADLESS = False
 
 # MAIN PATH SETUP
 if IN_COLAB:
@@ -36,25 +32,19 @@ if IN_COLAB:
         DATA_PATH = DRIVE_PATH / "neural-spd-inversion" / "data"
         WEIGHTS_PATH = DRIVE_PATH / "neural-spd-inversion" / "weights"
         RESULTS_PATH = DRIVE_PATH / "neural-spd-inversion" / "results"
+        PLOTS_PATH = DRIVE_PATH / "neural-spd-inversion" / "plots"
     else:
         DATA_PATH = PROJECT_ROOT / "data"
         WEIGHTS_PATH = PROJECT_ROOT / "weights" 
         RESULTS_PATH = PROJECT_ROOT / "results"
-elif IN_HPC:
-    PROJECT_ROOT = HPC_HOME / "neural-spd-inversion"  # Source code in /home
-    DATA_PATH = HPC_PROJECTS / "neural-spd-inversion" / "data"  # Data in /projects
-    WEIGHTS_PATH = HPC_PROJECTS / "neural-spd-inversion" / "weights"  # Results in /projects
-    RESULTS_PATH = HPC_PROJECTS / "neural-spd-inversion" / "results"
-    # Scratch paths for fast I/O during jobs
-    SCRATCH_DATA_PATH = HPC_SCRATCH / "neural-spd-inversion" / "data"
-    SCRATCH_WEIGHTS_PATH = HPC_SCRATCH / "neural-spd-inversion" / "weights"
-    SCRATCH_RESULTS_PATH = HPC_SCRATCH / "neural-spd-inversion" / "results"
+        PLOTS_PATH = PROJECT_ROOT / "plots"
 else:
     # Local development
-    PROJECT_ROOT = Path(__file__).parent.absolute()
+    PROJECT_ROOT = Path(__file__).parent.parent.parent.absolute()
     DATA_PATH = PROJECT_ROOT / "data"
     WEIGHTS_PATH = PROJECT_ROOT / "weights"
     RESULTS_PATH = PROJECT_ROOT / "results"
+    PLOTS_PATH = PROJECT_ROOT / "plots"
 
 NOISE_LEVELS = [0,0.1]
 TOPO_DERIVATIVES = {

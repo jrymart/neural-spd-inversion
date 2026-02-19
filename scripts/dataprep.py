@@ -1,69 +1,3 @@
-#+title: Data Download and Prep
-#+PROPERTY: header-args:jupyter-python :tangle ../../scripts/dataprep.py
-This project uses a collection of [[https://landlab.csdms.io/][Landlab]] model runs.  This notebook goes over a brief explanation of the model set up and parameters and then downloading and processing of the model runs from Zenodo.
-
-* The Model
-The model uses the following Landlab components:
-- [[https://landlab.csdms.io/generated/api/landlab.components.diffusion.diffusion.html#landlab.components.diffusion.diffusion.LinearDiffuser][LinearDiffuser]]
-- [[https://landlab.csdms.io/generated/api/landlab.components.flow_accum.flow_accumulator.html#landlab.components.flow_accum.flow_accumulator.FlowAccumulator][FlowAccumulat]]or
-- [[https://landlab.csdms.io/generated/api/landlab.components.stream_power.fastscape_stream_power.html#landlab.components.stream_power.fastscape_stream_power.FastscapeEroder][FastscapeEroder]]
-
-  The model is implemented as subclass of the LandlabModel class to allow for batch runs to be orchestrated by the [[https://github.com/jrymart/landlab_batcher/tree/main][Landlab Batcher]] utility.  The code of the model is as follows:
-
-#+begin_src python :eval never :tangle no
-from landlab.core import load_params
-from landlab.components import LinearDiffuser, FlowAccumulator, FastscapeEroder
-from model_base import LandlabModel
-import numpy as np
-
-class SimpleLem(LandlabModel):
-    def __init__(self, params={}):
-        """Initialize the Model"""
-        super().__init__(params)
-
-        if not ("topographic__elevation" in self.grid.at_node.keys()):
-            self.grid.add_zeros("topographic__elevation", at="node")
-        rng = np.random.default_rng(seed=int(params["seed"]))
-        grid_noise= rng.random(self.grid.number_of_nodes)/10
-        self.grid.at_node["topographic__elevation"] += grid_noise
-        self.topo = self.grid.at_node["topographic__elevation"]
-
-        self.uplift_rate = params["baselevel"]["uplift_rate"]
-        self.diffuser = LinearDiffuser(
-            self.grid,
-            linear_diffusivity = params["diffuser"]["D"]
-            )
-        self.accumulator = FlowAccumulator(self.grid, flow_director="D8")
-        self.eroder = FastscapeEroder(self.grid,
-                                      K_sp=params["streampower"]["k"],
-                                      m_sp=params["streampower"]["m"],
-                                      n_sp=params["streampower"]["n"],
-                                      threshold_sp=params["streampower"]["threshold"])
-
-
-    def update(self, dt):
-        """Advance the model by one time step of duration dt."""
-        if self.current_time % 10000 == 0:
-            print("Model %s on year %d" % (self.run_id, self.current_time))
-        self.topo[self.grid.core_nodes] += self.uplift_rate * dt
-        self.diffuser.run_one_step(dt)
-        self.accumulator.run_one_step()
-        self.eroder.run_one_step(dt)
-        self.current_time += dt
-#+end_src
-
-  The model is initialized with random noise as elevation, an uplift rate, D8 flow router and accumulator and a diffusion and streampower erosion component with parameters defiend by the study.  The parameters of this study are as follows:
-
- +-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
- | Rows (cells) | Columns (cells) | Grid Spacing (m) | Runtime (years) | Timestep (years) | Uplift Rate (\frac{m}{year}) | Diffusivity (\(\frac{m^2}{year}\)) | Streampower K (\(\frac{m^{0.4}}/year\)) | Streampower m | Streampower n |
- +-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
- | 300 | 100 | 5 | 3,000,000 | 0.001 | 0.005-0.02 | 0.00015-0.002 | 0.3 | 0.07 |
- +-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
-This parameter set was run with 10 different random seeds, and 30 linearly spaced values across the parameter range for a dataset of 9000 model runs.  The final Landlab Grids of the model runs along with parameter information and associated database for the Landlab batcher utility, are available on Zenodo: [[https://doi.org/10.5281/zenodo.15311644]].
-
-* Downloading Model Topography
-[[https://www.fatiando.org/pooch/latest/index.html][Pooch]] is used to download the data files from Zenodo.  If you have previously downloaded the data pooch should not re-download.
-#+begin_src jupyter-python
 import pooch
 from neural_spd.config import DATA_PATH, NPY_URL, NPY_HASH, DB_URL, DB_HASH, MODEL_DEM_DIR
 
@@ -76,14 +10,7 @@ db_path = pooch.retrieve(url=DB_URL,
                            known_hash=DB_HASH,
                            fname="model_runs.db",
                            path=DATA_PATH)
-#+end_src
 
-
-
-* Noiseing the dataset
-We also want to add noise to the dataset to see how that impacts performance and across different metrics
-
-#+begin_src jupyter-python
 import numpy as np
 from pathlib import Path
 from neural_spd.config import NOISE_LEVELS, DATA_PATH, MODEL_DEM_DIR, REPROCESS_DATA
@@ -103,11 +30,7 @@ for noise in NOISE_LEVELS:
             dem_noisy = dem_array + np.random.normal(0, noise, dem_array.shape)
             noise_path = new_dem_dir / dem_path.name
             np.save(noise_path, dem_noisy)
-#+end_src
 
-* Processing data for Flow Accumulation, Slope, and Curvature Rasters
-We generate flow accumulation roasters for each model DEM for later analysis
-#+begin_src jupyter-python
 import numpy as np
 import os
 from itertools import product
@@ -119,14 +42,7 @@ for noise, derivative, dem_path in product(NOISE_LEVELS, TOPO_DERIVATIVES.items(
         dem_array = np.load(dem_path)
         derivative = derivative_function(dem_array)
         np.save(derivative_path, derivative)
-#+end_src
 
-#+RESULTS:
-
-
-* Data Statistics
-We calculate some simple data statistics which will be used for normalizing the data prior to training the neural networks.  We calculate statistics from the portion of the dataset used in training, so as not to taint the dataset with statistical information from the testing set.  While our data is drawn from one distribution, this is beind done as a best practice.
-#+begin_src jupyter-python
 import numpy as np
 def get_array_statistics(array_paths, crop):
     array_total_sum = 0.0
@@ -144,9 +60,7 @@ def get_array_statistics(array_paths, crop):
 import sqlite3
 import json
 from neural_spd.config import SPLIT_BY_FIELD, TRAINING_FRACTION, PARAM_TABLE, RUN_ID_FIELD, MODEL_DEM_PATH, MODEL_ARRAY_CROP, OUTPUTS_TABLE, MODEL_STATS_PATH, DB_PATH, RECALCULATE_STATS, DATA_TYPES
-#+end_src
 
-#+begin_src jupyter-python
 connection = sqlite3.connect(DB_PATH)
 cursor = connection.cursor()
 cursor.execute(f"SELECT DISTINCT \"{SPLIT_BY_FIELD}\" FROM {PARAM_TABLE}")
@@ -156,9 +70,7 @@ train_categories = categories[:split]
 train_filter = f"\"{SPLIT_BY_FIELD}\" IN ({', '.join([str(c) for c in train_categories])})"
 cursor.execute(f"SELECT {RUN_ID_FIELD} FROM {PARAM_TABLE} WHERE {train_filter}")
 train_run_ids = [r[0] for r in cursor.fetchall()]
-#+end_src
 
-#+begin_src jupyter-python
 if not RECALCULATE_STATS:
     try:
         with open(MODEL_STATS_PATH, 'r') as f:
@@ -178,13 +90,6 @@ for noise in NOISE_LEVELS:
             dataset_paths = [dataset_path / f"{name}.npy" for name in train_run_ids]
             noise_stats[data_type] = get_array_statistics(dataset_paths,MODEL_ARRAY_CROP)
 
-#+end_src
-
-We use a parameter in the model parameter database (in this case) the seed to split between
-train and test Datasets, so we need to connect to and query the database for runs.
-
-Lastly, we need the statistics of the labels we will train the network to infer.
-#+begin_src jupyter-python
 from neural_spd.config import LABELS
 limit = connection.getlimit(sqlite3.SQLITE_LIMIT_VARIABLE_NUMBER)
 for label_name, label_query in LABELS.items():
@@ -200,10 +105,7 @@ for label_name, label_query in LABELS.items():
                         'labels_std' : np.std(label_values)}
 with open(MODEL_STATS_PATH, 'w') as f:
     json.dump(statistics, f)
-#+end_src
 
-* Data Processing Validation
-#+begin_src jupyter-python
 import matplotlib.pyplot as plt
 import numpy as np
 from neural_spd.config import PLOTS_PATH, IS_HEADLESS
@@ -291,4 +193,3 @@ print("  - Slopes look like slope (bright = steep)")
 print("  - Curvature shows ridges/valleys (red/blue)")
 print("  - Flow accumulation shows drainage networks")
 print("  - Noise versions show non-zero differences")
-#+end_src
