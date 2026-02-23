@@ -11,6 +11,7 @@
 # 1. Load your cluster's base Python (same as in your setup script)
 
 # 2. Make sure uv is in your path
+export UV_CACHE_DIR="/projects/joma0457/.uv_cache"
 export PATH="$HOME/.local/bin:$PATH"
 
 # 3. Run the script using 'uv run'
