@@ -1,6 +1,6 @@
 from pathlib import Path
 import os
-from topographic_derivatives import slope, curvature, flow_accumulation
+from neural_spd.topographic_derivatives import slope, curvature, flow_accumulation
 import numpy as np
 from itertools import product
 
