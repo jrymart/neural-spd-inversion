@@ -3,7 +3,7 @@ name = "neural-spd-inversion"
 version = "1.0.0"
 description = "Data processing and analysis for Do neural networks think like geomoprhologists?"
 readme = "README.md"
-requires-python = ">3.12.2"
+requires-python = "==3.11.*"
 authors = [
         {name = "Jo Martin", email = "jo.martin@colorado.edu"}
 ]
