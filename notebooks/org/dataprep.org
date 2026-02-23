@@ -104,6 +104,7 @@ for noise in NOISE_LEVELS:
         continue
     for dem_path in model_dem_paths:
         noise_path = new_dem_dir / dem_path.name
+        dem_path = DATA_PATH / '0' / MODEL_DEM_DIR / dem_path.name
         if (not noise_path.exists()) or REPROCESS_DATA :
             dem_path = Path(dem_path)
             dem_array = np.load(dem_path)
