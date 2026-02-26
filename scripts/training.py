@@ -5,7 +5,8 @@ import json
 import os
 import numpy as np
 
-from config import MODEL_STATS_PATH, DB_PATH, MODEL_DEM_PATH, MODEL_SLOPE_PATH, MODEL_ACC_PATH, MODEL_CURV_PATH, WEIGHTS_PATH, NN_SEEDS, NUM_EPOCHS, LEARNING_RATE, RETRAIN_MODELS, NOISE_LEVELS, DATA_TYPES, LABELS, DATA_PATH, LOG_PATH
+from pathlib import Path
+from config import MODEL_STATS_PATH, DB_PATH, MODEL_DEM_PATH, MODEL_SLOPE_PATH, MODEL_ACC_PATH, MODEL_CURV_PATH, WEIGHTS_PATH, NN_SEEDS, NUM_EPOCHS, LEARNING_RATE, RETRAIN_MODELS, NOISE_LEVELS, DATA_TYPES, LABELS, DATA_PATH, LOG_PATH, IS_HEADLESS
 import os
 
 # Use environment variables if set (for HPC scratch filesystem)
@@ -14,12 +15,6 @@ WEIGHTS_PATH = Path(os.getenv('WEIGHTS_PATH', WEIGHTS_PATH))
 MODEL_STATS_PATH = DATA_PATH / "model_stats.json"
 DB_PATH = DATA_PATH / "model_runs.db"
 from itertools import product
-
-from config import IN_COLAB, MODEL_ACC_DIR, MODEL_LOG_ACC_DIR, MODEL_SLOPE_DIR, MODEL_CURV_DIR, TAR_DIR, IS_HEADLESS
-from pathlib import Path
-if IN_COLAB:
-    !cp -r {DATA_PATH} /content/data
-    DATA_PATH = Path("/content/data")
 
 with open(MODEL_STATS_PATH, 'r') as f:
     statistics = json.load(f)
