@@ -39,13 +39,13 @@ if IN_COLAB:
         WEIGHTS_PATH = DRIVE_PATH / "neural-spd-inversion" / "weights"
         RESULTS_PATH = DRIVE_PATH / "neural-spd-inversion" / "results"
         PLOTS_PATH = DRIVE_PATH / "neural-spd-inversion" / "plots"
-        LOG_PATH = DRIVE_PATH / "neural-spd-inversion" / "logs"
+        LOG_PATH = DRIVE_PATH / "neural-spd-inversion" / "training_logs"
     else:
         DATA_PATH = PROJECT_ROOT / "data"
         WEIGHTS_PATH = PROJECT_ROOT / "weights" 
         RESULTS_PATH = PROJECT_ROOT / "results"
         PLOTS_PATH = PROJECT_ROOT / "plots"
-        LOG_PATH = PROJECT_ROOT / "logs"
+        LOG_PATH = PROJECT_ROOT / "training_logs"
 else:
     # Local development
     PROJECT_ROOT = Path(__file__).parent.parent.parent.absolute()
@@ -53,7 +53,7 @@ else:
     WEIGHTS_PATH = PROJECT_ROOT / "weights"
     RESULTS_PATH = PROJECT_ROOT / "results"
     PLOTS_PATH = PROJECT_ROOT / "plots"
-    LOG_PATH = PROJECT_ROOT / "logs"
+    LOG_PATH = PROJECT_ROOT / "training_logs"
 
 NOISE_LEVELS = [0,0.1]
 TOPO_DERIVATIVES = {
