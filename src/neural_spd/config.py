@@ -39,11 +39,13 @@ if IN_COLAB:
         WEIGHTS_PATH = DRIVE_PATH / "neural-spd-inversion" / "weights"
         RESULTS_PATH = DRIVE_PATH / "neural-spd-inversion" / "results"
         PLOTS_PATH = DRIVE_PATH / "neural-spd-inversion" / "plots"
+        LOG_PATH = DRIVE_PATH / "neural-spd-inversion" / "logs"
     else:
         DATA_PATH = PROJECT_ROOT / "data"
         WEIGHTS_PATH = PROJECT_ROOT / "weights" 
         RESULTS_PATH = PROJECT_ROOT / "results"
         PLOTS_PATH = PROJECT_ROOT / "plots"
+        LOG_PATH = PROJECT_ROOT / "logs"
 else:
     # Local development
     PROJECT_ROOT = Path(__file__).parent.parent.parent.absolute()
@@ -51,6 +53,7 @@ else:
     WEIGHTS_PATH = PROJECT_ROOT / "weights"
     RESULTS_PATH = PROJECT_ROOT / "results"
     PLOTS_PATH = PROJECT_ROOT / "plots"
+    LOG_PATH = PROJECT_ROOT / "logs"
 
 NOISE_LEVELS = [0,0.1]
 TOPO_DERIVATIVES = {
@@ -91,6 +94,8 @@ if CREATE_DIRS:
     MODEL_ACC_PATH.mkdir(parents=True, exist_ok=True)
     MODEL_SLOPE_PATH.mkdir(parents=True, exist_ok=True)
     MODEL_CURV_PATH.mkdir(parents=True, exist_ok=True)
+    PLOTS_PATH.mkdir(parents=True, exist_ok=True)
+    LOG_PATH.mkdir(parents=True, exist_ok=True)
 
 # DOWNLOAD URLS AND HASHES
 NPY_URL = "https://zenodo.org/records/15311644/files/model_run_topography.tar.gz"
