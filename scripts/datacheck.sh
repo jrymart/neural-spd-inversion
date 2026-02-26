@@ -5,8 +5,8 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1    # Data check usually benefits from more CPUs
-#SBATCH --mem=2G            # Adjust based on your dataset size
-#SBATCH --time=00:10:00
+#SBATCH --mem=200M            # Adjust based on your dataset size
+#SBATCH --time=00:01:00
 
 # 1. Load your cluster's base Python (same as in your setup script)
 
