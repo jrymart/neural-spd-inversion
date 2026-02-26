@@ -5,8 +5,8 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=16    # Data prep usually benefits from more CPUs
-#SBATCH --mem=64G            # Adjust based on your dataset size
-#SBATCH --time=02:00:00
+#SBATCH --mem=30G            # Adjust based on your dataset size
+#SBATCH --time=00:30:00
 
 # 1. Load your cluster's base Python (same as in your setup script)
 
