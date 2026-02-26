@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from neural_spd.config import PLOTS_PATH, IS_HEADLESS, DATA_PATH, MODEL_DEM_DIR, TOPO_DERIVATIVES, NOISE_LEVELS
 
-PLOTS_PATH.mkdir(parents=True, exists_ok=True)
+PLOTS_PATH.mkdir(parents=True, exist_ok=True)
 
 # Pick a sample file for validation
 sample_files = list((DATA_PATH / "0" / MODEL_DEM_DIR).glob("*.npy"))
