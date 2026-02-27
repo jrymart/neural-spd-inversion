@@ -8,7 +8,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=5    # Data check usually benefits from more CPUs
 #SBATCH --mem=32G            # Adjust based on your dataset size
-#SBATCH --time=03:00:00
+#SBATCH --time=06:00:00
 #SBATCH --array=0-159%10
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --mail-user=jo.martin@colorado.edu

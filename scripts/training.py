@@ -19,12 +19,13 @@ from itertools import product
 with open(MODEL_STATS_PATH, 'r') as f:
     statistics = json.load(f)
 
-def train_neural_net(seed, noise, data_type, label):
+def train_neural_net(seed, noise, data_type, label, reload_from_checkpoint=True):
     label_key, label_query = label
     torch.manual_seed(seed)
     weights_path = WEIGHTS_PATH / f"n{str(noise).replace('.', '-')}_{data_type}_{seed}_{label_key}_weights.pt"
     log_path = LOG_PATH / f"n{str(noise).replace('.', '-')}_{data_type}_{seed}_{label_key}_training_log.json"
     dataset_path = DATA_PATH / str(noise).replace('.', '-') / data_type
+    checkpoint_path = CHECKPOINT_PATH / f"n{str(noise).replace('.', '-')}_{data_type}_{seed}_{label_key}_checkpoint.pt"
     if not weights_path.exists() or RETRAIN_MODELS:
         print(f"Training {weights_path}")
         label_stats = statistics[label_key]
@@ -37,7 +38,7 @@ def train_neural_net(seed, noise, data_type, label):
                                     learning_rate=LEARNING_RATE,
                                     **data_stats,
                                     **label_stats)
-        trainer.train()
+        trainer.train(checkpoint_path=checkpoint_path, reload_from_checkpoint=reload_from_checkpoint)
         trainer.save_weights(weights_path)
         trainer.save_training_history(log_path)
     else:

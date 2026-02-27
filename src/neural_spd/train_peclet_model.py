@@ -6,6 +6,7 @@ import json
 import numpy as np
 from pathlib import Path
 import time
+import os
 
 class PecletModelTrainer:
     """
@@ -65,7 +66,7 @@ class PecletModelTrainer:
             'training_time': 0
         }
 
-    def train(self, epochs=None, learning_rate=None, verbose=True, validate_every=1):
+    def train(self, epochs=None, learning_rate=None, verbose=True, validate_every=1, checkpoint_every=10, checkpoint_path="/tmp/nn-spd_checkpoint.pt", reload_from_checkpoint=False):
         """
         Train the model with comprehensive metric tracking.
         
@@ -79,20 +80,32 @@ class PecletModelTrainer:
             epochs = self.epochs
         if learning_rate is None:
             learning_rate = self.learning_rate
-
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        print(f"Training on device: {device}", flush=True)
+        self.model.to(device)
         optimizer = torch.optim.Adam(self.model.parameters(), lr=learning_rate)
         criterion = torch.nn.MSELoss()
+        start_epoch = 0
         
+        if reload_from_checkpoint and Path(checkpoint_path).exists():
+            if verbose:
+                print(f"Loading checkpoint from {checkpoint_path}...", flush=True)
+            checkpoint = torch.load(checkpoint_path)
+            self.model.load_state_dict(checkpoint['model_state_dict'])
+            optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+            start_epoch = checkpoint['epoch'] + 1
+            self.training_history = checkpoint.get('training_history', self.training_history)
         start_time = time.time()
-        
-        for epoch in range(epochs):
+        if verbose:
+            print(f"Starting training for {epochs} epochs with learning rate {learning_rate}...", flush=True)
+        for epoch in range(start_epoch, epochs):
             # Training phase
             self.model.train()
             epoch_train_loss = 0.0
             batch_losses = []
-            
             for i, batch_content in enumerate(self.train_loader):
                 inputs, labels = batch_content
+                inputs, labels = inputs.to(device), labels.to(device)
                 optimizer.zero_grad()
                 outputs = self.model(inputs)
                 loss = criterion(outputs, labels.unsqueeze(1))
@@ -120,8 +133,17 @@ class PecletModelTrainer:
             
             if verbose:
                 val_str = f", Val Loss: {val_loss:.6f}" if val_loss is not None else ""
-                print(f"Epoch {epoch+1}/{epochs}, Train Loss: {avg_train_loss:.6f}{val_str}")
-        
+                print(f"Epoch {epoch+1}/{epochs}, Train Loss: {avg_train_loss:.6f}{val_str}", flush=True)
+
+            if checkpoint_every and epoch % checkpoint_every == 0:
+                tmp_path = f"{checkpoint_path}.tmp"
+                torch.save({
+                    'epoch': epoch,
+                    'model_state_dict': self.model.state_dict(),
+                    'optimizer_state_dict': optimizer.state_dict(),
+                    'training_history': self.training_history
+                }, tmp_path)
+                os.replace(tmp_path, checkpoint_path)
         # Record total training time
         self.training_history['training_time'] = time.time() - start_time
         
@@ -131,9 +153,11 @@ class PecletModelTrainer:
     def _compute_validation_loss(self, criterion):
         """Compute validation loss without updating gradients."""
         self.model.eval()
+        device = next(self.model.parameters()).device
         val_loss = 0.0
         with torch.no_grad():
             for data, labels in self.test_loader:
+                data, labels = data.to(device), labels.to(device)
                 outputs = self.model(data)
                 loss = criterion(outputs, labels.unsqueeze(1))
                 val_loss += loss.item()
