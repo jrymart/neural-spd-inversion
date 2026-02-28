@@ -33,6 +33,8 @@ class PecletModelTrainer:
         self.epochs = epochs
         self.learning_rate = learning_rate
         self.model = model
+        num_cpus = int(os.environ.get('SLURM_CPUS_PER_TASK', os.cpu_count() or 1))
+        num_workers=max(1, num_cpus - 1)
         self.train_ds, self.test_ds = build_datasets_from_db(
             db_path,
             dataset_dir,
@@ -48,12 +50,18 @@ class PecletModelTrainer:
         self.train_loader = torch.utils.data.DataLoader(
             self.train_ds,
             batch_size=batch_size,
-            shuffle=True
+            shuffle=True,
+            num_workers=num_workers,
+            pin_memory=True,
+            persistent_workers=True
         )
         self.test_loader = torch.utils.data.DataLoader(
             self.test_ds,
             batch_size=batch_size,
-            shuffle=False
+            shuffle=False,
+            num_workers=num_workers,
+            pin_memory=True,
+            persistent_workers=True
         )
         
         # Initialize training history

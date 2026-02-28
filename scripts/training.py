@@ -6,14 +6,16 @@ import os
 import numpy as np
 
 from pathlib import Path
-from neural_spd.config import MODEL_STATS_PATH, DB_PATH, MODEL_DEM_PATH, MODEL_SLOPE_PATH, MODEL_ACC_PATH, MODEL_CURV_PATH, WEIGHTS_PATH, NN_SEEDS, NUM_EPOCHS, LEARNING_RATE, RETRAIN_MODELS, NOISE_LEVELS, DATA_TYPES, LABELS, DATA_PATH, LOG_PATH, IS_HEADLESS, CHECKPOINT_PATH
+from neural_spd.config import MODEL_STATS_PATH, DB_PATH, MODEL_DEM_PATH, MODEL_SLOPE_PATH, MODEL_ACC_PATH, MODEL_CURV_PATH, WEIGHTS_PATH, NN_SEEDS, NUM_EPOCHS, LEARNING_RATE, RETRAIN_MODELS, NOISE_LEVELS, DATA_TYPES, LABELS, DATA_PATH, LOG_PATH, IS_HEADLESS, CHECKPOINT_PATH, BATCH_SIZE
 import os
 
 # Use environment variables if set (for HPC scratch filesystem)
 DATA_PATH = Path(os.getenv('DATA_PATH', DATA_PATH))
 WEIGHTS_PATH = Path(os.getenv('WEIGHTS_PATH', WEIGHTS_PATH))
 MODEL_STATS_PATH = DATA_PATH / "model_stats.json"
+MODEL_STATS_PATH = Path(os.getenv('MODEL_STATS_PATH', MODEL_STATS_PATH))
 DB_PATH = DATA_PATH / "model_runs.db"
+DB_PATH = Path(os.getenv('DB_PATH', DB_PATH))
 from itertools import product
 
 with open(MODEL_STATS_PATH, 'r') as f:
@@ -36,6 +38,7 @@ def train_neural_net(seed, noise, data_type, label, reload_from_checkpoint=True)
                                     label_query,
                                     epochs=NUM_EPOCHS,
                                     learning_rate=LEARNING_RATE,
+                                    batch_size=BATCH_SIZE,
                                     **data_stats,
                                     **label_stats)
         trainer.train(checkpoint_path=checkpoint_path, reload_from_checkpoint=reload_from_checkpoint)

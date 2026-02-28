@@ -125,6 +125,7 @@ NN_SEEDS = [0, 10, 20, 30]
 TRAINING_FRACTION = 0.8
 NUM_EPOCHS = 50
 LEARNING_RATE = 0.0001
+BATCH_SIZE=64
 
 # SLURM configuration
 SLURM_JOB_NAME = 'neural-spd-training'

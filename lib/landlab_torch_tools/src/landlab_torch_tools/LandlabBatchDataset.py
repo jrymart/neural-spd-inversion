@@ -66,12 +66,18 @@ class LandlabBatchDataset(Dataset):
         self.normalize = normalize
         self.cursor.execute(f"SELECT model_run_id FROM model_run_params")
         runs_for_normalization = [r[0] for r in self.cursor.fetchall()]
+        self.label_map = {}
+        base_query = label_query.split("FROM")[1]
+        label_col = label_query.split("SELECT")[1].split("FROM")[0].strip()
+        self.cursor.execute(f"SELECT model_run_id, {label_col} FROM {base_query}")
+        self.label_cache = {row[0]: row[1] for row in self.cursor.fetchall()}
         self.normalize = normalize
         self.inputs_mean = inputs_mean
         self.inputs_std = inputs_std
         self.labels_mean = labels_mean
         self.labels_std = labels_std
         self.data_transform = transform
+        self.conn.close()
         #self.tensor_transform = ToTensor(dtype=torch.float32)
 
     def __len__(self):
@@ -84,8 +90,7 @@ class LandlabBatchDataset(Dataset):
             if type(dir) == str:
                 dir = pathlib.Path(dir)
             data_paths.append(dir/ f"{run_name}.npy")
-        self.cursor.execute(f"{self.label_query} WHERE model_run_id = '{run_name}'")
-        label = self.cursor.fetchone()[0]
+        label = self.label_cache[run_name]
         data_array = np.stack([np.load(data_path) for data_path in data_paths])
         if data_array.ndim == 2:
             data_array = data_array.astype(np.float32)[self.trim:-self.trim, self.trim:-self.trim]
