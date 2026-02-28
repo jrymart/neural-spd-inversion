@@ -36,20 +36,20 @@ seed_idx=$(( SLURM_ARRAY_TASK_ID / (num_labels * num_types * num_noise) ))
 SELECTED_NOISE=${NOISE[$noise_idx]}
 SELECTED_TYPE=${TYPES[$type_idx]}
 
-TASK_DATA="$SLURM_SCRATCH/neural-spd-inversion/data"
+TASK_DATA="$SLURM_SCRATCH/neural-spd-inversion/data/$SELECTED_NOISE/"
 mkdir -p "$TASK_DATA"
 
 echo "Copying /projects/joma0457/neural-spd-inversion/data/$SELECTED_NOISE/$SELECTED_TYPE to $TASK_DATA"
 start_copy=$(date +%s)
 cp -r "/projects/joma0457/neural-spd-inversion/data/$SELECTED_NOISE/$SELECTED_TYPE" "$TASK_DATA/"
-cp "/projects/joma0457/neural-spd-inversion/data/model_runs.db" "$SLURM_SCRATCH/"
-cp "/projects/joma0457/neural-spd-inversion/data/model_stats.json" "$SLURM_SCRATCH/"
+cp "/projects/joma0457/neural-spd-inversion/data/model_runs.db" "$SLURM_SCRATCH/neural-spd-inversion/data"
+cp "/projects/joma0457/neural-spd-inversion/data/model_stats.json" "$SLURM_SCRATCH/neural-spd-inversion/data"
 
 end_copy=$(date +%s) # <--- ADD THIS LINE
 echo "Copy completed in $((end_copy - start_copy)) seconds."
 
 echo "--- VERIFICATION ---"
-FILE_COUNT=$(ls -1 "$TASK_DATA" | wc -l)
+FILE_COUNT=$(ls -1 "$TASK_DATA/$SELECED_TYPE" | wc -l)
 echo "Files found in local scratch: $FILE_COUNT"
 
 if [ "$FILE_COUNT" -eq 0 ]; then
@@ -57,9 +57,9 @@ if [ "$FILE_COUNT" -eq 0 ]; then
     exit 1
 fi
 
-export DATA_PATH="$TASK_DATA/$SELECTED_TYPE"
-export DB_PATH="$SLURM_SCRATCH/model_runs.db"
-export MODEL_STATS_PATH="$SLURM_SCRATCH/model_stats.json"
+export DATA_PATH="$SLURM_SCRATCH/neural-spd-inversion/data"
+export DB_PATH="$DATA_PATH/model_runs.db"
+export MODEL_STATS_PATH="$SDATA_PATH/model_stats.json"
 export SLURM_CPUS_PER_TASK=$SLURM_CPUS_PER_TASK
 
 echo "Checking Python environment variables..."
