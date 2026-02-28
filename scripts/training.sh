@@ -36,14 +36,14 @@ seed_idx=$(( SLURM_ARRAY_TASK_ID / (num_labels * num_types * num_noise) ))
 SELECTED_NOISE=${NOISE[$noise_idx]}
 SELECTED_TYPE=${TYPES[$type_idx]}
 
-TASK_DATA="$SLURM_SCRATCH/data"
+TASK_DATA="$SLURM_SCRATCH/neural-spd-inversion/data"
 mkdir -p "$TASK_DATA"
 
-echo "Copying /projects/joma0457/data/$SELECTED_NOISE/$SELECTED_TYPE to $TASK_DATA"
+echo "Copying /projects/joma0457/neural-spd-inversion/data/$SELECTED_NOISE/$SELECTED_TYPE to $TASK_DATA"
 start_copy=$(date +%s)
-cp -r "/projects/joma0457/data/$SELECTED_NOISE/$SELECTED_TYPE" "$TASK_DATA/"
-cp "/projects/joma0457/data/model_runs.db" "$SLURM_SCRATCH/"
-cp "/projects/joma0457/data/model_stats.json" "$SLURM_SCRATCH/"
+cp -r "/projects/joma0457/neural-spd-inversion/data/$SELECTED_NOISE/$SELECTED_TYPE" "$TASK_DATA/"
+cp "/projects/joma0457/neural-spd-inversion/data/model_runs.db" "$SLURM_SCRATCH/"
+cp "/projects/joma0457/neural-spd-inversion/data/model_stats.json" "$SLURM_SCRATCH/"
 
 end_copy=$(date +%s) # <--- ADD THIS LINE
 echo "Copy completed in $((end_copy - start_copy)) seconds."
