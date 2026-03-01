@@ -50,6 +50,7 @@ echo "Copy completed in $((end_copy - start_copy)) seconds."
 
 echo "--- VERIFICATION ---"
 FILE_COUNT=$(ls -1 "$TASK_DATA/$SELECED_TYPE" | wc -l)
+echo $(ls -l $TASK_DATA)
 echo "Files found in local scratch: $FILE_COUNT"
 
 if [ "$FILE_COUNT" -eq 0 ]; then
@@ -58,8 +59,8 @@ if [ "$FILE_COUNT" -eq 0 ]; then
 fi
 
 export DATA_PATH="$SLURM_SCRATCH/neural-spd-inversion/data"
-export DB_PATH="$DATA_PATH/model_runs.db"
-export MODEL_STATS_PATH="$SDATA_PATH/model_stats.json"
+export DB_PATH="$SLURM_SCRATCH/neural-spd-inversion/data/model_runs.db"
+export MODEL_STATS_PATH="$DATA_PATH/model_stats.json"
 export SLURM_CPUS_PER_TASK=$SLURM_CPUS_PER_TASK
 
 echo "Checking Python environment variables..."
