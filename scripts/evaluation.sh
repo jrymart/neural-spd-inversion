@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=train-spd-net
-#SBATCH --output=logs/array_runs/training_%A_%a.log
+#SBATCH --output=logs/array_runs/evaluation_%A_%a.log
 #SBATCH --nodes=1
 #SBATCH --partition=aa100,al40
 #SBATCH --gres=gpu:1
@@ -8,7 +8,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=5    # Data check usually benefits from more CPUs
 #SBATCH --mem=5G            # Adjust based on your dataset size
-#SBATCH --time=00:10:00
+#SBATCH --time=00:05:00
 #SBATCH --array=0-159%10
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --mail-user=jo.martin@colorado.edu
@@ -70,5 +70,5 @@ uv run python -c "import os; print(f'PYTHON MODEL_STATS_PATH: {os.getenv(\"MODEL
 # 3. Run the script using 'uv run'
 # This automatically handles the virtual environment and your src/ imports
 echo "Starting training on noise: $SELECTED_NOISE and data: $SELECTED_TYPE..."
-uv run scripts/training.py
+uv run scripts/evaluation.py
 echo "Training complete."

@@ -1,4 +1,5 @@
 #+title: Evaluation
+#+PROPERTY: header-args:jupyter-python :tangle ../../scripts/evaluation.py
 
 #+begin_src jupyter-python
 import torch
@@ -7,39 +8,55 @@ from ThreeLayerCNNRegressor import ThreeLayerCNNRegressor, JumboThreeLayerCNNReg
 import json
 
 from config import MODEL_STATS_PATH, DB_PATH, MODEL_DEM_PATH, LABEL_QUERY, OUTPUTS_TABLE, WEIGHTS_PATH, NN_SEEDS, MODEL_ACC_PATH, RESULTS_PATH, NUM_EPOCHS, LEARNING_RATE, SEEDS, NOISE, DATA_TYPES
+# Use environment variables if set (for HPC scratch filesystem)
+DATA_PATH = Path(os.getenv('DATA_PATH', DATA_PATH))
+WEIGHTS_PATH = Path(os.getenv('WEIGHTS_PATH', WEIGHTS_PATH))
+MODEL_STATS_PATH = DATA_PATH / "model_stats.json"
+MODEL_STATS_PATH = Path(os.getenv('MODEL_STATS_PATH', MODEL_STATS_PATH))
+DB_PATH = DATA_PATH / "model_runs.db"
+DB_PATH = Path(os.getenv('DB_PATH', DB_PATH))
+from itertools import product
 #+end_src
 
 #+begin_src jupyter-python
 with open(MODEL_STATS_PATH, 'r') as f:
     statistics = json.load(f)
-WEIGHTS_PATH = Path("/home/jo/cub/research/projects/neural-spd-inversion-proj/neural-spd-inversion/weights")
-RESULTS_DIR= Path("/home/jo/cub/research/projects/neural-spd-inversion-proj/neural-spd-inversion/new_results")
+#+end_src
+
+#+begin_src python
+def eval_neural_net(seed, noise, data_type, label):
+    label_key, label_query = label
+    torch.manual_seed(seed)
+    weights_path = WEIGHTS_PATH / f"n{noise.replace('.','_')}_{data_type}_{seed}_{label_key}_weights.pt"
+    weights_path = RESULTS_DIR / f"n{noise.replace('.','_')}_{data_type}_{seed}_{label_key}_results.csv"
+    dataset_path = DATA_PATH / str(noise).replace('.','_') / data_type
+    if not os.path.exists(dataset_path) or RETRAIN_MODELS:
+        print(f"evaluating {weights_path}")
+        trainer = PecletModelTrainer(DB_PATH,
+                                    data['data_path'],
+                                    ThreeLayerCNNRegressor(),
+                                    LABEL_QUERY,
+                                    epochs = NUM_EPOCHS,
+                                    learning_rate = LEARNING_RATE,
+                                    ,**statistics[data['type']],
+                                    ,**statistics['labels'])
+        trainer.load_weights(weights_path)
+        trainer.evaluate()
+        csv_path = RESULTS_DIR / f"{data['type']}_{seed}_results.csv")
+        trainer.test_df.to_csv(csv_path)
+    else:
+        print(f"{weights_path} already evaluated, skipping")
+
 #+end_src
 
 #+begin_src jupyter-python
-for seed, noise, data_type, label in product(SEEDS, NOISE, DATA_TYPES, LABELS.items):
-        label_key, label_query = label
-        torch.manual_seed(seed)
-        weights_path = WEIGHTS_PATH / f"n{noise.replace('.','_')}_{data_type}_{seed}_{label_key}_weights.pt"
-        weights_path = RESULTS_DIR / f"n{noise.replace('.','_')}_{data_type}_{seed}_{label_key}_results.csv"
-        dataset_path = DATA_PATH / str(noise).replace('.','_') / data_type
-        if not os.path.exists(dataset_path) or RETRAIN_MODELS:
-            print(f"evaluating {weights_path}")
-            trainer = PecletModelTrainer(DB_PATH,
-                                        data['data_path'],
-                                        ThreeLayerCNNRegressor(),
-                                        LABEL_QUERY,
-                                        epochs = NUM_EPOCHS,
-                                        learning_rate = LEARNING_RATE,
-                                        ,**statistics[data['type']],
-                                        ,**statistics['labels'])
-            trainer.load_weights(weights_path)
-            trainer.evaluate()
-            csv_path = RESULTS_DIR / f"{data['type']}_{seed}_results.csv")
-            trainer.test_df.to_csv(csv_path)
-        else:
-            print(f"{weights_path} already evaluated, skipping")
-
+if IS_HEADLESS:
+    task_id = int(os.environ.get("SLURM_ARRAY_TASK_ID", 0))
+    eval_neural_net(*runs[task_id])
+else:
+    for run in runs:
+        eval_neural_net(*run)
+       
         # if data['type']=='dem':
         #     for second_data in data_types:
         #         weights_path = WEIGHTS_PATH / f"dem_{second_data['type']}_{seed}_weights.pt"
@@ -65,18 +82,18 @@ for seed, noise, data_type, label in product(SEEDS, NOISE, DATA_TYPES, LABELS.it
 
 We also train a "jumbo" model with larger layers.
 #+begin_src jupyter-python
-weights_path = WEIGHTS_PATH / 'dem_jumbo_run_weights.pt'
-torch.manual_seed(NN_SEEDS[0])
-traier = PecletModelTrainer(DB_PATH,
-                            MODEL_DEM_PATH,
-                            JumboThreeLayerCNNRegressor,
-                            LABEL_QUERY,
-                            epochs = NUM_EPOCHS,
-                            learning_rate = LEARNING_RATE,
-                            ,**stats['dem'],
-                            ,**stats['labels'])
-trainer.load_weights(weights_path)
-trainer.evaluate()
-csv_path = RESULTS_DIR / 'dem_jumbo_run_results.pt')
-trainer.test_df.to_csv(csv_path)
-#+end_src
+# weights_path = WEIGHTS_PATH / 'dem_jumbo_run_weights.pt'
+# torch.manual_seed(NN_SEEDS[0])
+# traier = PecletModelTrainer(DB_PATH,
+#                             MODEL_DEM_PATH,
+#                             JumboThreeLayerCNNRegressor,
+#                             LABEL_QUERY,
+#                             epochs = NUM_EPOCHS,
+#                             learning_rate = LEARNING_RATE,
+#                             **stats['dem'],
+#                             **stats['labels'])
+# trainer.load_weights(weights_path)
+# trainer.evaluate()
+# csv_path = RESULTS_DIR / 'dem_jumbo_run_results.pt')
+# trainer.test_df.to_csv(csv_path)
+#+End_src
