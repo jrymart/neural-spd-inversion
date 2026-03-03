@@ -1,9 +1,9 @@
 import torch
-from train_peclet_model import PecletModelTrainer
-from ThreeLayerCNNRegressor import ThreeLayerCNNRegressor, JumboThreeLayerCNNRegressor
+from neural_spd.train_peclet_model import PecletModelTrainer
+from neural_spd.ThreeLayerCNNRegressor import ThreeLayerCNNRegressor, JumboThreeLayerCNNRegressor
 import json
 
-from config import MODEL_STATS_PATH, DB_PATH, MODEL_DEM_PATH, LABEL_QUERY, OUTPUTS_TABLE, WEIGHTS_PATH, NN_SEEDS, MODEL_ACC_PATH, RESULTS_PATH, NUM_EPOCHS, LEARNING_RATE, SEEDS, NOISE, DATA_TYPES
+from neural_spd.config import MODEL_STATS_PATH, DB_PATH, MODEL_DEM_PATH, LABEL_QUERY, OUTPUTS_TABLE, WEIGHTS_PATH, NN_SEEDS, MODEL_ACC_PATH, RESULTS_PATH, NUM_EPOCHS, LEARNING_RATE, SEEDS, NOISE, DATA_TYPES, IS_HEADLESS
 # Use environment variables if set (for HPC scratch filesystem)
 DATA_PATH = Path(os.getenv('DATA_PATH', DATA_PATH))
 WEIGHTS_PATH = Path(os.getenv('WEIGHTS_PATH', WEIGHTS_PATH))
