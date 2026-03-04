@@ -42,7 +42,7 @@ def eval_neural_net(seed, noise, data_type, label):
                                     ,**statistics['labels'])
         trainer.load_weights(weights_path)
         trainer.evaluate()
-        csv_path = RESULTS_DIR / f"{data['type']}_{seed}_results.csv")
+        csv_path = RESULTS_DIR / f"{data['type']}_{seed}_results.csv"
         trainer.test_df.to_csv(csv_path)
     else:
         print(f"{weights_path} already evaluated, skipping")
