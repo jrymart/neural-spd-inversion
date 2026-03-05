@@ -187,6 +187,10 @@ class PecletModelTrainer:
         """
         Evaluate the model on the test set.
         """
+
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        print(f"Training on device: {device}", flush=True)
+        self.model.to(device)
         self.model.eval()
         total_loss = 0
         criterion = torch.nn.MSELoss()
@@ -196,6 +200,7 @@ class PecletModelTrainer:
         with torch.no_grad():
             for i, data in enumerate(self.test_loader,0):
                 data, labels = data
+                data, labels = data.to(device), labels.to(device)
                 outputs = self.model(data)
                 loss = criterion(outputs, labels.unsqueeze(1))
                 total_loss += loss.item()
