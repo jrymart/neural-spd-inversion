@@ -35,10 +35,12 @@ def eval_neural_net(seed, noise, data_type, label):
     dataset_path = DATA_PATH / str(noise).replace('.','_') / data_type
     if not os.path.exists(csv_path) or RETRAIN_MODELS:
         print(f"evaluating {weights_path}")
+        label_stats = statistics[label_key]
+        data_stats = statistics[str(noise).replace('.', '-')][data_type]
         trainer = PecletModelTrainer(DB_PATH,
-                                    data['data_path'],
+                                    dataset_path
                                     ThreeLayerCNNRegressor(),
-                                    LABEL_QUERY,
+                                    label_query,
                                     epochs = NUM_EPOCHS,
                                     learning_rate = LEARNING_RATE,
                                     ,**statistics[data['type']],
