@@ -7,8 +7,8 @@
 #SBATCH --qos=normal
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=5    # Data check usually benefits from more CPUs
-#SBATCH --mem=5G            # Adjust based on your dataset size
-#SBATCH --time=00:05:00
+#SBATCH --mem=8G            # Adjust based on your dataset size
+#SBATCH --time=00:15:00
 #SBATCH --array=0-159%10
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --mail-user=jo.martin@colorado.edu
@@ -69,6 +69,6 @@ uv run python -c "import os; print(f'PYTHON DB_PATH: {os.getenv(\"DB_PATH\")}')"
 uv run python -c "import os; print(f'PYTHON MODEL_STATS_PATH: {os.getenv(\"MODEL_STATS_PATH\")}')"
 # 3. Run the script using 'uv run'
 # This automatically handles the virtual environment and your src/ imports
-echo "Starting training on noise: $SELECTED_NOISE and data: $SELECTED_TYPE..."
+echo "Starting evaluating on noise: $SELECTED_NOISE and data: $SELECTED_TYPE..."
 uv run scripts/evaluation.py
-echo "Training complete."
+echo "Evaluation complete."
