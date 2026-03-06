@@ -10,7 +10,7 @@ import os
 import numpy as np
 
 from pathlib import Path
-from neural_spd.config import MODEL_STATS_PATH, DB_PATH, MODEL_DEM_PATH, MODEL_SLOPE_PATH, MODEL_ACC_PATH, MODEL_CURV_PATH, WEIGHTS_PATH, NN_SEEDS, NUM_EPOCHS, LEARNING_RATE, RETRAIN_MODELS, NOISE_LEVELS, DATA_TYPES, LABELS, DATA_PATH, LOG_PATH, IS_HEADLESS, CHECKPOINT_PATH, BATCH_SIZE
+from neural_spd.config import MODEL_STATS_PATH, DB_PATH, MODEL_DEM_PATH, MODEL_SLOPE_PATH, MODEL_ACC_PATH, MODEL_CURV_PATH, WEIGHTS_PATH, NN_SEEDS, NUM_EPOCHS, LEARNING_RATE, RETRAIN_MODELS, NOISE_LEVELS, DATA_TYPES, LABELS, DATA_PATH, LOG_PATH, IS_HEADLESS, CHECKPOINT_PATH, BATCH_SIZE, RESULTS_DIR
 # Use environment variables if set (for HPC scratch filesystem)
 DATA_PATH = Path(os.getenv('DATA_PATH', DATA_PATH))
 WEIGHTS_PATH = Path(os.getenv('WEIGHTS_PATH', WEIGHTS_PATH))
@@ -31,7 +31,7 @@ def eval_neural_net(seed, noise, data_type, label):
     label_key, label_query = label
     torch.manual_seed(seed)
     weights_path = WEIGHTS_PATH / f"n{str(noise).replace('.','_')}_{data_type}_{seed}_{label_key}_weights.pt"
-    weights_path = RESULTS_DIR / f"n{str(noise).replace('.','_')}_{data_type}_{seed}_{label_key}_results.csv"
+    csv_path = RESULTS_DIR / f"n{str(noise).replace('.','_')}_{data_type}_{seed}_{label_key}_results.csv"
     dataset_path = DATA_PATH / str(noise).replace('.','_') / data_type
     if not os.path.exists(dataset_path) or RETRAIN_MODELS:
         print(f"evaluating {weights_path}")
@@ -45,7 +45,6 @@ def eval_neural_net(seed, noise, data_type, label):
                                     ,**statistics['labels'])
         trainer.load_weights(weights_path)
         trainer.evaluate()
-        csv_path = RESULTS_DIR / f"{data['type']}_{seed}_results.csv"
         trainer.test_df.to_csv(csv_path)
     else:
         print(f"{weights_path} already evaluated, skipping")
