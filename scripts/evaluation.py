@@ -23,7 +23,7 @@ def eval_neural_net(seed, noise, data_type, label):
     label_key, label_query = label
     torch.manual_seed(seed)
     weights_path = WEIGHTS_PATH / f"n{str(noise).replace('.','_')}_{data_type}_{seed}_{label_key}_weights.pt"
-    csv_path = RESULTS_PATH/ f"n{str(noise).replace('.','_')}_{data_type}_{seed}_{label_key}_results.csv"
+    csv_path = RESULTS_PATH/ f"n{str(noise).replace('.','_')}_{Data_type}_{seed}_{label_key}_results.csv"
     dataset_path = DATA_PATH / str(noise).replace('.','_') / data_type
     if not os.path.exists(csv_path) or RETRAIN_MODELS:
         print(f"evaluating {weights_path}")
@@ -35,8 +35,8 @@ def eval_neural_net(seed, noise, data_type, label):
                                     label_query,
                                     epochs = NUM_EPOCHS,
                                     learning_rate = LEARNING_RATE,
-                                    **statistics[data['type']],
-                                    **statistics['labels'])
+                                    **data_stats
+                                    **label_stats)
         trainer.load_weights(weights_path)
         trainer.evaluate()
         trainer.test_df.to_csv(csv_path)
