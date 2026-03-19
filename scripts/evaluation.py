@@ -35,7 +35,7 @@ def eval_neural_net(seed, noise, data_type, label):
                                     label_query,
                                     epochs = NUM_EPOCHS,
                                     learning_rate = LEARNING_RATE,
-                                    **data_stats,
+                                    **Data_stats,
                                     **label_stats)
         trainer.load_weights(weights_path)
         trainer.evaluate()

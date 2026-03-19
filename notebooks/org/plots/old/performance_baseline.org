@@ -27,7 +27,6 @@ def plot_performance(ax):
 #+end_src
 
 #+RESULTS:
-: None
 
 #+begin_src python
 set_style('poster')

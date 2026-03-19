@@ -26,7 +26,6 @@ max_val = np.max([all_df_filtered['log_true'].max(), all_df_filtered['log_pred']
 #+end_src
 
 #+RESULTS:
-: None
 
 #+begin_src python
 def add_histogram(x,y, **kwargs):
@@ -49,7 +48,7 @@ g.map(lambda **kwargs: plt.plot([min_val, max_val], [min_val, max_val], ls='--',
 facet_datas = [d[1]['data'].iloc[0] for d in g.facet_data()]
 for i, ax in enumerate(g.axes.flat):
     data_name = facet_datas[i]
-    count = outlier_counts.get(data_name, 0)
+    count = outlier_counts.get(Data_name, 0)
     if count>0:
         ax.text(0.05, 0.95, f"{count} outliers removed for visibility", transform=ax.transAxes,
                 verticalalignment='top', fontsize=8)

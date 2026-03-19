@@ -1,6 +1,7 @@
 #+title: Analysis
-#+PROPERTY: header-args:python :python /home/jo/micromamba/envs/torchland/bin/python :session sinforms
-#+PROPERTY: header-args:python :tangle analysis.py
+#+PROPERTY: header-args:python :python /home/jo/cub/research/projects/neural-spd-inversion-prof/neural-spd-inversion/.venv/bin/python :session sinforms
+#+PROPERTY: header-args:python :tangle ../../scripts/analysis.py
+
 
 We want to understand performance of the neural networks, and how these vary across weight initialization and for data input.  To do this we need to load in our test results, and calculate some errors, and control to a baseline.
 #+begin_src python
@@ -12,15 +13,14 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 import numpy as np
 import re
-from itertools import prodcut
+from itertools import product
 #+end_src
 
 #+RESULTS:
 
 Set up some lists to keep track of error values.
 #+begin_src python
-d1 = Path("../../results")
-d2 = Path("../../noise_results")
+d1 = Path("results")
 dfs = []
 nrmses = []
 rmses = []
@@ -35,14 +35,12 @@ mean_perc_errs_std = []
 #+end_src
 
 #+RESULTS:
-: None
 
 Now load every file (that is specific network performance) both to merge them together, and to calculate error.
 #+begin_src python
 d1_files = list(os.listdir(d1))
-d2_files = list(os.listdir(d2))
-files = d1_files + d2_files
-ds = [d1]*len(d1_files)+[d2]*len(d2_files)
+files = d1_files 
+ds = [d1]*len(d1_files)
 for i, f in enumerate(files):
     d = ds[i]
     if not f[0]=='n':
@@ -74,7 +72,6 @@ for i, f in enumerate(files):
 #+END_SRC
 
 #+RESULTS:
-: None
 
 Now create our dataframes for analysis
 #+BEGIN_SRC python
@@ -105,7 +102,6 @@ rmse_df = pd.DataFrame({
 #+end_src
 
 #+RESULTS:
-: None
 
 Now we use the DEM based network, and the DEMx2 based networks as baselines.
 #+begin_src python
@@ -117,13 +113,12 @@ for index, row in rmse_df.iterrows():
 #+end_src
 
 #+RESULTS:
-: None
 
 Now we save the dataframes for plotting later.
 
 #+begin_src python
 from pathlib import Path
-analysis_dir = Path("../../analysis")
+analysis_dir = Path("analysis")
 analysis_dir.mkdir(exist_ok=True)
 rmse_path = analysis_dir / "overall_performance.csv"
 rmse_df.to_csv(rmse_path)
@@ -132,7 +127,6 @@ all_df.to_csv(test_path)
 #+end_src
 
 #+RESULTS:
-: None
 
 error_fig, ax = plt.subplots(figsize=(8, 6))
 ax.bar(rmse_df['data'], rmse_df['mean_perc_err'], yerr=rmse_df['mean_perc_err_std'], capsize=5)

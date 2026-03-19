@@ -1,0 +1,6 @@
+#+title: Perf Compare
+
+#+begin_src python :results output
+import sys
+print(sys.executable)
+#+end_src

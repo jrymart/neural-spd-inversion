@@ -1,0 +1,69 @@
+#+title: Target Distributions
+#+PROPERTY: header-args:python :python /home/jo/cub/research/projects/neural-spd-inversion-proj/neural-spd-inversion/.venv/bin/python :session target-dist
+
+* Overview
+This figure shows the distribution of target variables
+
+** Data source
+: analysis/all_test_performance.csv
+
+* Setup
+#+begin_src python
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
+from neural_spd.config import PROJECT_ROOT
+from neural_spd import plot_styles
+plot_styles.apply()
+
+target_dist_path = PROJECT_ROOT / "analysis/all_test_performance.csv"
+target_names = {
+    'DoK': "$D/K$",
+    'KoD': "$K/D$",
+    'logDoK': r"$\log_{10}(D/K)$",
+    'logKoD': r"$\log_{10}(K/D)$"
+}
+#+end_src
+
+#+RESULTS:
+: None
+
+* Load and select data
+#+begin_src python
+target_dist_df = pd.read_csv(target_dist_path)
+# select seed 0 and noise 0
+target_dist_df = target_dist_df[(target_dist_df["seed"] == 0) & (target_dist_df["noise"] == 0)]
+# get dictionary of data frames for each possible 'target' variable
+target_dfs = {target: target_dist_df[target_dist_df["target"] == target] for target in target_dist_df["target"].unique()}
+
+
+#+end_src
+
+#+RESULTS:
+: None
+
+* plotting function
+#+begin_src python
+def plot_target_dists(axs):
+    for ax, (target, df) in zip(axs.flat, target_dfs.items()):
+        ax.hist(df['true_labels'],
+                bins=50,
+                color=plot_styles.COLORS["green_dark"],
+                edgecolor="none",
+                alpha=0.85)
+        ax.set_xlabel(target_names[target])
+        ax.set_ylabel("Count")
+#+end_src
+
+#+RESULTS:
+: None
+
+* Generate plots
+#+begin_src python
+fig, axs = plt.subplots(2,2, figsize=(7, 5))
+plot_target_dists(axs)
+fig.show()
+#+end_src
+
+#+RESULTS:
+: None
