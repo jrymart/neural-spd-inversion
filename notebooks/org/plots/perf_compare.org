@@ -1,6 +1,67 @@
 #+title: Perf Compare
+#+PROPERTY: header-args:python :python /home/jo/cub/research/projects/neural-spd-inversion-proj/neural-spd-inversion/.venv/bin/python :session perf-comp
 
-#+begin_src python :results output
-import sys
-print(sys.executable)
+* Overview
+This figure compares performance for different data types and targets
+
+** Data source
+: analysis/overall_performance.csv
+
+* Setup
+#+begin_src python
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
+from neural_spd.config import PROJECT_ROOT
+from neural_spd import plot_styles
+plot_styles.apply()
+PERF_METRICS_PATH = PROJECT_ROOT / "analysis/overall_performance.csv"
+target_names = {
+    'DoK': "$D/K$",
+    'KoD': "$K/D$",
+    'logDoK': r"$\log_{10}(D/K)$",
+    'logKoD': r"$\log_{10}(K/D)$"
+}
+data_names = {
+    'elevation': "Elevation",
+    'flowacc': "Flow Acc",
+    'log10flowacc': r"$\log_{10}$(Flow Acc)",
+    'slope': "Slope",
+    'curvature': "Curvature"
+}
 #+end_src
+
+#+RESULTS:
+: None
+
+* Load data
+#+begin_src python
+perf_metrics_df = pd.read_csv(PERF_METRICS_PATH)
+perf_metrics_df["target"] = perf_metrics_df["target"].map(target_names)
+perf_metrics_df["data"] = perf_metrics_df["data"].map(data_names) 
+#+end_src
+
+#+RESULTS:
+: None
+
+* Plotting function
+#+begin_src python
+def plot_perf_comp(ax):
+   sns.barplot(data=perf_metrics_df, x="data", y="nrmse", hue="target", ax=ax)
+   ax.set_ylabel("NRMSE")
+   ax.set_xlabel("Data Type")
+
+#+end_src
+
+#+RESULTS:
+: None
+
+* Generate plots
+#+begin_src python
+fig, ax = plt.subplots(figsize=(6, 4))
+plot_perf_comp(ax)
+fig.show()
+#+end_src
+
+#+RESULTS:
+: None

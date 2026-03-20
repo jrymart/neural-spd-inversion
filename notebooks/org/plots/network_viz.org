@@ -1,0 +1,107 @@
+#+title: Network Viz
+#+PROPERTY: header-args:python :python /home/jo/cub/research/projects/neural-spd-inversion-proj/neural-spd-inversion/.venv/bin/python :session network-viz
+
+* Overview
+This figure visualizes the network archicture
+
+* Setup
+#+begin_src python
+import networkx as nx
+from networkx.drawing.nx_agraph import graphviz_layout
+import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
+import numpy as np
+from neural_spd.plot_styles import COLORS
+#+end_src
+
+#+RESULTS:
+: None
+
+** Generate network topology
+#+begin_src python
+nodes = np.arange(157)
+links= []
+for i in range(1,11):
+    links.append((0,i))
+    links.append((i, i+10))
+    links.append((i+10, i+20))
+    for j in range(1,21):
+        links.append((i+20, 30+j))
+for i in range(1,21):
+    links.append((i+30,i+50))
+    links.append((i+50,i+70))
+    links.append((i+90,i+110))
+    links.append((i+110,i+130))
+    for j in range(1,21):
+        links.append((i+70, 20+70+j))
+        links.append((130+j, 151))
+for i in range(5):
+    links.append((151+i, 151+i+1))
+edges = links
+#+end_src
+
+#+RESULTS:
+: None
+
+** Set node colors
+#+begin_src python
+node_colors = [COLORS['gray_mid']]
+node_colors += [COLORS['green_mid']]*10
+node_colors += [COLORS['blue']]*10
+node_colors += [COLORS['orange']]*10
+node_colors += [COLORS['green_mid']]*20
+node_colors += [COLORS['blue']]*20
+node_colors += [COLORS['orange']]*20
+node_colors += [COLORS['green_mid']]*20
+node_colors += [COLORS['blue']]*20
+node_colors += [COLORS['orange']]*20
+node_colors += [COLORS['purple'],
+                COLORS['blue'],
+                COLORS['purple'],
+                COLORS['blue'],
+                COLORS['purple'],
+                COLORS['gray_mid']]
+
+
+#+end_src
+
+#+RESULTS:
+: None
+
+* Plotting Function
+#+begin_src python
+def plot_network(ax):
+   G = nx.DiGraph()
+   G.add_nodes_from(nodes)
+   G.add_edges_from(edges)
+   pos = graphviz_layout(G, prog='dot')
+   nx.draw(G, pos, ax=ax, with_labels=False, node_color=node_colors,
+           edge_color="gray", node_size=500, font_size=10)
+   legend_elements = [
+    Line2D([0], [0], marker='o', color='w', label='Input/Output',
+           markerfacecolor=COLORS['gray_mid'], markersize=10),
+    Line2D([0], [0], marker='o', color='w', label='Convolution',
+           markerfacecolor=COLORS['green_mid'], markersize=10),
+    Line2D([0], [0], marker='o', color='w', label='ReLU',
+           markerfacecolor=COLORS['blue'], markersize=10),
+    Line2D([0], [0], marker='o', color='w', label='MaxPool',
+           markerfacecolor=COLORS['orange'], markersize=10),
+    Line2D([0], [0], marker='o', color='w', label='Linear Transformation',
+           markerfacecolor=COLORS['purple'], markersize=10),
+   ]
+   ax.legend(handles=legend_elements, loc='upper right', title="Node Types")
+
+#+end_src
+
+#+RESULTS:
+: None
+
+* Generate Plots
+#+begin_src python
+fig, ax = plt.subplots(figsize=(12,12))
+plot_network(ax)
+fig.show()
+#+end_src
+
+#+RESULTS:
+: None
