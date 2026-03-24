@@ -1,0 +1,8 @@
+#+title: Valley Test
+
+To test if the network has learned a valley spacing relationship, we feed it a sine wave dataset to see if it has a coherent response.
+
+#+begin_src python
+asdasd 
+#+end_src
+

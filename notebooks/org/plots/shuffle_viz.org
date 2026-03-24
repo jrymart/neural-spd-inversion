@@ -1,0 +1,74 @@
+#+title: Shuffle Viz
+#+PROPERTY: header-args:python :python /home/jo/cub/research/projects/neural-spd-inversion-proj/neural-spd-inversion/.venv/bin/python :session shuff-viz
+
+* Overview
+This figure shows the effect of the shuffling and swapping on the input topography
+
+** Data source
+
+* Setup
+#+begin_src python
+import sqlite3
+import numpy as np
+from landlab_torch_tools import HorizontalSwap, GridShuffle
+from neural_spd.config import PROJECT_ROOT
+import matplotlib.pyplot as plt
+db_path = PROJECT_ROOT / "model_runs.db"
+data_dir = PROJECT_ROOT / "data/0/elevation" 
+#+end_src
+
+#+RESULTS:
+: None
+
+* Load and shuffle data
+
+** Select characteristic dataset
+#+begin_src python
+connection = sqlite3.connect(db_path)
+cursor = connection.cursor()
+cursor.execute("SELECT model_run_id, \"model_param.diffuser.D\" / \"model_param.streampower.k\" FROM model_run_params")
+results = cursor.fetchall()
+# sort by second row
+results.sort(key=lambda x: x[1])
+# select 10th percentile run
+tenth_percentile_index = int(len(results) * 0.1)
+selected_run_id = results[tenth_percentile_index][0]
+elev = np.load(data_dir / f"{selected_run_id}.npy")
+#+end_src
+
+#+RESULTS:
+
+** Apply shuffling and swapping
+#+begin_src python
+hswap = HorizontalSwap()
+shuff = GridShuffle()
+elev_hswap = hswap(elev)
+elev_shuff = shuff(elev)
+#+end_src
+
+#+RESULTS:
+
+* Plotting function
+#+begin_src python
+def plot_maps(axs):
+    axs[0].imshow(elev, cmap="terrain")
+    axs[0].set_title("Original")
+    axs[1].imshow(elev_hswap, cmap="terrain")
+    axs[1].set_title("Horizontal Swap")
+    axs[2].imshow(elev_shuff, cmap="terrain")
+    axs[2].set_title("Grid Shuffle")
+#+end_src
+
+#+RESULTS:
+: None
+
+``
+
+* Generate plots
+#+begin_src python
+fig, axs = plt.subplots(1, 3, figsize=(15, 5))
+plot_maps(axs)
+fig.show()
+#+end_src
+
+#+RESULTS:
