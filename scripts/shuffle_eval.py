@@ -25,6 +25,8 @@ batch_size = 64
 with open(MODEL_STATS_PATH, 'r') as f:
     statistics = json.load(f)
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 def eval_neural_net(seed, noise, data_type, label, transform=None):
     label_key, label_query = label
     if transform is not None:
@@ -40,7 +42,7 @@ def eval_neural_net(seed, noise, data_type, label, transform=None):
         data_stats = statistics[str(noise).replace('.', '-')][data_type]
         trainer = PecletModelTrainer(DB_PATH,
                                     dataset_path,
-                                    ThreeLayerCNNRegressor(),
+                                    ThreeLayerCNNRegressor().to_device(),
                                     label_query,
                                     epochs = NUM_EPOCHS,
                                     test_transform=transform,

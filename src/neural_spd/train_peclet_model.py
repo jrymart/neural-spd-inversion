@@ -181,7 +181,8 @@ class PecletModelTrainer:
         """
         Load the model weights from a file.
         """
-        self.model.load_state_dict(torch.load(path))
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.model.load_state_dict(torch.load(path, map_location=device))
 
     def evaluate(self):
         """
