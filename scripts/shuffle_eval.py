@@ -2,9 +2,12 @@ import json
 from landlab_torch_tools import LandlabBatchDataset, GridShuffle, HorizontalSwap
 from neural_spd.ThreeLayerCNNRegressor import ThreeLayerCNNRegressor
 from neural_spd.config import MODEL_STATS_PATH, DB_PATH, MODEL_DEM_PATH, MODEL_SLOPE_PATH, MODEL_ACC_PATH, MODEL_CURV_PATH, WEIGHTS_PATH, NN_SEEDS, NUM_EPOCHS, LEARNING_RATE, RETRAIN_MODELS, NOISE_LEVELS, DATA_TYPES, LABELS, DATA_PATH, LOG_PATH, IS_HEADLESS, CHECKPOINT_PATH, BATCH_SIZE, RESULTS_PATH
+from neural_spd.train_peclet_model import PecletModelTrainer
 import torch
 import pandas as pd
 import matplotlib.pyplot as plt
+from itertools import product
+import os
 
 stats_path = DATA_PATH / "model_stats.json"
 db_path = DATA_PATH / "model_runs.db"
@@ -16,8 +19,11 @@ transforms = {'swap': HorizontalSwap,
               'shuffle': GridShuffle}
 result_dirs = [RESULTS_PATH / "shuffle" / key for key in transforms.keys()]
 for d in result_dirs:
-    p.mkdir(parents=True, exist_ok=True)
+    d.mkdir(parents=True, exist_ok=True)
 batch_size = 64
+
+with open(MODEL_STATS_PATH, 'r') as f:
+    statistics = json.load(f)
 
 def eval_neural_net(seed, noise, data_type, label, transform=None):
     label_key, label_query = label
@@ -39,7 +45,7 @@ def eval_neural_net(seed, noise, data_type, label, transform=None):
                                     epochs = NUM_EPOCHS,
                                     test_transform=transform,
                                     learning_rate = LEARNING_RATE,
-                                    **Data_stats,
+                                    **data_stats,
                                     **label_stats)
         trainer.load_weights(weights_path)
         trainer.evaluate()
@@ -54,51 +60,3 @@ if IS_HEADLESS:
 else:
     for run in runs:
         eval_neural_net(*run)
-
-predictions = []
-true_labels = []
-i=0
-for data, labels in shuffled_dataloader:
-    if i%10==0:
-        print(f"on {i}")
-    outputs = model(data)
-    predictions += outputs
-    true_labels += labels
-    i += 1
-predictions = [float(p)*label_stats['labels_std'] + label_stats['labels_mean'] for p in predictions]
-true_labels = [float(l)*label_stats['labels_std'] + label_stats['labels_mean'] for l in true_labels]
-Ks = [float(k) for k in Ks]
-df = pd.DataFrame({'predictions': predictions,
-              'true_labels': true_labels,
-                  'D': Ds,
-                  'K': Ks})
-
-#df = pd.DataFrame({'predictions': predictions,
-#              'true_labels': true_labels})
-df.to_csv(swap_results_path)
-
-plt.scatter(true_labels, predictions, color=Ks)
-
-predictions = []
-true_labels = []
-i = 0
-for data, labels in shuffled_dataloader:
-    if i%10 ==0:
-        print(f"on {i}")
-    outputs = model(data)
-    predictions += outputs
-    true_labels += labels
-    i += 1
-
-predictions = [float(p)*label_stats['labels_std'] + label_stats['labels_mean'] for p in predictions]
-true_labels = [float(l)*label_stats['labels_std'] + label_stats['labels_mean'] for l in true_labels]
-Ds = [float(d) for d in Ds]
-Ks = [float(k) for k in Ks]
-df = pd.DataFrame({'predictions': predictions,
-              'true_labels': true_labels,
-                  'D': Ds,
-                  'K': Ks})
-df.to_csv(shuff_results_path)
-
-plt.scatter(true_labels, predictions)
-plt.show()
