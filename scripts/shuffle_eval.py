@@ -15,8 +15,8 @@ label = 'logDoK'
 swap_results_path = "../analysis/swap_results.csv"
 shuff_results_path = "../analysis/shuffle_results.csv"
 weight_path = WEIGHTS_PATH/ "n0_elevation_0_log_DoK_weights.pt"
-transforms = {'swap': HorizontalSwap,
-              'shuffle': GridShuffle}
+transforms = {'swap': HorizontalSwap(),
+              'shuffle': GridShuffle()}
 result_dirs = [RESULTS_PATH / "shuffle" / key for key in transforms.keys()]
 for d in result_dirs:
     d.mkdir(parents=True, exist_ok=True)
