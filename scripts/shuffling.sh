@@ -1,10 +1,8 @@
 #!/bin/bash
 #SBATCH --job-name=train-spd-net
-#SBATCH --output=logs/array_runs/evaluation_%A_%a.log
+#SBATCH --output=logs/array_runs/shuffling_%A_%a.log
 #SBATCH --nodes=1
-#SBATCH --partition=aa100,al40
-#SBATCH --gres=gpu:1
-#SBATCH --qos=normal
+#SBATCH --qos=blanca-csdms
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=5    # Data check usually benefits from more CPUs
 #SBATCH --mem=8G            # Adjust based on your dataset size
