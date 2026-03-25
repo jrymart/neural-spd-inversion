@@ -42,7 +42,7 @@ def eval_neural_net(seed, noise, data_type, label, transform=None):
         data_stats = statistics[str(noise).replace('.', '-')][data_type]
         trainer = PecletModelTrainer(DB_PATH,
                                     dataset_path,
-                                    ThreeLayerCNNRegressor().to_device(),
+                                    ThreeLayerCNNRegressor().to(device),
                                     label_query,
                                     epochs = NUM_EPOCHS,
                                     test_transform=transform,
