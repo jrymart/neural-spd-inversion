@@ -15,7 +15,7 @@ weight_path = WEIGHTS_PATH/ "n0_elevation_0_log_DoK_weights.pt"
 transforms = {'swap': HorizontalSwap,
               'shuffle': GridShuffle}
 result_dirs = [RESULTS_PATH / "shuffle" / key for key in transforms.keys()]
-for d in results_dirs:
+for d in result_dirs:
     p.mkdir(parents=True, exist_ok=True)
 batch_size = 64
 
