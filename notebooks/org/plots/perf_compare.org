@@ -47,9 +47,22 @@ perf_metrics_df["data"] = perf_metrics_df["data"].map(data_names)
 * Plotting function
 #+begin_src python
 def plot_perf_comp(ax):
-   sns.barplot(data=perf_metrics_df, x="data", y="nrmse", hue="target", ax=ax)
-   ax.set_ylabel("NRMSE")
-   ax.set_xlabel("Data Type")
+    sns.barplot(
+        data=perf_metrics_df,
+        x="data", y="nrmse", hue="target",
+        ax=ax,
+        palette=plot_styles.PALETTE[:4],
+        edgecolor="none",
+        capsize=0.04,
+        errwidth=0.8,
+    )
+    ax.set_ylabel("NRMSE")
+    ax.set_xlabel("Input Data Type")
+    ax.legend(title="Target", loc="upper right")
+    # rotate x-tick labels if they overlap
+    ax.tick_params(axis="x", labelrotation=15)
+    for label in ax.get_xticklabels():
+        label.set_ha("right")
 
 #+end_src
 
@@ -58,8 +71,10 @@ def plot_perf_comp(ax):
 
 * Generate plots
 #+begin_src python
-fig, ax = plt.subplots(figsize=(6, 4))
+plot_styles.double_column()
+fig, ax = plt.subplots(figsize=(6.75, 3.0))
 plot_perf_comp(ax)
+plot_styles.save_figure(fig, "perf_compare")
 fig.show()
 #+end_src
 

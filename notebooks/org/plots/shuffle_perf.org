@@ -63,67 +63,32 @@ logacc_logKoD = all_df[
 
 * plotting function
 #+begin_src python
+_PANEL_DATA = [
+    (elev_logDoK,    "Elevation",          r"$\log_{10}(D/K)$"),
+    (elev_logKoD,    "Elevation",          r"$\log_{10}(K/D)$"),
+    (slope_logDoK,   "Slope",              r"$\log_{10}(D/K)$"),
+    (slope_logKoD,   "Slope",              r"$\log_{10}(K/D)$"),
+    (logacc_logDoK,  r"$\log_{10}$ Flow Acc", r"$\log_{10}(D/K)$"),
+    (logacc_logKoD,  r"$\log_{10}$ Flow Acc", r"$\log_{10}(K/D)$"),
+]
+
 def plot_shuf_perf(axs):
-    sns.kdeplot(
-        data=elev_logDoK,
-        x="true_labels",
-        y='predictions',
-        hue="test_type",
-        fill=True,
-        label="logDoK",
-        ax=axs[0][0]
-    )
-    axs[0][0].set_title("Elevation - logDoK")
-    sns.kdeplot(
-        data=elev_logKoD,
-        x="true_labels",
-        y='predictions',
-        hue="test_type",
-        fill=True,
-        label="logKoD",
-        ax=axs[0][1]
-    )
-    axs[0][1].set_title("Elevation - logKoD")
-    sns.kdeplot(
-        data=slope_logDoK,
-        x="true_labels",
-        y='predictions',
-        hue="test_type",
-        fill=True,
-        label="logDoK",
-        ax=axs[1][0]
-    )
-    axs[1][0].set_title("Slope - logDoK")
-    sns.kdeplot(
-        data=slope_logKoD,
-        x="true_labels",
-        y='predictions',
-        hue="test_type",
-        fill=True,
-        label="logKoD",
-        ax=axs[1][1]
-    )
-    axs[1][1].set_title("Slope - logKoD")
-    sns.kdeplot(
-        data=logacc_logDoK,
-        x="true_labels",
-        y='predictions',
-        hue="test_type",
-        fill=True,
-        label="logDoK",
-        ax=axs[2][0]
-    )
-    axs[2][0].set_title("Log10 Flow Acc - logDoK")
-    sns.kdeplot(
-        data=logacc_logKoD,
-        x="true_labels",
-        y='predictions',
-        hue="test_type",
-        fill=True,
-        label="logKoD",
-        ax=axs[2][1]
-    )
-    axs[2][1].set_title("Log10 Flow Acc - logKoD")
+    for ax, (df, data_label, target_label) in zip(axs.flat, _PANEL_DATA):
+        sns.kdeplot(
+            data=df,
+            x="true_labels",
+            y="predictions",
+            hue="test_type",
+            fill=True,
+            ax=ax,
+        )
+        ax.set_title(f"{data_label} — {target_label}")
+        ax.set_xlabel(f"True {target_label}")
+        ax.set_ylabel(f"Predicted {target_label}")
+        # add 1:1 reference line
+        lims = [df["true_labels"].min(), df["true_labels"].max()]
+        ax.plot(lims, lims, color=plot_styles.COLORS["gray_mid"],
+                linestyle="--", linewidth=0.8, zorder=3)
 #+end_src
 
 #+RESULTS:
@@ -131,8 +96,12 @@ def plot_shuf_perf(axs):
 
 * Generate plots
 #+begin_src python
-fig, axs = plt.subplots(3, 2, figsize=(12, 18))
+plot_styles.double_column()
+fig, axs = plt.subplots(3, 2, figsize=(6.75, 8.5))
 plot_shuf_perf(axs)
+fig.suptitle("Shuffle/Swap Robustness — All Input/Target Combinations",
+             fontsize=plt.rcParams["axes.titlesize"], y=1.01)
+plot_styles.save_figure(fig, "shuffle_perf")
 fig.show()
 #+end_src
 

@@ -11,7 +11,9 @@ from networkx.drawing.nx_agraph import graphviz_layout
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 import numpy as np
+from neural_spd import plot_styles
 from neural_spd.plot_styles import COLORS
+plot_styles.apply()
 #+end_src
 
 #+RESULTS:
@@ -71,25 +73,34 @@ node_colors += [COLORS['purple'],
 * Plotting Function
 #+begin_src python
 def plot_network(ax):
-   G = nx.DiGraph()
-   G.add_nodes_from(nodes)
-   G.add_edges_from(edges)
-   pos = graphviz_layout(G, prog='dot')
-   nx.draw(G, pos, ax=ax, with_labels=False, node_color=node_colors,
-           edge_color="gray", node_size=500, font_size=10)
-   legend_elements = [
-    Line2D([0], [0], marker='o', color='w', label='Input/Output',
-           markerfacecolor=COLORS['gray_mid'], markersize=10),
-    Line2D([0], [0], marker='o', color='w', label='Convolution',
-           markerfacecolor=COLORS['green_mid'], markersize=10),
-    Line2D([0], [0], marker='o', color='w', label='ReLU',
-           markerfacecolor=COLORS['blue'], markersize=10),
-    Line2D([0], [0], marker='o', color='w', label='MaxPool',
-           markerfacecolor=COLORS['orange'], markersize=10),
-    Line2D([0], [0], marker='o', color='w', label='Linear Transformation',
-           markerfacecolor=COLORS['purple'], markersize=10),
-   ]
-   ax.legend(handles=legend_elements, loc='upper right', title="Node Types")
+    G = nx.DiGraph()
+    G.add_nodes_from(nodes)
+    G.add_edges_from(edges)
+    pos = graphviz_layout(G, prog="dot")
+    nx.draw(
+        G, pos, ax=ax,
+        with_labels=False,
+        node_color=node_colors,
+        edge_color=COLORS["gray_light"],
+        node_size=60,
+        width=0.4,
+        arrowsize=4,
+    )
+    legend_elements = [
+        Line2D([0], [0], marker="o", color="w", label="Input / Output",
+               markerfacecolor=COLORS["gray_mid"], markersize=6),
+        Line2D([0], [0], marker="o", color="w", label="Convolution",
+               markerfacecolor=COLORS["green_mid"], markersize=6),
+        Line2D([0], [0], marker="o", color="w", label="ReLU",
+               markerfacecolor=COLORS["blue"], markersize=6),
+        Line2D([0], [0], marker="o", color="w", label="MaxPool",
+               markerfacecolor=COLORS["orange"], markersize=6),
+        Line2D([0], [0], marker="o", color="w", label="Linear",
+               markerfacecolor=COLORS["purple"], markersize=6),
+    ]
+    ax.legend(handles=legend_elements, loc="upper right", title="Node Type",
+              title_fontsize=plt.rcParams["legend.fontsize"])
+    ax.set_axis_off()
 
 #+end_src
 
@@ -98,8 +109,10 @@ def plot_network(ax):
 
 * Generate Plots
 #+begin_src python
-fig, ax = plt.subplots(figsize=(12,12))
+plot_styles.double_column()
+fig, ax = plt.subplots(figsize=(6.75, 5.0))
 plot_network(ax)
+plot_styles.save_figure(fig, "network_viz")
 fig.show()
 #+end_src
 
