@@ -24,13 +24,15 @@ target_names = {
 data_names = {
     'elevation': "Elevation",
     'flowacc': "Flow Acc",
-    'log10flowacc': r"$\log_{10}$(Flow Acc)",
+    'log10flowacc': r"$\log_{10}(\mathrm{Flow\ Acc})$",
     'slope': "Slope",
     'curvature': "Curvature"
 }
 reg_df = pd.read_csv(reg_perf)
-reg_df['test_type'] = 'reg'
+reg_df['test_type'] = 'Unmodified'
 mod_df = pd.read_csv(mod_perf)
+label_map = {'shuffle': 'Tile Shuffle', 'swap': 'Horizontal Swap'}
+mod_df['test_type'] = mod_df['test_type'].map(label_map).fillna(mod_df['test_type'])
 all_df = pd.concat([reg_df, mod_df], ignore_index=True)
 elev_logDoK = all_df[
     (all_df["target"] == "logDoK") &

@@ -25,7 +25,7 @@ target_names = {
 data_names = {
     'elevation': "Elevation",
     'flowacc': "Flow Acc",
-    'log10flowacc': r"$\log_{10}$(Flow Acc)",
+    'log10flowacc': r"$\log_{10}(\mathrm{Flow\ Acc})$",
     'slope': "Slope",
     'curvature': "Curvature"
 }
@@ -54,7 +54,7 @@ def plot_perf_comp(ax):
         palette=plot_styles.PALETTE[:4],
         edgecolor="none",
         capsize=0.04,
-        errwidth=0.8,
+        err_kws={"linewidth": 0.8},
     )
     ax.set_ylabel("NRMSE")
     ax.set_xlabel("Input Data Type")
