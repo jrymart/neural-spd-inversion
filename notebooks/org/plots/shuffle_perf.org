@@ -23,8 +23,8 @@ target_names = {
 }
 data_names = {
     'elevation': "Elevation",
-    'flowacc': "Flow Acc",
-    'log10flowacc': r"$\log_{10}(\mathrm{Flow\ Acc})$",
+    'flowacc': "Flow Acc.",
+    'log10flowacc': r"$\log_{10}$(Flow Acc.)",
     'slope': "Slope",
     'curvature': "Curvature"
 }
@@ -70,12 +70,13 @@ _PANEL_DATA = [
     (elev_logKoD,    "Elevation",          r"$\log_{10}(K/D)$"),
     (slope_logDoK,   "Slope",              r"$\log_{10}(D/K)$"),
     (slope_logKoD,   "Slope",              r"$\log_{10}(K/D)$"),
-    (logacc_logDoK,  r"$\log_{10}$ Flow Acc", r"$\log_{10}(D/K)$"),
-    (logacc_logKoD,  r"$\log_{10}$ Flow Acc", r"$\log_{10}(K/D)$"),
+    (logacc_logDoK,  r"$\log_{10}$(Flow Acc.)", r"$\log_{10}(D/K)$"),
+    (logacc_logKoD,  r"$\log_{10}$(Flow Acc.)", r"$\log_{10}(K/D)$"),
 ]
 
 def plot_shuf_perf(axs):
-    for ax, (df, data_label, target_label) in zip(axs.flat, _PANEL_DATA):
+    for ax, (df, data_label, target_label), letter in zip(
+            axs.flat, _PANEL_DATA, "abcdef"):
         sns.kdeplot(
             data=df,
             x="true_labels",
@@ -89,8 +90,9 @@ def plot_shuf_perf(axs):
         ax.set_ylabel(f"Predicted {target_label}")
         # add 1:1 reference line
         lims = [df["true_labels"].min(), df["true_labels"].max()]
-        ax.plot(lims, lims, color=plot_styles.COLORS["gray_mid"],
+        ax.plot(lims, lims, color=plot_styles.COLORS["black"],
                 linestyle="--", linewidth=0.8, zorder=3)
+        plot_styles.panel_label(ax, letter)
 #+end_src
 
 #+RESULTS:
@@ -104,7 +106,7 @@ plot_shuf_perf(axs)
 fig.suptitle("Shuffle/Swap Robustness — All Input/Target Combinations",
              fontsize=plt.rcParams["axes.titlesize"], y=1.01)
 plot_styles.save_figure(fig, "shuffle_perf")
-fig.show()
+plt.close(fig)
 #+end_src
 
 #+RESULTS:
