@@ -6,36 +6,28 @@ Now we create a dataset of varying drainage density and see how the trained netw
 #+begin_src python
 import sqlite3
 from landlab_torch_tools import AdaptiveThresholdDataset
-from ThreeLayerCNNRegressor import ThreeLayerCNNRegressor
+from neural_spd.ThreeLayerCNNRegressor import ThreeLayerCNNRegressor
+from neural_spd.config import WEIGHTS_PATH, DB_PATH, MODEL_ACC_PATH, MODEL_STATS_PATH
 from pathlib import Path
 import json
 import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader
 import torch
 import numpy as np
+import pandas as pd
 #+end_src
 
 #+RESULTS:
 : None
 
 #+begin_src python
-db_path = "../../../peclet-prediction/model_runs.db"
-acc_dataset_dir = Path("../../../peclet-prediction/model_run_flowacc")
-weight_path = "../../weights/dem_10_weights.pt"
-model_stat_path = "../../model_stats.json"
-#+end_src
-
-#+RESULTS:
-: None
-
-#+begin_src python
-connection = sqlite3.connect(db_path)
+connection = sqlite3.connect(DB_PATH)
 cursor = connection.cursor()
 cursor.execute('SELECT model_run_id, "model_param.diffuser.D"/"model_param.streampower.k" FROM model_run_params')
 Dks = cursor.fetchall()
 Dks.sort(key = lambda x: x[1])
 low_Dk_run = Dks[int(len(Dks)/10)][0]
-low_Dk_array = torch.unsqueeze(torch.tensor(np.load(acc_dataset_dir / f"{low_Dk_run}.npy")[5:-5,5:-5]), 0)
+low_Dk_array = torch.unsqueeze(torch.tensor(np.load(MODEL_ACC_PATH / f"{low_Dk_run}.npy")[5:-5,5:-5]), 0)
 threshold_dataset = AdaptiveThresholdDataset(
     input_array = low_Dk_array,
     num_thresholds = 1000,
@@ -46,38 +38,48 @@ threshold_dataset = AdaptiveThresholdDataset(
 
 #+RESULTS:
 : None
-
 #+begin_src python
-MODEL_STATS_PATH = "../../model_stats.json"
-DEM_WEIGHT_PATH = "../../weights/dem_10_weights.pt"
 with open(MODEL_STATS_PATH, 'r') as f:
     stats = json.load(f)
 labels_mean = stats['labels']['labels_mean']
 labels_std = stats['labels']['labels_std']
-loader = DataLoader(threshold_dataset, 64, shuffle=False)
-model = ThreeLayerCNNRegressor()
-model.load_state_dict(torch.load(DEM_WEIGHT_PATH))
-model.eval()
-drainage_densities = []
-thresholds = []
-norm_labels = []
-with torch.no_grad():
-    for data, threshold in loader:
-        data = data.float()
-        drainage_density = (data.sum(axis=(1,2,3))*5)/(np.prod(data.shape)*5*5)
-        norm_label = model(data)
-        drainage_densities += drainage_density
-        norm_labels += norm_label
-        thresholds += threshold
-labels = [l*labels_std+labels_mean for l in norm_labels]
+weight_id = ["n0_elevation_0_logDoK",
+                "n0_elevation_10_logDoK",
+                "n0_elevation_20_logDoK",
+                "n0_elevation_30_logDoK",
+               ]
+#+end_src
+
+#+begin_src python
+def run_dd_test(weights_file):
+    weights_path = WEIGHTS_PATH / f"{weights_file}_weights.pt"
+    loader = DataLoader(threshold_dataset, 64, shuffle=False)
+    model = ThreeLayerCNNRegressor()
+    model.load_state_dict(torch.load(weights_path))
+    model.eval()
+    drainage_densities = []
+    thresholds = []
+    norm_labels = []
+    with torch.no_grad():
+        for data, threshold in loader:
+            data = data.float()
+            drainage_density = (data.sum(axis=(1,2,3))*5)/(np.prod(data.shape)*5*5)
+            norm_label = model(data)
+            drainage_densities += drainage_density
+            norm_labels += norm_label
+            thresholds += threshold
+    labels = [l*labels_std+labels_mean for l in norm_labels]
+    return draiange_densities, labels
+#+end_src
+
+#+begin_src python
+for weight_file in weight_files:
+    draiange_densities, labels = run_dd_test(weights_file)
+    dd_df = pd.DataFrame({
+        "drainage_density": draiange_densities,
+        "logDoK": labels
+    })
+    dd_df.to_csv(RESULTS_PATH / "dd" / f"{weight_file}_dd.csv", index=False)
 #+end_src
 
 #+RESULTS:
-: None
-
-#+begin_src python :results graphics file output :file dd_performance.png
-plt.scatter(drainage_densities, labels)
-#+end_src
-
-#+RESULTS:
-[[file:dd_performance.png]]
