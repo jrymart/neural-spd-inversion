@@ -1,9 +1,3 @@
-#+title: Drainage Density
-#+PROPERTY: header-args:python :python /home/jo/micromamba/envs/neural-spd-inversion/bin/python :session drainagedensity
-#+PROPERTY: header-args:python :tangle ../../scripts/drainage_density.py
-Now we create a dataset of varying drainage density and see how the trained network is able to infer it.
-
-#+begin_src python
 import sqlite3
 from landlab_torch_tools import AdaptiveThresholdDataset
 from neural_spd.ThreeLayerCNNRegressor import ThreeLayerCNNRegressor
@@ -15,12 +9,7 @@ from torch.utils.data import DataLoader
 import torch
 import numpy as np
 import pandas as pd
-#+end_src
 
-#+RESULTS:
-: None
-
-#+begin_src python
 connection = sqlite3.connect(DB_PATH)
 cursor = connection.cursor()
 cursor.execute('SELECT model_run_id, "model_param.diffuser.D"/"model_param.streampower.k" FROM model_run_params')
@@ -34,11 +23,7 @@ threshold_dataset = AdaptiveThresholdDataset(
     percentile_range=(1,99),
     return_threshold=True
 )
-#+end_src
 
-#+RESULTS:
-: None
-#+begin_src python
 with open(MODEL_STATS_PATH, 'r') as f:
     stats = json.load(f)
 labels_mean = stats['labels']['labels_mean']
@@ -48,9 +33,7 @@ weight_id = ["n0_elevation_0_logDoK",
                 "n0_elevation_20_logDoK",
                 "n0_elevation_30_logDoK",
                ]
-#+end_src
 
-#+begin_src python
 def run_dd_test(weights_file):
     weights_path = WEIGHTS_PATH / f"{weights_file}_weights.pt"
     loader = DataLoader(threshold_dataset, 64, shuffle=False)
@@ -70,9 +53,7 @@ def run_dd_test(weights_file):
             thresholds += threshold
     labels = [l*labels_std+labels_mean for l in norm_labels]
     return draiange_densities, labels
-#+end_src
 
-#+begin_src python
 for weight_file in weight_files:
     draiange_densities, labels = run_dd_test(weights_file)
     dd_df = pd.DataFrame({
@@ -80,6 +61,3 @@ for weight_file in weight_files:
         "logDoK": labels
     })
     dd_df.to_csv(RESULTS_PATH / "dd" / f"{weight_file}_dd.csv", index=False)
-#+end_src
-
-#+RESULTS:
