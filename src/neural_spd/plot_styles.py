@@ -82,10 +82,10 @@ _rcparams = {
     "figure.constrained_layout.use": True,
 
     # --- Font ---
-    "font.family":           "serif",
-    "font.serif":            ["Times New Roman", "DejaVu Serif", "serif"],
+    "font.family":           "sans-serif",
+    "font.sans-serif":       ["Helvetica Neue", "Arial", "DejaVu Sans"],
     "font.size":             8,
-    "mathtext.fontset":      "stix",  # consistent with Times New Roman
+    "mathtext.fontset":      "dejavusans",  # consistent with sans-serif body
 
     # --- Axes ---
     "axes.facecolor":        COLORS["white"],

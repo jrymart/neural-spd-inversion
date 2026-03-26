@@ -120,12 +120,21 @@ def render_perf_compare():
     perf_metrics_df["target"] = perf_metrics_df["target"].map(target_names)
     perf_metrics_df["data"]   = perf_metrics_df["data"].map(data_names)
 
+    hue_order = ["$D/K$", r"$\log_{10}(D/K)$", "$K/D$", r"$\log_{10}(K/D)$"]
+    palette   = [
+        plot_styles.COLORS["green_dark"],  # D/K      — dark green
+        "#82bb8e",                         # log(D/K) — light green
+        "#1d5f8a",                         # K/D      — dark blue
+        "#7aadcc",                         # log(K/D) — light blue
+    ]
+
     def plot_perf_comp(ax):
         sns.barplot(
             data=perf_metrics_df,
             x="data", y="nrmse", hue="target",
+            hue_order=hue_order,
             ax=ax,
-            palette=plot_styles.PALETTE[:4],
+            palette=palette,
             edgecolor="none",
             capsize=0.04,
             err_kws={"linewidth": 0.8},
