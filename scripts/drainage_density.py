@@ -1,7 +1,7 @@
 import sqlite3
 from landlab_torch_tools import AdaptiveThresholdDataset
 from neural_spd.ThreeLayerCNNRegressor import ThreeLayerCNNRegressor
-from neural_spd.config import WEIGHTS_PATH, DB_PATH, MODEL_STATS_PATH, DATA_PATH
+from neural_spd.config import WEIGHTS_PATH, DB_PATH, MODEL_STATS_PATH, DATA_PATH, RESULTS_PATH
 from pathlib import Path
 import json
 import matplotlib.pyplot as plt
