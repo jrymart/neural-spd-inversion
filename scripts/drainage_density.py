@@ -28,14 +28,14 @@ with open(MODEL_STATS_PATH, 'r') as f:
     stats = json.load(f)
 labels_mean = stats['logDoK']['labels_mean']
 labels_std = stats['logDoK']['labels_std']
-weight_id = ["n0_elevation_0_logDoK",
+weight_ids = ["n0_elevation_0_logDoK",
                 "n0_elevation_10_logDoK",
                 "n0_elevation_20_logDoK",
                 "n0_elevation_30_logDoK",
                ]
 
-def run_dd_test(weights_file):
-    weights_path = WEIGHTS_PATH / f"{weights_file}_weights.pt"
+def run_dd_test(weight_id):
+    weights_path = WEIGHTS_PATH / f"{weight_id}_weights.pt"
     loader = DataLoader(threshold_dataset, 64, shuffle=False)
     model = ThreeLayerCNNRegressor()
     model.load_state_dict(torch.load(weights_path))
@@ -54,10 +54,10 @@ def run_dd_test(weights_file):
     labels = [l*labels_std+labels_mean for l in norm_labels]
     return draiange_densities, labels
 
-for weight_file in weight_files:
-    draiange_densities, labels = run_dd_test(weights_file)
+for weight_id in weight_ids:
+    draiange_densities, labels = run_dd_test(weight_id)
     dd_df = pd.DataFrame({
         "drainage_density": draiange_densities,
         "logDoK": labels
     })
-    dd_df.to_csv(RESULTS_PATH / "dd" / f"{weight_file}_dd.csv", index=False)
+    dd_df.to_csv(RESULTS_PATH / "dd" / f"{weight_id}_dd.csv", index=False)
