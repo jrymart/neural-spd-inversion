@@ -3,6 +3,7 @@
 
 * Overview
 This figure visualizes the network archicture
+:scope: appendix
 
 * Setup
 #+begin_src python

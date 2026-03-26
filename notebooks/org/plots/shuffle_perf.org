@@ -2,7 +2,8 @@
 #+PROPERTY: header-args:python :python /home/jo/cub/research/projects/neural-spd-inversion-proj/neural-spd-inversion/.venv/bin/python :session shuff-viz
 
 * Overview 
-This figure shows the performance of the trained network on shuffled and swapped data
+This figure shows the performance of the trained network on shuffled and swapped data.
+:scope: appendix
 
 * Setup
 

@@ -3,6 +3,8 @@
 
 * Overview
 This figure shows the effect of the shuffling and swapping on the input topography
+:scope: paper
+:figure: 5
 
 ** Data source
 

@@ -3,6 +3,8 @@
 
 * Overview
 This figure compares performance for different data types and targets
+:scope: paper
+:figure: 2
 
 ** Data source
 : analysis/overall_performance.csv
