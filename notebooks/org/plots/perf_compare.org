@@ -3,6 +3,8 @@
 
 * Overview
 This figure compares performance for different data types and targets
+:scope: paper
+:figure: 2
 
 ** Data source
 : analysis/overall_performance.csv
@@ -25,7 +27,7 @@ target_names = {
 data_names = {
     'elevation': "Elevation",
     'flowacc': "Flow Acc",
-    'log10flowacc': r"$\log_{10}$(Flow Acc)",
+    'log10flowacc': r"$\log_{10}(\mathrm{Flow\ Acc})$",
     'slope': "Slope",
     'curvature': "Curvature"
 }
@@ -46,10 +48,32 @@ perf_metrics_df["data"] = perf_metrics_df["data"].map(data_names)
 
 * Plotting function
 #+begin_src python
+# Single-hue sequential: two greens for D/K family, two blues for K/D family
+_PERF_HUE_ORDER = ["$D/K$", r"$\log_{10}(D/K)$", "$K/D$", r"$\log_{10}(K/D)$"]
+_PERF_PALETTE   = [
+    plot_styles.COLORS["green_dark"],  # D/K      — dark green
+    "#82bb8e",                         # log(D/K) — light green
+    "#1d5f8a",                         # K/D      — dark blue
+    "#7aadcc",                         # log(K/D) — light blue
+]
+
 def plot_perf_comp(ax):
-   sns.barplot(data=perf_metrics_df, x="data", y="nrmse", hue="target", ax=ax)
-   ax.set_ylabel("NRMSE")
-   ax.set_xlabel("Data Type")
+    sns.barplot(
+        data=perf_metrics_df,
+        x="data", y="nrmse", hue="target",
+        hue_order=_PERF_HUE_ORDER,
+        ax=ax,
+        palette=_PERF_PALETTE,
+        edgecolor="none",
+        capsize=0.04,
+        err_kws={"linewidth": 0.8},
+    )
+    ax.set_ylabel("NRMSE")
+    ax.set_xlabel("Input Data Type")
+    ax.legend(title="Target", loc="upper right")
+    ax.tick_params(axis="x", labelrotation=15)
+    for label in ax.get_xticklabels():
+        label.set_ha("right")
 
 #+end_src
 
@@ -58,8 +82,10 @@ def plot_perf_comp(ax):
 
 * Generate plots
 #+begin_src python
-fig, ax = plt.subplots(figsize=(6, 4))
+plot_styles.double_column()
+fig, ax = plt.subplots(figsize=(6.75, 3.0))
 plot_perf_comp(ax)
+plot_styles.save_figure(fig, "perf_compare")
 fig.show()
 #+end_src
 

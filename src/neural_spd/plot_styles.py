@@ -82,10 +82,10 @@ _rcparams = {
     "figure.constrained_layout.use": True,
 
     # --- Font ---
-    "font.family":           "serif",
-    "font.serif":            ["Times New Roman", "DejaVu Serif", "serif"],
+    "font.family":           "sans-serif",
+    "font.sans-serif":       ["Helvetica Neue", "Arial", "DejaVu Sans"],
     "font.size":             8,
-    "mathtext.fontset":      "dejavuserif",
+    "mathtext.fontset":      "dejavusans",  # consistent with sans-serif body
 
     # --- Axes ---
     "axes.facecolor":        COLORS["white"],
@@ -101,6 +101,7 @@ _rcparams = {
     "axes.prop_cycle":       plt.cycler("color", PALETTE),
     "axes.spines.top":       False,
     "axes.spines.right":     False,
+    "axes.axisbelow":        True,
 
     # --- Ticks ---
     "xtick.labelsize":       7,
@@ -124,6 +125,8 @@ _rcparams = {
     # --- Legend ---
     "legend.fontsize":       7,
     "legend.frameon":        True,
+    "legend.framealpha":     0.9,
+    "legend.edgecolor":      COLORS["gray_light"],
     "legend.borderpad":      0.3,
     "legend.handlelength":   1.2,
     "legend.handletextpad":  0.4,
@@ -182,9 +185,9 @@ def apply():
         pass
 
 def double_column():
-    """Switch to two-column figure width (7 in)."""
+    """Switch to full-page figure width (6.75 in, GRL standard ~174 mm)."""
     mpl.rcParams.update({
-        "figure.figsize": (7.0, 3.5),
+        "figure.figsize": (6.75, 3.0),
         "font.size": 9,
         "axes.titlesize": 10,
         "axes.labelsize": 9,
@@ -194,7 +197,7 @@ def double_column():
     })
 
 def single_column():
-    """Switch back to single-column width (3.5 in)."""
+    """Switch back to single-column width (3.5 in, GRL standard ~84 mm)."""
     mpl.rcParams.update({
         "figure.figsize": (3.5, 3.0),
         "font.size": 8,
@@ -204,6 +207,33 @@ def single_column():
         "ytick.labelsize": 7,
         "legend.fontsize": 7,
     })
+
+
+def save_figure(fig, name, directory=None, formats=("pdf", "svg")):
+    """Save *fig* to *directory* in each of *formats*.
+
+    Parameters
+    ----------
+    fig : matplotlib.figure.Figure
+    name : str
+        Stem of the output filename (no extension).
+    directory : path-like, optional
+        Defaults to ``PROJECT_ROOT/plots``.
+    formats : iterable of str
+        File extensions / formats to write.  Both ``"pdf"`` and ``"svg"``
+        are vector formats suitable for publication.
+    """
+    from pathlib import Path
+    if directory is None:
+        try:
+            from neural_spd.config import PLOTS_PATH
+            directory = PLOTS_PATH
+        except ImportError:
+            directory = Path("plots")
+    directory = Path(directory)
+    directory.mkdir(parents=True, exist_ok=True)
+    for fmt in formats:
+        fig.savefig(directory / f"{name}.{fmt}")
 
 
 # ============================================================================
@@ -219,4 +249,5 @@ if __name__ == "__main__":
         print(f"    [{i}] {c}")
     print(f"\n  Custom cmap: 'pub_greens'")
     print(f"\n  Inkscape-compatible: pdf.fonttype=42, svg.fonttype='none'")
-    print(f"  Figure widths: single_column() → 3.5in, double_column() → 7.0in")
+    print(f"  Figure widths (GRL): single_column() → 3.5in, double_column() → 6.75in")
+    print(f"  Save helper: save_figure(fig, 'name') → plots/<name>.pdf + plots/<name>.svg")

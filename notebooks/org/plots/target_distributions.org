@@ -3,6 +3,7 @@
 
 * Overview
 This figure shows the distribution of target variables
+:scope: appendix
 
 ** Data source
 : analysis/all_test_performance.csv
@@ -31,8 +32,13 @@ target_names = {
 * Load and select data
 #+begin_src python
 target_dist_df = pd.read_csv(target_dist_path)
-# select seed 0 and noise 0
-target_dist_df = target_dist_df[(target_dist_df["seed"] == 0) & (target_dist_df["noise"] == 0)]
+# one seed, one noise level, one data type — true_labels are identical across
+# data types (same model runs), so this gives the true test-set size (1800)
+target_dist_df = target_dist_df[
+    (target_dist_df["seed"]  == 0) &
+    (target_dist_df["noise"] == 0) &
+    (target_dist_df["data"]  == "elevation")
+]
 # get dictionary of data frames for each possible 'target' variable
 target_dfs = {target: target_dist_df[target_dist_df["target"] == target] for target in target_dist_df["target"].unique()}
 
@@ -46,13 +52,16 @@ target_dfs = {target: target_dist_df[target_dist_df["target"] == target] for tar
 #+begin_src python
 def plot_target_dists(axs):
     for ax, (target, df) in zip(axs.flat, target_dfs.items()):
-        ax.hist(df['true_labels'],
+        ax.hist(df["true_labels"],
                 bins=50,
                 color=plot_styles.COLORS["green_dark"],
                 edgecolor="none",
                 alpha=0.85)
         ax.set_xlabel(target_names[target])
         ax.set_ylabel("Count")
+        ax.yaxis.set_major_formatter(
+            plt.matplotlib.ticker.FuncFormatter(lambda x, _: f"{int(x):,}")
+        )
 #+end_src
 
 #+RESULTS:
@@ -60,8 +69,10 @@ def plot_target_dists(axs):
 
 * Generate plots
 #+begin_src python
-fig, axs = plt.subplots(2,2, figsize=(7, 5))
+plot_styles.double_column()
+fig, axs = plt.subplots(2, 2, figsize=(6.75, 4.5))
 plot_target_dists(axs)
+plot_styles.save_figure(fig, "target_distributions")
 fig.show()
 #+end_src
 

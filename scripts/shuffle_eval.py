@@ -33,8 +33,8 @@ def eval_neural_net(seed, noise, data_type, label, transform=None):
         transform_key, transform = transform
     torch.manual_seed(seed)
     dataset_path = DATA_PATH / str(noise).replace('.','_') / data_type
-    weights_path = WEIGHTS_PATH / f"n{str(noise).replace('.','_')}_{data_type}_{seed}_{label_key}_weights.pt"
-    csv_path = RESULTS_PATH/ "shuffle" / transform_key / f"n{str(noise).replace('.','_')}_{data_type}_{seed}_{label_key}_results.csv"
+    weights_path = WEIGHTS_PATH / f"n{str(noise).replace('.','-')}_{data_type}_{seed}_{label_key}_weights.pt"
+    csv_path = RESULTS_PATH/ "shuffle" / transform_key / f"n{str(noise).replace('.','-')}_{data_type}_{seed}_{label_key}_results.csv"
 
     if not os.path.exists(csv_path):
         print(f"evaluating {weights_path}")

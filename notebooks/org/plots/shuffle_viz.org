@@ -3,6 +3,8 @@
 
 * Overview
 This figure shows the effect of the shuffling and swapping on the input topography
+:scope: paper
+:figure: 5
 
 ** Data source
 
@@ -13,8 +15,11 @@ import numpy as np
 from landlab_torch_tools import HorizontalSwap, GridShuffle
 from neural_spd.config import PROJECT_ROOT
 import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+from neural_spd import plot_styles
+plot_styles.apply()
 db_path = PROJECT_ROOT / "model_runs.db"
-data_dir = PROJECT_ROOT / "data/0/elevation" 
+data_dir = PROJECT_ROOT / "data/0/elevation"
 #+end_src
 
 #+RESULTS:
@@ -50,24 +55,37 @@ elev_shuff = shuff(elev)
 
 * Plotting function
 #+begin_src python
-def plot_maps(axs):
-    axs[0].imshow(elev, cmap="terrain")
-    axs[0].set_title("Original")
-    axs[1].imshow(elev_hswap, cmap="terrain")
-    axs[1].set_title("Horizontal Swap")
-    axs[2].imshow(elev_shuff, cmap="terrain")
-    axs[2].set_title("Grid Shuffle")
+_TITLES = ["Original", "Horizontal Swap", "Grid Shuffle"]
+_ELEVS  = [None, None, None]   # filled at call time to avoid stale refs
+
+def plot_maps(axs, elev, elev_hswap, elev_shuff):
+    vmin = elev.min()
+    vmax = elev.max()
+    for ax, data, title in zip(axs, [elev, elev_hswap, elev_shuff], _TITLES):
+        im = ax.imshow(data, cmap="terrain", vmin=vmin, vmax=vmax,
+                       interpolation="nearest")
+        ax.set_title(title)
+        ax.set_xticks([])
+        ax.set_yticks([])
+        for spine in ax.spines.values():
+            spine.set_visible(False)
+    # shared colorbar on the rightmost panel
+    divider = make_axes_locatable(axs[-1])
+    cax = divider.append_axes("right", size="5%", pad=0.05)
+    cb = plt.colorbar(im, cax=cax)
+    cb.set_label("Elevation (m)", fontsize=plt.rcParams["axes.labelsize"])
+    cb.ax.tick_params(labelsize=plt.rcParams["xtick.labelsize"])
 #+end_src
 
 #+RESULTS:
 : None
 
-``
-
 * Generate plots
 #+begin_src python
-fig, axs = plt.subplots(1, 3, figsize=(15, 5))
-plot_maps(axs)
+plot_styles.double_column()
+fig, axs = plt.subplots(1, 3, figsize=(6.75, 2.4))
+plot_maps(axs, elev, elev_hswap, elev_shuff)
+plot_styles.save_figure(fig, "shuffle_viz")
 fig.show()
 #+end_src
 
