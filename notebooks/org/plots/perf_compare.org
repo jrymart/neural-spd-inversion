@@ -2,7 +2,9 @@
 #+PROPERTY: header-args:python :python /home/jo/cub/research/projects/neural-spd-inversion-proj/neural-spd-inversion/.venv/bin/python :session perf-comp
 
 * Overview
-This figure compares performance for different data types and targets
+This figure compares NRMSE across input data types, faceted by target-variable
+family (linear vs log-transformed).  Two panels keep the bar count manageable
+and make the scale difference between families visible.
 
 ** Data source
 : analysis/overall_performance.csv
@@ -11,6 +13,7 @@ This figure compares performance for different data types and targets
 #+begin_src python
 import matplotlib.pyplot as plt
 import pandas as pd
+import numpy as np
 import seaborn as sns
 from neural_spd.config import PROJECT_ROOT
 from neural_spd import plot_styles
@@ -24,11 +27,13 @@ target_names = {
 }
 data_names = {
     'elevation': "Elevation",
-    'flowacc': "Flow Acc",
-    'log10flowacc': r"$\log_{10}(\mathrm{Flow\ Acc})$",
+    'flowacc': "Flow Acc.",
+    'log10flowacc': r"$\log_{10}$(Flow Acc.)",
     'slope': "Slope",
     'curvature': "Curvature"
 }
+# order for x-axis: derived features first, then raw
+_DATA_ORDER = ["Slope", "Curvature", r"$\log_{10}$(Flow Acc.)", "Flow Acc.", "Elevation"]
 #+end_src
 
 #+RESULTS:
@@ -38,7 +43,12 @@ data_names = {
 #+begin_src python
 perf_metrics_df = pd.read_csv(PERF_METRICS_PATH)
 perf_metrics_df["target"] = perf_metrics_df["target"].map(target_names)
-perf_metrics_df["data"] = perf_metrics_df["data"].map(data_names) 
+perf_metrics_df["data"] = perf_metrics_df["data"].map(data_names)
+
+# Split into linear and log-transformed target families
+linear_df = perf_metrics_df[perf_metrics_df["target"].isin(["$D/K$", "$K/D$"])]
+log_df    = perf_metrics_df[perf_metrics_df["target"].isin(
+    [r"$\log_{10}(D/K)$", r"$\log_{10}(K/D)$"])]
 #+end_src
 
 #+RESULTS:
@@ -46,33 +56,37 @@ perf_metrics_df["data"] = perf_metrics_df["data"].map(data_names)
 
 * Plotting function
 #+begin_src python
-# Single-hue sequential: two greens for D/K family, two blues for K/D family
-_PERF_HUE_ORDER = ["$D/K$", r"$\log_{10}(D/K)$", "$K/D$", r"$\log_{10}(K/D)$"]
-_PERF_PALETTE   = [
-    plot_styles.COLORS["green_dark"],  # D/K      — dark green
-    "#82bb8e",                         # log(D/K) — light green
-    "#1d5f8a",                         # K/D      — dark blue
-    "#7aadcc",                         # log(K/D) — light blue
-]
+_LIN_HUE   = ["$D/K$", "$K/D$"]
+_LOG_HUE   = [r"$\log_{10}(D/K)$", r"$\log_{10}(K/D)$"]
+_LIN_PAL   = [plot_styles.COLORS["green_dark"], plot_styles.COLORS["blue"]]
+_LOG_PAL   = [plot_styles.COLORS["green_dark"], plot_styles.COLORS["blue"]]
 
-def plot_perf_comp(ax):
+def _bar_panel(ax, df, hue_order, palette, title):
     sns.barplot(
-        data=perf_metrics_df,
+        data=df,
         x="data", y="nrmse", hue="target",
-        hue_order=_PERF_HUE_ORDER,
+        hue_order=hue_order,
+        order=_DATA_ORDER,
         ax=ax,
-        palette=_PERF_PALETTE,
+        palette=palette,
         edgecolor="none",
-        capsize=0.04,
+        capsize=0.05,
         err_kws={"linewidth": 0.8},
     )
     ax.set_ylabel("NRMSE")
-    ax.set_xlabel("Input Data Type")
+    ax.set_xlabel("")
+    ax.set_title(title)
     ax.legend(title="Target", loc="upper right")
-    ax.tick_params(axis="x", labelrotation=15)
+    ax.tick_params(axis="x", labelrotation=25)
     for label in ax.get_xticklabels():
         label.set_ha("right")
 
+def plot_perf_comp(axs):
+    _bar_panel(axs[0], linear_df, _LIN_HUE, _LIN_PAL, "Linear targets")
+    _bar_panel(axs[1], log_df,    _LOG_HUE,  _LOG_PAL, "Log-transformed targets")
+    # panel labels
+    for ax, letter in zip(axs, "ab"):
+        plot_styles.panel_label(ax, letter, x=-0.08)
 #+end_src
 
 #+RESULTS:
@@ -81,10 +95,10 @@ def plot_perf_comp(ax):
 * Generate plots
 #+begin_src python
 plot_styles.double_column()
-fig, ax = plt.subplots(figsize=(6.75, 3.0))
-plot_perf_comp(ax)
+fig, axs = plt.subplots(1, 2, figsize=(6.75, 3.2))
+plot_perf_comp(axs)
 plot_styles.save_figure(fig, "perf_compare")
-fig.show()
+plt.close(fig)
 #+end_src
 
 #+RESULTS:
