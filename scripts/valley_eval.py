@@ -1,9 +1,3 @@
-#+title: Valley Test
-
-#+PROPERTY: header-args:jupyter-python :tangle ../../scripts/valley_eval.py
-To test if the network has learned a valley spacing relationship, we feed it a sine wave dataset to see if it has a coherent response.
-
-#+begin_src jupyter-python
 from landlab_torch_tools import SineTopographyDataset
 import json
 from neural_spd.ThreeLayerCNNRegressor import ThreeLayerCNNRegressor
@@ -13,15 +7,11 @@ import torch
 import pandas as pd
 import os
 from itertools import product
-#+end_src
 
-#+begin_src jupyter-python
 with open(MODEL_STATS_PATH) as f:
     stats = json.load(f)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-#+end_src
 
-#+begin_src jupyter-python
 def eval_neural_net_on_sine(seed, noise, data_type, label):
     label_key, label_query = label
     torch.manual_seed(seed)
@@ -41,19 +31,13 @@ def eval_neural_net_on_sine(seed, noise, data_type, label):
                             learning_rate = LEARNING_RATE,
                             train_dataset=sineset,
                             test_dataset=sineset,
-                            ,**label_stats)
+                            **label_stats)
         trainer.load_weights(weights_path)
         trainer.evaluate()
         trainer.test_df.to_csv(csv_path)
     else:
         print(f"{weights_path} already evaluated, skipping")
 
-
-
-#+end_src
-
-#+RESULTS:
-#+begin_src jupyter-python
 runs = list(product(NN_SEEDS, NOISE_LEVELS, DATA_TYPES, LABELS.items()))
 if IS_HEADLESS:
     task_id = int(os.environ.get("SLURM_ARRAY_TASK_ID", 0))
@@ -61,4 +45,3 @@ if IS_HEADLESS:
 else:
     for run in runs:
         eval_neural_net_on_sine(*run)
-#+end_src

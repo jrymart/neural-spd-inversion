@@ -27,7 +27,7 @@ RAW_PERF_PATH = PROJECT_ROOT / "analysis/all_test_performance.csv"
 #+end_src
 
 #+RESULTS:
-: /home/jo/cub/research/projects/neural-spd-inversion-proj/neural-spd-inversion/.venv/bin/python
+: None
 
 * Load and select data
 

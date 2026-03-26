@@ -3,3 +3,138 @@
 
 * Overview 
 This figure shows the performance of the trained network on shuffled and swapped data
+
+* Setup
+
+#+begin_src python
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
+from neural_spd.config import PROJECT_ROOT
+from neural_spd import plot_styles
+plot_styles.apply()
+reg_perf = PROJECT_ROOT / "analysis/all_test_performance.csv"
+mod_perf = PROJECT_ROOT / "analysis/all_mod_performance.csv"
+target_names = {
+    'DoK': "$D/K$",
+    'KoD': "$K/D$",
+    'logDoK': r"$\log_{10}(D/K)$",
+    'logKoD': r"$\log_{10}(K/D)$"
+}
+data_names = {
+    'elevation': "Elevation",
+    'flowacc': "Flow Acc",
+    'log10flowacc': r"$\log_{10}$(Flow Acc)",
+    'slope': "Slope",
+    'curvature': "Curvature"
+}
+reg_df = pd.read_csv(reg_perf)
+reg_df['test_type'] = 'reg'
+mod_df = pd.read_csv(mod_perf)
+all_df = pd.concat([reg_df, mod_df], ignore_index=True)
+elev_logDoK = all_df[
+    (all_df["target"] == "logDoK") &
+    (all_df["data"] == "elevation")
+]
+elev_logKoD = all_df[
+    (all_df["target"] == "logKoD") &
+    (all_df["data"] == "elevation")
+]
+slope_logDoK = all_df[
+    (all_df["target"] == "logDoK") &
+    (all_df["data"] == "slope")
+]
+slope_logKoD = all_df[
+    (all_df["target"] == "logKoD") &
+    (all_df["data"] == "slope")
+]
+logacc_logDoK = all_df[
+    (all_df["target"] == "logDoK") &
+    (all_df["data"] == "log10flowacc")
+]
+logacc_logKoD = all_df[
+    (all_df["target"] == "logKoD") &
+    (all_df["data"] == "log10flowacc")
+]
+#+end_src
+
+#+RESULTS:
+: None
+
+* plotting function
+#+begin_src python
+def plot_shuf_perf(axs):
+    sns.kdeplot(
+        data=elev_logDoK,
+        x="true_labels",
+        y='predictions',
+        hue="test_type",
+        fill=True,
+        label="logDoK",
+        ax=axs[0][0]
+    )
+    axs[0][0].set_title("Elevation - logDoK")
+    sns.kdeplot(
+        data=elev_logKoD,
+        x="true_labels",
+        y='predictions',
+        hue="test_type",
+        fill=True,
+        label="logKoD",
+        ax=axs[0][1]
+    )
+    axs[0][1].set_title("Elevation - logKoD")
+    sns.kdeplot(
+        data=slope_logDoK,
+        x="true_labels",
+        y='predictions',
+        hue="test_type",
+        fill=True,
+        label="logDoK",
+        ax=axs[1][0]
+    )
+    axs[1][0].set_title("Slope - logDoK")
+    sns.kdeplot(
+        data=slope_logKoD,
+        x="true_labels",
+        y='predictions',
+        hue="test_type",
+        fill=True,
+        label="logKoD",
+        ax=axs[1][1]
+    )
+    axs[1][1].set_title("Slope - logKoD")
+    sns.kdeplot(
+        data=logacc_logDoK,
+        x="true_labels",
+        y='predictions',
+        hue="test_type",
+        fill=True,
+        label="logDoK",
+        ax=axs[2][0]
+    )
+    axs[2][0].set_title("Log10 Flow Acc - logDoK")
+    sns.kdeplot(
+        data=logacc_logKoD,
+        x="true_labels",
+        y='predictions',
+        hue="test_type",
+        fill=True,
+        label="logKoD",
+        ax=axs[2][1]
+    )
+    axs[2][1].set_title("Log10 Flow Acc - logKoD")
+#+end_src
+
+#+RESULTS:
+: None
+
+* Generate plots
+#+begin_src python
+fig, axs = plt.subplots(3, 2, figsize=(12, 18))
+plot_shuf_perf(axs)
+fig.show()
+#+end_src
+
+#+RESULTS:
+: None

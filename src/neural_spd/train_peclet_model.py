@@ -15,7 +15,7 @@ class PecletModelTrainer:
 
     def __init__(self, db_path, dataset_dir, model, label_query="SELECT log_peclet FROM model_run_outputs",
                  filter_query="", split_by="model_param.seed", train_fraction=.8, trim=5,
-                 batch_size=64, epochs=5, learning_rate=0.001, train_transform=None, test_transform=None, **kwargs):
+                 batch_size=64, epochs=5, learning_rate=0.001, train_transform=None, test_transform=None, train_dataset=None, test_dataset=None, **kwargs):
         """
         Initialize the trainer with a path to the SQLite database.
         
@@ -35,18 +35,22 @@ class PecletModelTrainer:
         self.model = model
         num_cpus = int(os.environ.get('SLURM_CPUS_PER_TASK', os.cpu_count() or 1))
         num_workers=max(1, num_cpus - 1)
-        self.train_ds, self.test_ds = build_datasets_from_db(
-            db_path,
-            dataset_dir,
-            label_query,
-            filter_query,
-            split_by,
-            train_fraction,
-            trim,
-            train_transform=train_transform,
-            test_transform=test_transform,
-            **kwargs
-        )
+        if dataset_dir is None:
+            self.train_ds = train_dataset
+            self.test_ds = test_dataset
+        else:
+            self.train_ds, self.test_ds = build_datasets_from_db(
+                db_path,
+                dataset_dir,
+                label_query,
+                filter_query,
+                split_by,
+                train_fraction,
+                trim,
+                train_transform=train_transform,
+                test_transform=test_transform,
+                **kwargs
+            )
         self.train_loader = torch.utils.data.DataLoader(
             self.train_ds,
             batch_size=batch_size,
