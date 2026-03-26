@@ -1,0 +1,49 @@
+#+title: Dd Perf
+#+PROPERTY: header-args:python :python /home/jo/cub/research/projects/neural-spd-inversion-proj/neural-spd-inversion/.venv/bin/python :session dd-perf
+
+* Overview
+This figure shows the performance of a network on the sine datasaet
+:scope: paper
+:figure: 4
+:data: results/dd/*
+
+* Setup
+#+begin_src python
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
+from neural_spd.config import PROJECT_ROOT
+from neural_spd import plot_styles
+plot_styles.apply
+
+result_file = PROJECT_ROOT / "results" / "dd" / "n0_elevation_20_logDoK_dd.csv"
+df = pd.read_csv(result_file)
+#+end_src
+
+#+RESULTS:
+: None
+
+* Plotting function
+#+begin_src python
+def plot_dd(ax):
+    sns.scatterplot(
+        data=df,
+        x="drainage_density",
+        y="logDoK",
+        ax=ax,
+        s=2
+    )
+#+end_src
+
+#+RESULTS:
+: None
+
+* Generate plots
+#+begin_src python
+fig, ax = plt.subplots()
+plot_dd(ax)
+fig.show()
+#+end_src
+
+#+RESULTS:
+: None
