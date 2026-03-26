@@ -57,7 +57,6 @@ best_raw_perf_df = raw_perf_df[
 * Plotting function
 #+begin_src python
 def plot_raw_perf(ax):
-    #loglogspace
     ax.set_xscale("log")
     ax.set_yscale("log")
     ax.set_xlabel("True $(D/K)$")
@@ -70,31 +69,43 @@ def plot_raw_perf(ax):
         fill=True,
         alpha=1,
         levels=5,
-        label="Performance of Elevation->$(D/K)$ Network",
+        cmap="pub_greens",
     )
+    # marginal histogram of true D/K on a shared x-axis secondary y
     ax2 = ax.twinx()
-    ax2.set_ylabel("")
+    ax2.set_ylabel("Count", color=plot_styles.COLORS["blue"],
+                   fontsize=plt.rcParams["axes.labelsize"])
+    ax2.tick_params(axis="y", labelcolor=plot_styles.COLORS["blue"])
     ax2.spines["right"].set_visible(True)
+    ax2.spines["right"].set_color(plot_styles.COLORS["blue"])
     sns.histplot(
         data=best_raw_perf_df,
         x="true_labels",
-        color=plot_styles.COLORS['blue'],
+        color=plot_styles.COLORS["blue"],
         ax=ax2,
         alpha=0.25,
         edgecolor="none",
-        label="True $(D/K)$ Distribution",
     )
     # one-to-one line
+    lims = [best_raw_perf_df["true_labels"].min(),
+            best_raw_perf_df["true_labels"].max()]
     ax.plot(
-        [best_raw_perf_df["true_labels"].min(), best_raw_perf_df["true_labels"].max()],
-        [best_raw_perf_df["true_labels"].min(), best_raw_perf_df["true_labels"].max()],
+        lims, lims,
         color=plot_styles.COLORS["gray_mid"],
         linestyle="--",
-        alpha=0.5,
-        #line size
-        linewidth=0.5,
-        label="One-to-One Line"
+        linewidth=0.8,
+        zorder=3,
     )
+    # manual legend entries
+    from matplotlib.lines import Line2D
+    from matplotlib.patches import Patch
+    legend_elements = [
+        Patch(facecolor=plot_styles.COLORS["green_dark"], label="Predicted vs. True density"),
+        Patch(facecolor=plot_styles.COLORS["blue"], alpha=0.4, label="True $D/K$ distribution"),
+        Line2D([0], [0], color=plot_styles.COLORS["gray_mid"], linestyle="--",
+               linewidth=0.8, label="1:1 line"),
+    ]
+    ax.legend(handles=legend_elements, loc="upper left")
 #+end_src
 
 #+RESULTS:
@@ -102,10 +113,10 @@ def plot_raw_perf(ax):
 
 * Generate Plots
 #+begin_src python
-fig, ax = plt.subplots(figsize=(10, 6))
+plot_styles.single_column()
+fig, ax = plt.subplots(figsize=(3.5, 3.5))
 plot_raw_perf(ax)
-#fig.tight_layout()
-fig.legend()
+plot_styles.save_figure(fig, "performance_raw")
 fig.show()
 #+end_src
 
