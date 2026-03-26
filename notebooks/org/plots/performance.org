@@ -5,6 +5,8 @@
 
 * Overview
 This figure shows the performance of the best performing elevation->\(D/K\) model and the distribution of \(D/K\) Values
+:scope: paper
+:figure: 1
 
 ** Data source
 : analysis/all_test_performance.csv

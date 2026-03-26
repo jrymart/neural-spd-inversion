@@ -3,6 +3,7 @@
 
 * Overview
 This figure shows the distribution of target variables
+:scope: appendix
 
 ** Data source
 : analysis/all_test_performance.csv
