@@ -1,9 +1,9 @@
 #+title: Valley Perf
 #+PROPERTY: header-args:python :python /home/jo/cub/research/projects/neural-spd-inversion-proj/neural-spd-inversion/.venv/bin/python :session valley-perf
 * Overview
-This figure shows the performance of all trained networks on the sine dataset.
-This figure is used to see what models should be highlighted in the paper
-:scope: appendix
+This figure shows the performance of a network on the sine dataset.
+:scope: paper
+:figure: 3
 :data: analysis/sine_all_performance.csv
 * Setup
 #+begin_src python
@@ -16,11 +16,10 @@ from itertools import product
 plot_styles.apply()
 sine_perf = PROJECT_ROOT / "analysis/sine_all_performance.csv"
 sine_df = pd.read_csv(sine_perf)
-valid_targets = ["logDoK", "logKoD"]
-sine_df = sine_df[sine_df["target"].isin(valid_targets)]
-sine_df = sine_df[sine_df['seed']==0]
-targets = sine_df["target"].unique()
-datas = sine_df["data"].unique()
+sine_df = sine_df[sine_df["target"] == "logDoK"]
+sine_df = sine_df[sine_df['seed']==20]
+sine_df = sine_df[sine_df['data'] =="elevation"]
+sine_df = sine_df[sine_df['noise']==0.0]
 
 #+end_src
 
@@ -29,22 +28,18 @@ datas = sine_df["data"].unique()
 
 * Plotting function
 #+begin_src python
-def plot_perf(axs):
-    for target, data in product(targets, datas):
-        subset = sine_df[
-            (sine_df["target"] == target) &
-            (sine_df["data"] == data)
-        ]
-        cur_ax = axs[targets.tolist().index(target), datas.tolist().index(data)]
+def plot_perf(ax):
         sns.scatterplot(
-            data=subset,
+            data=sine_df,
             x="true_labels",
             y="predictions",
             hue="seed",
-            ax=cur_ax,
+            s=2,
+            ax=ax,
             palette="Set2"
         )
-        cur_ax.set_title(f"{target} - {data}")
+        ax.set_xlabel("Valley Spacing (m)")
+        ax.set_ylabel(r"$\log_{10}(D/K)$")
 #+end_src
 
 #+RESULTS:
@@ -52,8 +47,8 @@ def plot_perf(axs):
 
 * Generate plots
 #+begin_src python
-fig, axs = plt.subplots(len(targets), len(datas), figsize=(12, 8) )
-plot_perf(axs)
+fig, ax = plt.subplots(figsize=(3.25,3.25))
+plot_perf(ax)
 fig.show()
 #+end_src
 
