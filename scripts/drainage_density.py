@@ -26,8 +26,8 @@ threshold_dataset = AdaptiveThresholdDataset(
 
 with open(MODEL_STATS_PATH, 'r') as f:
     stats = json.load(f)
-labels_mean = stats['labels']['labels_mean']
-labels_std = stats['labels']['labels_std']
+labels_mean = stats['logDoK']['labels_mean']
+labels_std = stats['logDoK']['labels_std']
 weight_id = ["n0_elevation_0_logDoK",
                 "n0_elevation_10_logDoK",
                 "n0_elevation_20_logDoK",
