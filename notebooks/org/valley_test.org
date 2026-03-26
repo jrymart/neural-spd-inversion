@@ -33,7 +33,7 @@ def eval_neural_net_on_sine(seed, noise, data_type, label):
         sineset = SineTopographyDataset(90, 290, 'y')
         if data_type != 'elevation':
             sineset.transform = TOPO_DERIVATIVES[data_type]
-        sinset.normalize = None
+        sineset.normalize = None
         trainer = PecletModelTrainer(DB_PATH,
                             None,
                             ThreeLayerCNNRegressor().to(device),
