@@ -79,3 +79,7 @@ mod_all_df = pd.concat([shuffle_all, swap_all])
 mod_rmse_df = pd.concat([shuffle_rmse, swap_rmse])
 mod_all_df.to_csv(analysis_dir / "all_mod_performance.csv")
 mod_rmse_df.to_csv(analysis_dir / "all_mod_overall_performance.csv")
+
+sine_all_df, sine_rmse_df = merge_and_calc_error(Path("results/sine"), "sine")
+sine_all_df.to_csv(analysis_dir / "sine_all_performance.csv")
+sine_rmse_df.to_csv(analysis_dir / "sine_overall_performance.csv")
