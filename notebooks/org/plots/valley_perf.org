@@ -4,7 +4,7 @@
 This figure shows the performance of all trained networks on the sine dataset.
 This figure is used to see what models should be highlighted in the paper
 :scope: appendix
-:data: analysis/sine_overall_performance.csv
+:data: analysis/sine_all_performance.csv
 * Setup
 #+begin_src python
 import matplotlib.pyplot as plt
@@ -12,9 +12,16 @@ import pandas as pd
 import seaborn as sns
 from neural_spd.config import PROJECT_ROOT
 from neural_spd import plot_styles
+from itertools import product
 plot_styles.apply()
-sine_perf = PROJECT_ROOT / "analysis/sine_overall_performance.csv"
+sine_perf = PROJECT_ROOT / "analysis/sine_all_performance.csv"
 sine_df = pd.read_csv(sine_perf)
+valid_targets = ["logDoK", "logKoD"]
+sine_df = sine_df[sine_df["target"].isin(valid_targets)]
+sine_df = sine_df[sine_df['seed']==0]
+targets = sine_df["target"].unique()
+datas = sine_df["data"].unique()
+
 #+end_src
 
 #+RESULTS:
@@ -23,7 +30,21 @@ sine_df = pd.read_csv(sine_perf)
 * Plotting function
 #+begin_src python
 def plot_perf(axs):
-    
+    for target, data in product(targets, datas):
+        subset = sine_df[
+            (sine_df["target"] == target) &
+            (sine_df["data"] == data)
+        ]
+        cur_ax = axs[targets.tolist().index(target), datas.tolist().index(data)]
+        sns.scatterplot(
+            data=subset,
+            x="true_labels",
+            y="predictions",
+            hue="seed",
+            ax=cur_ax,
+            palette="Set2"
+        )
+        cur_ax.set_title(f"{target} - {data}")
 #+end_src
 
 #+RESULTS:
@@ -31,8 +52,8 @@ def plot_perf(axs):
 
 * Generate plots
 #+begin_src python
-fig, ax = plt.subplots()
-plot_perf(ax)
+fig, axs = plt.subplots(len(targets), len(datas), figsize=(12, 8) )
+plot_perf(axs)
 fig.show()
 #+end_src
 
