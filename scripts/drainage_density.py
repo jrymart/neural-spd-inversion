@@ -33,26 +33,27 @@ weight_ids = ["n0_elevation_0_logDoK",
                 "n0_elevation_20_logDoK",
                 "n0_elevation_30_logDoK",
                ]
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def run_dd_test(weight_id):
     weights_path = WEIGHTS_PATH / f"{weight_id}_weights.pt"
     loader = DataLoader(threshold_dataset, 64, shuffle=False)
-    model = ThreeLayerCNNRegressor()
-    model.load_state_dict(torch.load(weights_path))
+    model = ThreeLayerCNNRegressor().to(device)
+    model.load_state_dict(torch.load(weights_path, map_location=device))
     model.eval()
     drainage_densities = []
     thresholds = []
     norm_labels = []
     with torch.no_grad():
         for data, threshold in loader:
-            data = data.float()
+            data = data.float().to(device)
             drainage_density = (data.sum(axis=(1,2,3))*5)/(np.prod(data.shape)*5*5)
             norm_label = model(data)
-            drainage_densities += drainage_density
-            norm_labels += norm_label
-            thresholds += threshold
+            drainage_densities.extend(dd_batch.cpu().numpy().tolist())
+            norm_labels.extend(norm_label_batch.cpu().numpy().flatten().tolist())
+            thresholds.extend(threshold.numpy().tolist())
     labels = [l*labels_std+labels_mean for l in norm_labels]
-    return draiange_densities, labels
+    return drainage_densities, labels
 
 for weight_id in weight_ids:
     draiange_densities, labels = run_dd_test(weight_id)
