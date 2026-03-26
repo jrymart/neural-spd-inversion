@@ -1,7 +1,7 @@
 import sqlite3
 from landlab_torch_tools import AdaptiveThresholdDataset
 from neural_spd.ThreeLayerCNNRegressor import ThreeLayerCNNRegressor
-from neural_spd.config import WEIGHTS_PATH, DB_PATH, MODEL_ACC_PATH, MODEL_STATS_PATH
+from neural_spd.config import WEIGHTS_PATH, DB_PATH, MODEL_STATS_PATH, DATA_PATH
 from pathlib import Path
 import json
 import matplotlib.pyplot as plt
@@ -16,7 +16,7 @@ cursor.execute('SELECT model_run_id, "model_param.diffuser.D"/"model_param.strea
 Dks = cursor.fetchall()
 Dks.sort(key = lambda x: x[1])
 low_Dk_run = Dks[int(len(Dks)/10)][0]
-low_Dk_array = torch.unsqueeze(torch.tensor(np.load(MODEL_ACC_PATH / f"{low_Dk_run}.npy")[5:-5,5:-5]), 0)
+low_Dk_array = torch.unsqueeze(torch.tensor(np.load(DATA_PATH / "0" / "flowacc" / f"{low_Dk_run}.npy")[5:-5,5:-5]), 0)
 threshold_dataset = AdaptiveThresholdDataset(
     input_array = low_Dk_array,
     num_thresholds = 1000,
