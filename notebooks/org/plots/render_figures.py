@@ -169,7 +169,8 @@ def render_target_distributions():
     target_dist_df = pd.read_csv(target_dist_path)
     target_dist_df = target_dist_df[
         (target_dist_df["seed"]  == 0) &
-        (target_dist_df["noise"] == 0)
+        (target_dist_df["noise"] == 0) &
+        (target_dist_df["data"]  == "elevation")
     ]
     target_dfs = {
         t: target_dist_df[target_dist_df["target"] == t]

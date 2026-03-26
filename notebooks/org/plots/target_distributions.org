@@ -31,8 +31,13 @@ target_names = {
 * Load and select data
 #+begin_src python
 target_dist_df = pd.read_csv(target_dist_path)
-# select seed 0 and noise 0
-target_dist_df = target_dist_df[(target_dist_df["seed"] == 0) & (target_dist_df["noise"] == 0)]
+# one seed, one noise level, one data type — true_labels are identical across
+# data types (same model runs), so this gives the true test-set size (1800)
+target_dist_df = target_dist_df[
+    (target_dist_df["seed"]  == 0) &
+    (target_dist_df["noise"] == 0) &
+    (target_dist_df["data"]  == "elevation")
+]
 # get dictionary of data frames for each possible 'target' variable
 target_dfs = {target: target_dist_df[target_dist_df["target"] == target] for target in target_dist_df["target"].unique()}
 
