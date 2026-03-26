@@ -1,0 +1,40 @@
+#+title: Valley Perf
+#+PROPERTY: header-args:python :python /home/jo/cub/research/projects/neural-spd-inversion-proj/neural-spd-inversion/.venv/bin/python :session valley-perf
+* Overview
+This figure shows the performance of all trained networks on the sine dataset.
+This figure is used to see what models should be highlighted in the paper
+:scope: appendix
+:data: analysis/sine_overall_performance.csv
+* Setup
+#+begin_src python
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
+from neural_spd.config import PROJECT_ROOT
+from neural_spd import plot_styles
+plot_styles.apply()
+sine_perf = PROJECT_ROOT / "analysis/sine_overall_performance.csv"
+sine_df = pd.read_csv(sine_perf)
+#+end_src
+
+#+RESULTS:
+: None
+
+* Plotting function
+#+begin_src python
+def plot_perf(axs):
+    
+#+end_src
+
+#+RESULTS:
+: None
+
+* Generate plots
+#+begin_src python
+fig, ax = plt.subplots()
+plot_perf(ax)
+fig.show()
+#+end_src
+
+#+RESULTS:
+: None
