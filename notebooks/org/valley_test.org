@@ -33,7 +33,7 @@ def eval_neural_net_on_sine(seed, noise, data_type, label):
         sineset = SineTopographyDataset(90, 290, 'y')
         if data_type != 'elevation':
             sineset.transform = TOPO_DERIVATIVES[data_type]
-        sineset.normalize = True
+        sineset.normalize = None
         trainer = PecletModelTrainer(DB_PATH,
                             None,
                             ThreeLayerCNNRegressor().to(device),
@@ -45,8 +45,8 @@ def eval_neural_net_on_sine(seed, noise, data_type, label):
                             ,**label_stats)
         trainer.load_weights(weights_path)
         trainer.evaluate()
-        # denomalrize true labels in trainer.test_df
-        trainer.test_df['true_labels'] = trainer.test_df['true_labels'] * label_stats['labels_std'] + label_stats['labels_mean']
+        # denomalrize predicted labels in trainer.test_df as model was trained on normalized values
+        trainer.test_df['predictions'] = trainer.test_df['predictions'] * label_stats['labels_std'] + label_stats['labels_mean']
         # convert to valley spacing by taking 290*5 and dividing by the labels
         trainer.test_df['true_labels'] = 290*5 / trainer.test_df['true_labels']
         trainer.test_df.to_csv(csv_path)
