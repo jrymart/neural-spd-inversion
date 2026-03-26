@@ -5,8 +5,8 @@
 #SBATCH --qos=blanca-csdms
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=5    # Data check usually benefits from more CPUs
-#SBATCH --mem=8G            # Adjust based on your dataset size
-#SBATCH --time=00:15:00
+#SBATCH --mem=4G            # Adjust based on your dataset size
+#SBATCH --time=00:05:00
 #SBATCH --array=0-159%10
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --mail-user=jo.martin@colorado.edu
