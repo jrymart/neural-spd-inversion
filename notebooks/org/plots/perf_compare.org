@@ -5,6 +5,8 @@
 This figure compares NRMSE across input data types, faceted by target-variable
 family (linear vs log-transformed).  Two panels keep the bar count manageable
 and make the scale difference between families visible.
+:scope: paper
+:figure: 2
 
 ** Data source
 : analysis/overall_performance.csv

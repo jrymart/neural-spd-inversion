@@ -4,6 +4,7 @@
 * Overview
 This figure shows the distribution of the four target variables used for
 training: \(D/K\), \(K/D\), and their log₁₀ transforms.
+:scope: appendix
 
 ** Data source
 : analysis/all_test_performance.csv

@@ -3,6 +3,8 @@
 
 * Overview
 This figure shows the effect of the shuffling and swapping on the input topography
+:scope: paper
+:figure: 5
 
 ** Data source
 
@@ -15,6 +17,7 @@ from neural_spd.config import PROJECT_ROOT
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from neural_spd import plot_styles
+import torch
 plot_styles.apply()
 db_path = PROJECT_ROOT / "model_runs.db"
 data_dir = PROJECT_ROOT / "data/0/elevation"
@@ -36,10 +39,11 @@ results.sort(key=lambda x: x[1])
 # select 10th percentile run
 tenth_percentile_index = int(len(results) * 0.1)
 selected_run_id = results[tenth_percentile_index][0]
-elev = np.load(data_dir / f"{selected_run_id}.npy")
+elev = torch.tensor(np.load(data_dir / f"{selected_run_id}.npy"))
 #+end_src
 
 #+RESULTS:
+: None
 
 ** Apply shuffling and swapping
 #+begin_src python
@@ -50,6 +54,7 @@ elev_shuff = shuff(elev)
 #+end_src
 
 #+RESULTS:
+: None
 
 * Plotting function
 #+begin_src python
@@ -89,3 +94,4 @@ plt.close(fig)
 #+end_src
 
 #+RESULTS:
+: None

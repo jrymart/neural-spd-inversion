@@ -2,7 +2,8 @@
 #+PROPERTY: header-args:python :python /home/jo/cub/research/projects/neural-spd-inversion-proj/neural-spd-inversion/.venv/bin/python :session shuff-viz
 
 * Overview 
-This figure shows the performance of the trained network on shuffled and swapped data
+This figure shows the performance of the trained network on shuffled and swapped data.
+:scope: appendix
 
 * Setup
 
@@ -12,6 +13,7 @@ import pandas as pd
 import seaborn as sns
 from neural_spd.config import PROJECT_ROOT
 from neural_spd import plot_styles
+import numpy as np
 plot_styles.apply()
 reg_perf = PROJECT_ROOT / "analysis/all_test_performance.csv"
 mod_perf = PROJECT_ROOT / "analysis/all_mod_performance.csv"
@@ -103,6 +105,9 @@ def plot_shuf_perf(axs):
 plot_styles.double_column()
 fig, axs = plt.subplots(3, 2, figsize=(6.75, 8.5))
 plot_shuf_perf(axs)
+for i, ax in enumerate(axs.flatten()):
+    if i != 0:
+        ax.legend().remove()
 fig.suptitle("Shuffle/Swap Robustness — All Input/Target Combinations",
              fontsize=plt.rcParams["axes.titlesize"], y=1.01)
 plot_styles.save_figure(fig, "shuffle_perf")
@@ -110,4 +115,3 @@ plt.close(fig)
 #+end_src
 
 #+RESULTS:
-: None

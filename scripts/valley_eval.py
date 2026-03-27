@@ -15,8 +15,8 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 def eval_neural_net_on_sine(seed, noise, data_type, label):
     label_key, label_query = label
     torch.manual_seed(seed)
-    weights_path = WEIGHTS_PATH / f"n{str(noise).replace('.','_')}_{data_type}_{seed}_{label_key}_weights.pt"
-    csv_path = RESULTS_PATH/ "sine" / f"n{str(noise).replace('.','_')}_{data_type}_{seed}_{label_key}_results.csv"
+    weights_path = WEIGHTS_PATH / f"n{str(noise).replace('.','-')}_{data_type}_{seed}_{label_key}_weights.pt"
+    csv_path = RESULTS_PATH/ "sine" / f"n{str(noise).replace('.','-')}_{data_type}_{seed}_{label_key}_results.csv"
     if not os.path.exists(csv_path):
         print(f"evaluating {weights_path}")
         label_stats = stats[label_key]
@@ -35,7 +35,13 @@ def eval_neural_net_on_sine(seed, noise, data_type, label):
                             **label_stats)
         trainer.load_weights(weights_path)
         trainer.evaluate()
+        # denomalrize predicted labels in trainer.test_df as model was trained on normalized values
+        trainer.test_df['predictions'] = trainer.test_df['predictions'] * label_stats['labels_std'] + label_stats['labels_mean']
+        # convert to valley spacing by taking 290*5 and dividing by the labels
+        trainer.test_df['true_labels'] = 290*5 / trainer.test_df['true_labels']
         trainer.test_df.to_csv(csv_path)
+        
+
     else:
         print(f"{weights_path} already evaluated, skipping")
 
