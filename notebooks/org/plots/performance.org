@@ -4,7 +4,8 @@
 
 
 * Overview
-This figure shows the performance of the best performing elevation->\(D/K\) model and the distribution of \(D/K\) Values
+This figure shows the performance of the best-performing elevation → \(D/K\) model
+as a predicted-vs-true scatter with KDE density contours.
 :scope: paper
 :figure: 1
 
@@ -15,15 +16,15 @@ For the plot
 For selecting run
 
 * Setup
-#+begin_src python 
+#+begin_src python
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
+from matplotlib.lines import Line2D
 from neural_spd.config import PROJECT_ROOT
 from neural_spd import plot_styles
 plot_styles.apply()
-# todo directory stuff
 PERF_METRICS_PATH = PROJECT_ROOT / "analysis/overall_performance.csv"
 RAW_PERF_PATH = PROJECT_ROOT / "analysis/all_test_performance.csv"
 #+end_src
@@ -35,16 +36,13 @@ RAW_PERF_PATH = PROJECT_ROOT / "analysis/all_test_performance.csv"
 
 #+begin_src python
 perf_metrics_df = pd.read_csv(PERF_METRICS_PATH)
-# select row in data frame where target=DoK, data=elevation, noise=0, and nrmse is lowest
 best_perf_row = perf_metrics_df[
     (perf_metrics_df["target"] == "DoK") &
     (perf_metrics_df["data"] == "elevation") &
     (perf_metrics_df["noise"] == 0)
 ].sort_values("nrmse").iloc[0]
-# select seed from row
 best_seed = best_perf_row["seed"]
 raw_perf_df = pd.read_csv(RAW_PERF_PATH)
-# select rows where seed is best_seed target is DoK data is elevation and noise is 0
 best_raw_perf_df = raw_perf_df[
     (raw_perf_df["seed"] == best_seed) &
     (raw_perf_df["target"] == "DoK") &
@@ -61,51 +59,63 @@ best_raw_perf_df = raw_perf_df[
 def plot_raw_perf(ax):
     ax.set_xscale("log")
     ax.set_yscale("log")
-    ax.set_xlabel("True $(D/K)$")
-    ax.set_ylabel("Inferred $(D/K)$")
+    ax.set_xlabel("True $D/K$")
+    ax.set_ylabel("Predicted $D/K$")
+
+    # Scatter of individual predictions (subtle, behind KDE)
+    ax.scatter(
+        best_raw_perf_df["true_labels"],
+        best_raw_perf_df["predictions"],
+        s=3, alpha=0.15, color=plot_styles.COLORS["gray_mid"],
+        edgecolor="none", rasterized=True, zorder=1,
+    )
+
+    # KDE density contours
     sns.kdeplot(
         data=best_raw_perf_df,
         x="true_labels",
         y="predictions",
         ax=ax,
         fill=True,
-        alpha=1,
-        levels=5,
+        alpha=0.7,
+        levels=6,
         cmap="pub_greens",
+        zorder=2,
     )
-    # marginal histogram of true D/K on a shared x-axis secondary y
-    ax2 = ax.twinx()
-    ax2.set_ylabel("Count", color=plot_styles.COLORS["blue"],
-                   fontsize=plt.rcParams["axes.labelsize"])
-    ax2.tick_params(axis="y", labelcolor=plot_styles.COLORS["blue"])
-    ax2.spines["right"].set_visible(True)
-    ax2.spines["right"].set_color(plot_styles.COLORS["blue"])
-    sns.histplot(
-        data=best_raw_perf_df,
-        x="true_labels",
-        color=plot_styles.COLORS["blue"],
-        ax=ax2,
-        alpha=0.25,
-        edgecolor="none",
-    )
-    # one-to-one line
-    lims = [best_raw_perf_df["true_labels"].min(),
-            best_raw_perf_df["true_labels"].max()]
+
+    # 1:1 reference line
+    lo = min(best_raw_perf_df["true_labels"].min(),
+             best_raw_perf_df["predictions"].min())
+    hi = max(best_raw_perf_df["true_labels"].max(),
+             best_raw_perf_df["predictions"].max())
     ax.plot(
-        lims, lims,
-        color=plot_styles.COLORS["gray_mid"],
+        [lo, hi], [lo, hi],
+        color=plot_styles.COLORS["black"],
         linestyle="--",
         linewidth=0.8,
         zorder=3,
+        label="1 : 1",
     )
-    # manual legend entries
-    from matplotlib.lines import Line2D
-    from matplotlib.patches import Patch
+
+    # NRMSE annotation
+    nrmse = best_perf_row["nrmse"]
+    ax.text(
+        0.97, 0.03, f"NRMSE = {nrmse:.4f}",
+        transform=ax.transAxes, ha="right", va="bottom",
+        fontsize=plt.rcParams["legend.fontsize"],
+        color=plot_styles.COLORS["gray_dark"],
+    )
+
+    # Legend
     legend_elements = [
-        Patch(facecolor=plot_styles.COLORS["green_dark"], label="Predicted vs. True density"),
-        Patch(facecolor=plot_styles.COLORS["blue"], alpha=0.4, label="True $D/K$ distribution"),
-        Line2D([0], [0], color=plot_styles.COLORS["gray_mid"], linestyle="--",
-               linewidth=0.8, label="1:1 line"),
+        Line2D([0], [0], marker="o", color="none",
+               markerfacecolor=plot_styles.COLORS["gray_mid"],
+               markersize=3, alpha=0.5, label="Test samples"),
+        Line2D([0], [0], marker="s", color="none",
+               markerfacecolor=plot_styles.COLORS["green_dark"],
+               markersize=5, label="KDE density"),
+        Line2D([0], [0], color=plot_styles.COLORS["black"],
+               linestyle="--", linewidth=0.8, label="1 : 1"),
     ]
     ax.legend(handles=legend_elements, loc="upper left")
 #+end_src
@@ -119,7 +129,7 @@ plot_styles.single_column()
 fig, ax = plt.subplots(figsize=(3.5, 3.5))
 plot_raw_perf(ax)
 plot_styles.save_figure(fig, "performance_raw")
-fig.show()
+plt.close(fig)
 #+end_src
 
 #+RESULTS:

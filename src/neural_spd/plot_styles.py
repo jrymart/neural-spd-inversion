@@ -209,7 +209,24 @@ def single_column():
     })
 
 
-def save_figure(fig, name, directory=None, formats=("pdf", "svg")):
+def panel_label(ax, letter, x=-0.10, y=1.05):
+    """Add a bold panel label like ``(a)`` to an axes.
+
+    Parameters
+    ----------
+    ax : matplotlib.axes.Axes
+    letter : str
+        Single character (e.g. ``"a"``).
+    x, y : float
+        Position in axes-fraction coordinates.
+    """
+    ax.text(x, y, f"({letter})", transform=ax.transAxes,
+            fontsize=plt.rcParams["axes.titlesize"], fontweight="bold",
+            va="bottom")
+
+
+def save_figure(fig, name, directory=None, formats=("pdf", "svg"),
+                preview=True):
     """Save *fig* to *directory* in each of *formats*.
 
     Parameters
@@ -222,6 +239,9 @@ def save_figure(fig, name, directory=None, formats=("pdf", "svg")):
     formats : iterable of str
         File extensions / formats to write.  Both ``"pdf"`` and ``"svg"``
         are vector formats suitable for publication.
+    preview : bool
+        If *True* (default), also write a 150-dpi PNG into a
+        ``preview_pngs/`` subdirectory for quick inspection.
     """
     from pathlib import Path
     if directory is None:
@@ -234,6 +254,10 @@ def save_figure(fig, name, directory=None, formats=("pdf", "svg")):
     directory.mkdir(parents=True, exist_ok=True)
     for fmt in formats:
         fig.savefig(directory / f"{name}.{fmt}")
+    if preview:
+        preview_dir = directory / "preview_pngs"
+        preview_dir.mkdir(parents=True, exist_ok=True)
+        fig.savefig(preview_dir / f"{name}.png", dpi=150)
 
 
 # ============================================================================
