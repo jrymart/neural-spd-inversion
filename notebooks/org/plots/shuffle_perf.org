@@ -13,6 +13,7 @@ import pandas as pd
 import seaborn as sns
 from neural_spd.config import PROJECT_ROOT
 from neural_spd import plot_styles
+import numpy as np
 plot_styles.apply()
 reg_perf = PROJECT_ROOT / "analysis/all_test_performance.csv"
 mod_perf = PROJECT_ROOT / "analysis/all_mod_performance.csv"
@@ -102,6 +103,9 @@ def plot_shuf_perf(axs):
 plot_styles.double_column()
 fig, axs = plt.subplots(3, 2, figsize=(6.75, 8.5))
 plot_shuf_perf(axs)
+for i, ax in enumerate(axs.flatten()):
+    if i != 0:
+        ax.legend().remove()
 fig.suptitle("Shuffle/Swap Robustness — All Input/Target Combinations",
              fontsize=plt.rcParams["axes.titlesize"], y=1.01)
 plot_styles.save_figure(fig, "shuffle_perf")
@@ -109,4 +113,3 @@ fig.show()
 #+end_src
 
 #+RESULTS:
-: None

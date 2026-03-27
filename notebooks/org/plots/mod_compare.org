@@ -1,0 +1,74 @@
+#+title: Shuff Compare
+#+PROPERTY: header-args:python :python /home/jo/cub/research/projects/neural-spd-inversion-proj/neural-spd-inversion/.venv/bin/python :session perf-comp-mod
+
+* Overview
+This figure compares shuffled performance for different data types and targets
+:scope: appendix
+
+** Data source
+: analysis/overall_performance.csv
+
+* Setup
+#+begin_src python
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
+from neural_spd.config import PROJECT_ROOT
+from neural_spd import plot_styles
+plot_styles.apply()
+PERF_METRICS_PATH = PROJECT_ROOT / "analysis/all_mod_overall_performance.csv"
+target_names = {
+    'DoK': "$D/K$",
+    'KoD': "$K/D$",
+    'logDoK': r"$\log_{10}(D/K)$",
+    'logKoD': r"$\log_{10}(K/D)$"
+}
+data_names = {
+    'elevation': "Elevation",
+    'flowacc': "Flow Acc",
+    'log10flowacc': r"$\log_{10}$(Flow Acc)",
+    'slope': "Slope",
+    'curvature': "Curvature"
+}
+#+end_src
+
+#+RESULTS:
+: None
+
+* Load data
+#+begin_src python
+perf_metrics_df = pd.read_csv(PERF_METRICS_PATH)
+perf_metrics_df["target"] = perf_metrics_df["target"].map(target_names)
+perf_metrics_df["data"] = perf_metrics_df["data"].map(data_names)
+swap_metrics = perf_metrics_df[perf_metrics_df['test_type'] == 'swap']
+shuf_metrics = perf_metrics_df[perf_metrics_df['test_type'] == 'shuffle']
+#+end_src
+
+#+RESULTS:
+: None
+
+* Plotting function
+#+begin_src python
+def plot_perf_comp(axs):
+   sns.barplot(data=shuf_metrics, x="data", y="nrmse", hue="target", ax=axs[0])
+   axs[0].set_ylabel("NRMSE")
+   axs[0].set_xlabel("Data Type")
+   axs[0].set_title("Shuffled Data")
+   sns.barplot(data=swap_metrics, x="data", y="nrmse", hue="target", ax=axs[1])
+   #axs[0].set_ylabel("NRMSE")
+   axs[1].set_xlabel("Data Type")
+   axs[1].set_title("Swapped Data")
+#+end_src
+
+#+RESULTS:
+: None
+
+* Generate plots
+#+begin_src python
+fig, axs = plt.subplots(2, figsize=(6, 4))
+plot_perf_comp(axs)
+fig.show()
+#+end_src
+
+#+RESULTS:
+: None

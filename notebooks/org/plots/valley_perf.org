@@ -33,7 +33,6 @@ def plot_perf(ax):
             data=sine_df,
             x="true_labels",
             y="predictions",
-            hue="seed",
             s=2,
             ax=ax,
             palette="Set2"
