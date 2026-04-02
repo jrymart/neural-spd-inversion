@@ -72,7 +72,7 @@ def plot_target_dists(axs):
 plot_styles.double_column()
 fig, axs = plt.subplots(2, 2, figsize=(6.75, 4.5))
 plot_target_dists(axs)
-plot_styles.save_figure(fig, "target_distributions")
+plot_styles.save_figure(fig, "target_distributions", PROJECT_ROOT / "paper/figs")
 fig.show()
 #+end_src
 

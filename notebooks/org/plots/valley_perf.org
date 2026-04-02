@@ -48,8 +48,8 @@ def plot_perf(ax):
 #+begin_src python
 fig, ax = plt.subplots(figsize=(3.25,3.25))
 plot_perf(ax)
+plot_styles.save_figure(fig, "valley_perf", PROJECT_ROOT / "paper" / "figs")
 fig.show()
 #+end_src
 
 #+RESULTS:
-: None

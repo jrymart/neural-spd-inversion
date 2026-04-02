@@ -118,7 +118,7 @@ def plot_raw_perf(ax):
 plot_styles.single_column()
 fig, ax = plt.subplots(figsize=(3.5, 3.5))
 plot_raw_perf(ax)
-plot_styles.save_figure(fig, "performance_raw")
+plot_styles.save_figure(fig, "performance_raw", PROJECT_ROOT / "paper" / "figs")
 fig.show()
 #+end_src
 

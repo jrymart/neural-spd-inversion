@@ -85,7 +85,7 @@ def plot_perf_comp(ax):
 plot_styles.double_column()
 fig, ax = plt.subplots(figsize=(6.75, 3.0))
 plot_perf_comp(ax)
-plot_styles.save_figure(fig, "perf_compare")
+plot_styles.save_figure(fig, "perf_compare", PROJECT_ROOT / "paper" / "figs")
 fig.show()
 #+end_src
 
