@@ -1,0 +1,619 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% This is the paper draft "Can Neural Networks Think Like Geomorphologists"
+% For submission to geophysical research letters
+%% To submit your paper:
+\documentclass[draft]{agujournal2019}
+\usepackage{url} %this package should fix any errors with URLs in refs.
+\usepackage{lineno}
+\usepackage[inline]{trackchanges} %for better track changes. finalnew option will compile document with changes incorporated.
+\usepackage{soul}
+\linenumbers
+%%%%%%%
+% As of 2018 we recommend use of the TrackChanges package to mark revisions.
+% The trackchanges package adds five new LaTeX commands:
+%
+%  \note[editor]{The note}
+%  \annote[editor]{Text to annotate}{The note}
+%  \add[editor]{Text to add}
+%  \remove[editor]{Text to remove}
+%  \change[editor]{Text to remove}{Text to add}
+%
+% complete documentation is here: http://trackchanges.sourceforge.net/
+%%%%%%%
+
+\draftfalse
+
+%% Enter journal name below.
+%% Choose from this list of Journals:
+%
+% JGR: Atmospheres
+% JGR: Biogeosciences
+% JGR: Earth Surface
+% JGR: Oceans
+% JGR: Planets
+% JGR: Solid Earth
+% JGR: Space Physics
+% Global Biogeochemical Cycles
+% Geophysical Research Letters
+% Paleoceanography and Paleoclimatology
+% Radio Science
+% Reviews of Geophysics
+% Tectonics
+% Space Weather
+% Water Resources Research
+% Geochemistry, Geophysics, Geosystems
+% Journal of Advances in Modeling Earth Systems (JAMES)
+% Earth's Future
+% Earth and Space Science
+% Geohealth
+%
+% ie, \journalname{Water Resources Research}
+
+\journalname{Geophysical Research Letters}
+
+
+\begin{document}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%  TITLE
+%
+% (A title should be specific, informative, and brief. Use
+% abbreviations only if they are defined in the abstract. Titles that
+% start with general keywords then specific terms are optimized in
+% searches)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Example: \title{This is a test title}
+
+\title{Can Neural Networks Think Like Geomorphologists?}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  AUTHORS AND AFFILIATIONS
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Authors are individuals who have significantly contributed to the
+% research and preparation of the article. Group authors are allowed, if
+% each author in the group is separately identified in an appendix.)
+
+% List authors by first name or initial followed by last name and
+% separated by commas. Use \affil{} to number affiliations, and
+% \thanks{} for author notes.
+% Additional author notes should be indicated with \thanks{} (for
+% example, for current addresses).
+
+% Example: \authors{A. B. Author\affil{1}\thanks{Current address, Antartica}, B. C. Author\affil{2,3}, and D. E.
+% Author\affil{3,4}\thanks{Also funded by Monsanto.}}
+
+\authors{J. R. Martin\affil{1,2}, G. E. Tucker\affil{1,2}}
+
+
+ \affiliation{1}{Cooperative Institute for Research in Environmental Sciences (CIRES), University of Colorado, Boulder, CO, USA}
+ \affiliation{2}{Department of Geological Sciences, University of Colorado, Boulder, CO, USA}
+% \affiliation{3}{Third Affiliation}
+% \affiliation{4}{Fourth Affiliation}
+
+\affiliation{=number=}{=Affiliation Address=}
+%(repeat as many times as is necessary)
+
+
+% Corresponding author mailing address and e-mail address:
+
+% (include name and email addresses of the corresponding author.  More
+% than one corresponding author is allowed in this LaTeX file and for
+% publication; but only one corresponding author is allowed in our
+% editorial system.)
+
+% Example: \correspondingauthor{First and Last Name}{email@address.edu}
+
+\correspondingauthor{=name=}{=email address=}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% KEY POINTS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%  List up to three key points (at least one is required)
+%  Key Points summarize the main points and conclusions of the article
+%  Each must be 140 characters or fewer with no special characters or punctuation and must be complete sentences
+
+% Example:
+% \begin{keypoints}
+% \item	List up to three key points (at least one is required)
+% \item	Key Points summarize the main points and conclusions of the article
+% \item	Each must be 140 characters or fewer with no special characters or punctuation and must be complete sentences
+% \end{keypoints}
+
+\begin{keypoints}
+\item A simple Convolutional Neural Network (CNN) can invert landscape evolution topography with high precision
+\item The CNN can tested to find that it has learned a sensible relationship between model parameters and geomorphic metrics 
+\item The CNN has significantly better performance when given meaningful topographic metrics like slope and curvature
+\end{keypoints}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  ABSTRACT and PLAIN LANGUAGE SUMMARY
+%
+% A good Abstract will begin with a short description of the problem
+% being addressed, briefly describe the new data or analyses, then
+% briefly states the main conclusion(s) and how they are supported and
+% uncertainties.
+
+% The Plain Language Summary should be written for a broad audience,
+% including journalists and the science-interested public, that will not have 
+% a background in your field.
+%
+% A Plain Language Summary is required in GRL, JGR: Planets, JGR: Biogeosciences,
+% JGR: Oceans, G-Cubed, Reviews of Geophysics, and JAMES.
+% see http://sharingscience.agu.org/creating-plain-language-summary/)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \begin{abstract} starts the second page
+
+\begin{abstract}
+[ enter your Abstract here ]
+\end{abstract}
+
+\section*{Plain Language Summary}
+Enter your Plain Language Summary here or delete this section.
+Here are instructions on writing a Plain Language Summary: 
+https://www.agu.org/Share-and-Advocate/Share/Community/Plain-language-summary
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  BODY TEXT
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%% Suggested section heads:
+% \section{Introduction}
+%
+% The main text should start with an introduction. Except for short
+% manuscripts (such as comments and replies), the text should be divided
+% into sections, each with its own heading.
+
+% Headings should be sentence fragments and do not begin with a
+% lowercase letter or number. Examples of good headings are:
+
+% \section{Materials and Methods}
+% Here is text on Materials and Methods.
+%
+% \subsection{A descriptive heading about methods}
+% More about Methods.
+%
+% \section{Data} (Or section title might be a descriptive heading about data)
+%
+% \section{Results} (Or section title might be a descriptive heading about the
+% results)
+%
+% \section{Conclusions}
+
+\section{Introduction}
+\label{sec:org5ac37b6}
+Landscapes are a reflection of the processes and properties that shape them, but inverting topographic data for quantitative geomorphic information remains challenging (e.g \citeA{barnhartInvertingTopographyLandscape2020, robertsUpliftHistoryColorado2012}).  There are a variety of obstacles in this process, but one of them is that geomorphic signals manifest themselves in topography in subtle and complex ways that simple metrics struggle to quantify; metrics that can capture spatial structure of topography are needed.  At the same time, the advent of new remote sensing technologies, particularly lidar, has led to the creation of high resolution topographic data with large spatial extents, while data on subsurface properties that shape landscapes remain scarce and discontinuous.  Deep learning methods, large neural networks supplied with large amounts of data, have been successful in capturing spatial patterns from microscopic \cite{iglesiasDeepLearningDiscrimination2019} to global scales \cite{priceGenCastDiffusionbasedEnsemble2024}.  Deep learning methods like convolutional neural networks (CNNs) have been used in geomorphology in tasks like feature detection\cite{fairfaxEEAGERNeuralNetwork2023, maxwellExploringInfluenceInput2023}, hazard mapping\cite{liArtificialIntelligenceincorporatedPrediction2025}, and the processing \cite{huRSCNNCNNBasedMethod2020} and classification\cite{maxwellExploringInfluenceInput2023} of remotely sensed data, but can they learn the complex spatial signals in topography that relate to hard to quantify subsurface properties?  Training a network to complete that task successfully outside of its training set would mean a network that has uncovered a theoretical geomorphic relationship, which remains a frontier in geomorphology.  There are a number of reasons why this remains challenging, but one aspect is the belief, born out in application, that neural networks are ``black boxes'' and are unable to help scientists gain new insights into our problems.  Recent work with methods like ``explainable AI'' \cite{dahalExplainableArtificialIntelligence2023, youssefLandslideSusceptibilityModeling2023}are starting to fill that gap, but it is still a significant challenge to take a trained neural network and use it to help inform our theory of the physical world.  In this paper we demonstrate how a convolutional neural network trained to invert a classic physics based numerical model of geomorphology can be interrogated to understand what about geomorphology a neural network has ``learned''.  We ran the streampower-diffusion landscape evolution model across parameter space and trained a neural network to invert the equilibrium topography of the model into the parameters of that model run.  We then not only evaluate the networks performance, but we identify which spatial patterns are successfully encoded in the neural network, and which patterns the network has failed to learn.
+\subsection{Landscapes as advective/diffusive systems}
+\label{sec:org194ef59}
+To test the extent to which a neural network can extract geomorphically meaningful information from topography and to study the interpretability of the network's learning, we use simulated topography generated by a process based numerical model.  Real topographic data presents a host of challenges, such as differences in collection conditions, differences in processes and properties impacting landscapes, and a lack of well constrained parameters that control landscape evolution to train a network to extract.
+With numerical models, the generation of the topography is controlled and the ``answer'', that is the parameters used to generate the topography, are known exactly, allowing us to evaluate network performance and networks geomorphic learning.  This serves as a ``first test'' on training neural networks to solve geomorphic problems before moving to real data.  In this work we use a simple 3-parameter numerical model, based on the ``stream power'' formulation for channel erosion together with a diffusion equation to represent downhill soil transport, to generate a dataset of synthetic landscapes with varying relative strengths of water versus gravitational erosion.
+This theoretical model for landscape evolution, which we refer to as the Stream Power plus Diffusion (SPD) model, is simple in formulation while still creating landscapes that are complex and realistic.  While the SPD model omits many of the factors that shape real landscapes, it captures the competition between fluvial and hillslope transport that is thought to be a key element in the dynamics of river-carved landscapes.
+This treatment of landscape evolution as a simple advection-diffusion system is common in the geomorphology literature and has been extensively studied \cite{howardModelingFluvialErosion1994, whippleDynamicsStreampowerRiver1999, tuckerTopographicOutcomesPredicted2002, tuckerModellingLandscapeEvolution2010, perronControlsSpacingFirstorder2008, theodoratosScalingSimilarityStreampower2018} 
+The SPD model describes changes in elevation \(z(x,y,t)\) across time and is formulated as
+\begin{linenomath*}
+  \[\frac{\partial z}{\partial t}= D\nabla^2 z - KA^m|\nabla z|^n +U\]
+\end{lineomath*}
+where \(D\) is a diffusivity-like gravitational soil transport coefficient, \(K\) is the fluvial erosion coefficient, \(U\) is the uplift rate relative to a given base level, \(A\) is the upstream contributing drainage area, \(\nabla z\) is the gradient magnitude in the steepest downhill direction, and \(m\) and \(n\) are constants that depend on the specific derivation of the streampower equation.  In this paper we use values 0.3 and 0.7 for \(m\) and \(n\) respectively, which derives from the assumption that the rate of fluvial erosion is proportional to bed shear stress \cite{howardModelingFluvialErosion1994}.  The SPD mode is effectively a nonlinear advection-diffusion equation with a source term.
+
+The equation can be solved numerically to get an elevation field at a given point in time.
+\(D\) and \(K\) are lumped parameters that describe how the landscapes respond to hillslope and river processes, including climatic factors and the underlying geology.  Inferring the ratio of these parameters is an exercise akin to inferring information about material properties from topography.  While we can estimate these parameters with methods like ridgeline curvature \cite{roeringEvidenceNonlinearDiffusive1999}, slope-area plots \cite{wobusTectonicsTopographyProcedures2006}, or chi plots, \cite{perronIntegralApproachBedrock2013}, inferring these parameters with a neural network is a first step to estimating material parameters where an existing topographic relationship does not exist.   
+The ratio of \(K\) to \(D\) (which can be cast as a type of Péclet number) represents the relative strength of channelized fluvial incision (an advection process) to gravitational soil transport (a diffusive process), and it is a key control on the landscape that develops.  \citeA{perronControlsSpacingFirstorder2008, perronFormationEvenlySpaced2009, perronRootBranchingRiver2012} showed that the \(K/D\) ratio determines the transition from smooth hillslopes to branching valley networks, and sets the scale of first-order drainages and the hillslope-valley  transition .   Similarly, \cite{theodoratosScalingSimilarityStreampower2018} use a Péclet-like ratio to investigate characteristic scales in landscapes and understand how they relate to the fate of perturbations in the landscapes.  A common theme across these and other scaling analyses is that the ratio of gravitational transport efficiency, \(D\), to fluvial erosion efficiency, \(K\) exerts a fundamental control on landscape texture.  In this work we test the ability of a trained neural network to infer the ratio \(D/K\) from synthetic digital topography, for which that ratio is independently known.
+\subsection{Neural Networks}
+\label{sec:orgba1338a}
+Neural networks are a machine learning method that allows many relatively simple functions to approximate a more complex one.  Theoretically a large enough neural network can approximate any function with arbitrary precision \cite{cybenkoApproximationSuperpositionsSigmoidal1989}; in practice the main limitations often lie in constructing a network that is large enough, and collecting enough data to train it.  While neural networks as a methodology date to the 1940's, they have found significant success recently due to technological innovations allowing the rapid training of large networks on large amounts of data, as well as the creation of massive datasets to train networks with.  A ``traditional'' feed-forward neural network involves a large number of linear functions (``neurons'', or ``layers'') chained together with ``activation functions'', simple functions like a logistic function that introduce nonlinearity to the network.  The parameters of each neuron, or ``weights'', are initialized randomly, and tuned during the training process, where the output of the network for a given input is compared to the true value.  The mismatch between these values, or ``loss'' is then used to guide the modification of the weights via gradient descent \cite{princeUnderstandingDeepLearning2023}.
+Convolutional neural networks (CNN's) have proven to excel at problems related to image processing and spatial data.  In a CNN, some or all of the layers have been replaced by convolutions:  windows of weights that sweep over the (typically but not necessarily) 2D input and returning the weighted sum of the input that overlaps with the window (Figure \ref{fig:apdx:conv}).  The output of a convolution is the same dimension as the input so, along with activation functions, the output is typically flattened and fed into a traditional neural network to produce a single number, in the case of regression networks, or a list of class probabilities, for classification problems.
+
+In this paper we create a simple regression neural network with convolutions and train it to infer the ratio of D and K for synthetic landscapes generated using an SPD numerical model.  Then we interpret what patterns the network has and has not learned.
+\section{Methods}
+\label{sec:org7161f3a}
+
+\subsection{Numerical models}
+\label{sec:orge88de69}
+To generate training data for the network we solve the streampower-diffusion equation in two dimensions for a realistic range of diffusivity and incision coefficients.  Model runs are given one of ten initial random terrains to generate a dataset of 9,000 landscapes (Figure \ref{fig:performance} b-c).  The model domain is 500 m by 1500 m with 5m grid cells following \cite{perronControlsSpacingFirstorder2008} (see table \ref{tab:parameters} for the full parameter details).  This yields landscapes with a central ridge and parallel river valleys.  By ensuring that our landscapes have a consistent structure, we can focus our interpretation work on looking for these patterns in the trained network .  By choosing a realistic range of parameters for \(D\) and \(K\) separately, we get distinct non-uniform distributions for \(D/K\) and \(K/D\) (Figure \ref{fig:apdx:dist}) which when used as targets for the neural network result in differences in performance because of how to distributions interact with the mean squared error function used to guide training \cite{hodsonRootmeansquareErrorRMSE2022}.
+\subsection{Convolutional Neural Network}
+\label{sec:orgb87ba14}
+Convolutional Neural Networks are neural networks with relatively simple components  commonly used for image recognition tasks \cite{qinHowConvolutionalNeural2018}.  In this paper we use a CNN designed to be as small as possible while still being able to extract some relatively complex spatial features.  The network has the following architecture: three convolutional units, a flattening layer, followed by three linear units that reduce the output to a single number (Figure \ref{fig:apdx:nn-arch}).  Each convolutional unit contains a 2D convolution layer, a max pooling layer, that resamples the output to half resolution with a maximum-value resampling, and a ReLU activation layer, that sets all negative output values to zero, introducing nonlinearities into the network.  Each convolution has a different window size, and expects and produces an output with a different number of bands.  The first layer has a three-by-three convolution (or window of weights), takes a 1-band input (either the landscape elevation field or a quantity derived from it) and creates a 10-band output.  The second layer has a five-by-five convolution, takes a 10-band output (from the previous convolutional unit) and has a 20-band output.  The last layer has a seven-by-seven convolution, takes a 20-band input and has a 20 band output.  This 20-band output is then flattened into a 1D vector, which is passed through a linear transformation with 100 outputs and subjected to a ReLU activation layer.  This is then passed to a linear transformation and ReLU with 10 outputs , and finally a linear transformation that produces a single number output that is interpreted as the network's inferred \(D/K\) value for the given input image.
+\subsubsection{Training}
+\label{sec:org47e596e}
+This neural network is a function that takes in a 2D single band input, and produces a single number (the target).  Our experiments have five possible inputs, model elevation, slope, curvature, flow accumulation, and the log of flow accumulation, and four possible targets, \(D/K\), \(K/D\), \(\log_{10}(D/K)\), and \(\log_{10}(K/D)\) for a total of 20 different input/output pairs.  Additionally for each pair we train 4 networks, each with a different set up of randomized initial weights, for 80 total neural networks.  Training multiple networks with different initial weights helps us ensure that results aren't biased by a specific starting point.
+The selection of inputs allow us to understand what topographic information is most useful, and the selection of different targets allow us to explore how difference distributions of the target variable change performance.
+Each network is trained on a subset of the collection of model runs with 7200 individual landscapes, and is tested on the remaining 1800 landscapes not used for training.  All target variables and input datasets are normalized by the standard deviation of the training set.
+\section{Results}
+\label{sec:org13e18a3}
+The network trained to infer \(D/K\) from the elevation data performs well, with a range normalized mean standard error of 0.02075 (Figure \ref{fig:performance}).
+Performance is best for high \(D/K\) landscapes with increased spread and overestimation where \(D/K\) is low.  We interpret this reduced performance at low \(D/K\) as reflecting the spatial resolution in our models.  The \(D/K\) ratio effectively sets the hillslope length \cite{howardModelingFluvialErosion1994, tuckerHillslopeProcessesDrainage1998}.  At sufficiently low \(D/K\) the hillslope length becomes shorter than the resolution of the grid, and the simulated landscapes no longer appear as distinct as \(D/K\) is reduced further. 
+When looking at performance across other data types (Figure \ref{fig:comparison}) we see significant increases in performance when the network is given slope or curvature data, with the best performance (NRMSE 0.00408) coming from curvature data.
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=.9\linewidth]{figs/performance_raw.pdf}
+\caption{\label{fig:performance}Performance of the network trained to infer \(D/K\) from elevation data. (a) Density plot of performance of the test set (green) as well as histogram of the distribution of \(D/K\) (blue).  The network was trained on \(D/K\) values but presented in log-log space.}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=.9\linewidth]{figs/perf_compare.pdf}
+\caption{\label{fig:comparison}NRSME of networks trained on different target variables and data types}
+\end{figure}
+
+Flow accumulation data decreases performance when inferring \(D/K\), although this is likely due to the extreme skew to the distribution of this data, as performance increases when the network is given the log of the flow accumulation data.  However even raw flow accumulation data \emph{increases} performance of the network trained to infer \(K/D\)
+The inputs to the neural network are equilibrium landscapes, where the time derivative of elevation is zero, and so are solutions to
+\((D/K)\nabla^2 z+A^m |dz/ds|^n=U/K\)
+implying that \(D/K\) is a function of slope and curvature and more closely related to these topographic derivatives than elevation \cite{theodoratosScalingSimilarityStreampower2018}, which could be driving the discrepancy in performance.  
+\section{What has the network learned?}
+\label{sec:orgbab65be}
+The performance of the network leads us to believe that the network may have learned landscape patterns that are geomorphically meaningful.
+The network takes in a landscape, and transforms it into something it can correlate to \(D/K\), which is a key control of the landscape morphology.  But the specifics of the transformation, and if they are theoretically grounded, and meaningful in the context of geology are unclear.
+To answer these questions, we need to interrogate the network, which we can do in a variety of ways.
+\subsection{Activation Maximization}
+\label{sec:orgf78e2eb}
+A tool commonly used for the interpretation of convolutional neural networks is ``activation maximization'', where an input that will ``maximize'' the output of the network, or part of the network is constructed \cite{qinHowConvolutionalNeural2018}.
+When we construct activation maximization images for specific neurons or convolutions in the network, the image can be thought of as the pattern that a specific neuron is most sensitive to.  These are constructed through gradient ascent much in the same way a network is trained; an initial input of random noise is created, and then is tweaked, as guided by the gradients of the network, towards producing the highest output (hence \emph{ascent} instead of descent, which is used in training).  
+For this network, the activation maximization images do not resemble landforms, but instead appear as primarily noise (Figure \ref{fig:apdx:actmax}).  However some structure seems apparent.  Many of the images have a systematic wavelength pattern, and there appears to be a consistent wavelength and orientation.  One qualitative interpretation is that this could be akin to a tightly spaced system of valleys, as our model domain was designed to emphasize the connection between \(D/K\) and valley spacing \cite{perronControlsSpacingFirstorder2008}.
+\subsection{Valley Spacing}
+\label{sec:valley-spacing}
+To analyze how the trained network responds to repeated shapes with a fixed frequency, such as quasi-evenly spaced valleys, we created a dataset of ``pseudo landscapes'' generated from sine waves.  This allows us to test the network on ``landscapes'' that have clear (and known) valley spacing, but without other features.  We take our network that was \emph{trained} on elevation data of landscapes generated by the streampower-diffusion model and give it these ``sine landscapes'' to see what \(\log_{10}(D/K)\) value the network would assign (Figure \ref{fig:sinedd} a).  Because we are evaluating the network's response to out-of-sample data with a completely different generating process we use the model that was trained on a log-normalized target which is more robust to out-of-sample data (section \ref{sect:apdx:targets}) It should be noted that these sine landscapes have no true \(\log_{10}(D/K)\) as they are not generated by landscape processes, however we can test the networks ``geomorphic intuition'' about the relationship between valley spacing and \(\log_{10}(D/K)\).
+The results show an increasing correlation between valley spacing and inferred \(log_{10}(D/K)\) after valley spacing reaches about 20 meters (4 grid cells), with a negative correlation before 20 meters, and a slight break at 50 meters.  The correlation suggests that the model is indeed sensitive to wavelength of terrain features, with longer wavelengths leading to larger inferred values of \(D/K\).
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=.9\linewidth]{figs/valley_dd_perf.pdf}
+\caption{\label{fig:sinedd}Performance of the network targeting \(\log_{10}(\frac{K}{D})\) trained on elevation data when given (a) 2D sine waves or (b) drainage density masks as input}
+\end{figure}
+\subsection{Drainage Networks}
+\label{sec:drainage-density}
+Natural hillslope-valley landscapes vary widely in their drainage density, which is conventionally defined as the average total length of channels per unit area.  Although our SPD model does not discriminate explicitly between channeled and non-channeled locations, the density of valley-like features simulated by the model does vary systematically with the D/K ratio, reflecting the competition between diffusion and channel incision \cite{howardBadlandMorphologyEvolution1997, tuckerHillslopeProcessesDrainage1998}.  To test the trained CNN's sensitivity to the density of valley (channel-formed) features, we construct a series of inputs that contain only information about the drainage network, omitting any elevation data.  These network maps are generated by taking a highly dissected modeled landscape elevation field and thresholding its flow accumulation data at a range of different thresholds, creating a series of binary masks in which 0 represents a pixel above the accumulation threshold (a ``channel'') and 1 represents a pixel below the accumulation threshold (a ``hillslope'').
+A low-threshold image will include many pixels in the channel category, and as a result it will appear as a dense drainage network, whereas a high-threshold image will contain only the highest-order streams in the landscape.  When we take the network that was trained on the \emph{elevation} data of the streampower-diffusion model landscapes and ask it to assign \(D/K\) values from these binary masks of river systems, we see an inverse relationship between inferred \(D/K\) and the input drainage density (Figure \ref{fig:sinedd} (b)). This finding indicates that the CNN trained on elevation data is sensitive to drainage network density even when that density is represented by a simple binary mask.   Like with the valley spacing experiment, there is a break in the relationship around where \(log_{10}(D/K)\) is about -3.  In both cases the cause of the break remains unexplained, but could be due to nonlinearities in the learned relationship or some sort of perceived threshold in the valley spacing or drainage density inputs.  Further work is needed to better understand the cause of the break in relationship. 
+\section{What has the network failed to learn?}
+\label{sec:org296be36}
+While it appears the network has ``learned'' some geomorphology, it is inherently limited by the data used to train it.  Not only does this mean it is limited to a pure advective/diffusive world, but it has seen a limited slice of that world, most immediately clear in the spatial boundary of the models.  All of the landscapes the network has seen are long rectangles with a central ridge and mostly parallel valleys perpendicular to the ridge.  These boundary position impose an overall structure to the modeled topography.  While that structure allows makes network interpretation easier, by allowing us to look for things like valley spacing, we want to test how model performance changes when that structure is altered, to understand if it is overreliant on it.  We tested this by taking our modeled landscapes and modifying them either with a split down the center to mimic a central valley or by tiling the landscape and randomly shuffling the tiles (Figure \ref{fig:apdx:shuffex}).
+When the network trained to infer \(\log_{10}(D/K)\) from elevation is given the shuffled and swapped landscapes it is no longer able to infer the target value.  In both cases it systematically predicts \(\log_{10}(D/K)\) values close to zero from low \(D/K\) landscapes and underpredicts high \(D/K\) landscapes by over 14 units in log space.  This mismatch in performance could be because low \(D/K\) landscapes have short hillslope lengths which are preserved within tiles, while high \(D/K\) landscapes have their hillslope length broken during shuffling.  Additionally shuffling will introduce discontinuities which in real landscapes with high relative diffusivities would be ``smoothed'' out by diffusive patterns.
+There is a systematic striping in the ``swapped'' landscape set which corresponds to different values of K, that is, one stripe represents landscapes with the same K but different D.  This means that while the network is not able to reconstruct the exact ratio of \(D/K\) after the model output is swapped, it does retain some ability to recognize different landscapes.
+When the network trained to infer \(log_{10}(D/K)\) from slope is given the shuffled and swapped data, it still performs very strongly.  The increased performance of this model on both the test set and the shuffled and swap inputs implies it has learned more robust patterns than the model trained on elevation.
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=.9\linewidth]{figs/shuff_perf_paper.pdf}
+\caption{\label{fig:shuf-perf}Performance of the trained networks on shuffled datasets}
+\end{figure}
+\section{Inputs and Targets}
+\label{sec:org35b534c}
+The choice of what input to use (elevation, slope, curvature, or flow accumulation) as well as which output target to supply the neural network \(D/K\) or \(K/D\) has significant impacts on the final performance, although all options demonstrate some learning by the neural network.  All else being equal, the neural network performs better when trained with using topographic derivatives that are geomorphically meaningful--and relate to the governing equations.  Not only does performance increase on the test set, but the network is not ``confused'' when the input is shuffled around, as it is when given elevation.  This could be because slope and curvature are more evenly distributed across the landscape, which is not the case for elevation.  Prior work has found performance increases when neural networks trained on topographic tasks are given topographic derivatives \cite{maxwellExploringInfluenceInput2023}, but more work remains to be done to understand when a specific derivative is, or is not, helpful.  Do slope and curvature increase performance because they relate to the governing equation involved in the task, or because of the differences in their spatial distributions?  When moving from elevation to slope, the data is in some sense more ``geomorphically meaningful'', but information about the absolute value of elevation is lost.  Will slope always perform better than elevation or are there tasks where this information is critical, like in landscapes where there is an elevation dependent geomorphic process?
+
+As noted above, a 3x3 convolution should be able to approximate slope or curvature, and so with longer training time it is possible that the performance of the network using the elevation dataset would approach that of the networks trained on slope or curvature.  It is possible that a different architecture, like an initial single 3x3 convolution to learn slope prior to the first 10 channel convolutional layer would be necessary to equalize performance.  Additionally when using a derivative with a very skewed distribution of values, like flow accumulation, normalization should be considered to help the network train more efficiently.  A discrepancy in performance between different ratio targets is to be expected, as the distribution of the target variables will be different, and certain distributions will be harder or easier for a neural network to learn. This could be mitigated with normalization, although while in our experiments log normalization equalized performance between \(D/K\) and \(K/D\), both underperformed un-normalized \(D/K\).  While it is unsurprising that \(\frac{K}{D}\) leads to worse performance than \(D/K\), it is not intuitive that would display a stronger preference for flow accumulation data.  This could be due to similarities in distribution between the input and the target, but should be further investigated.
+\section{Conclusions}
+\label{sec:org47a994a}
+
+This study demonstrates how neural networks can be used not simply to automate mapping tasks, but as hypothesis generators and testers. 
+Deep learning methods not only excel at geomorphic tasks, but can be tested in ways that illuminate what spatial patterns the network uses for its performance, and in this case study, reveal an ``understanding'' that matches the intuition of a geomorphologist.   This study shows that these methods, both neural networks and interpretability techniques are powerful, and should be applied to domains where our understanding of signals in topography and their relationship to property and process is unclear.
+A natural next step is to look at a similar problem, but with real data.  This could be done with data alone or using a network trained on numerical models like this one.  Such work would have to overcome a number of challenges, like the collection of a large number of well constrained and comparable geomorphic parameters (like \(K\) and \(D\) values), more realistic and variable model domains (i.e. ones that do not have a strong central ridge), and an accounting of the noise that comes along with real data.
+This paper also demonstrates that neural networks cannot be used without an understanding of physical theory, and without interpretability work; the trained neural network is \emph{not} an algorithm that infers process parameter values from the landscape, it is a collection of geospatial relationships that can be poked, prodded, and queried to find where it rhymes, and where it doesn't, with our physical understanding of earth systems.
+
+
+%% If using numbered lines, please surround equations with \begin{linenomath*}...\end{linenomath*}
+%\begin{linenomath*}
+%\begin{equation}
+%y|{f} \sim g(m, \sigma),
+%\end{equation}
+%\end{linenomath*}
+
+%%% End of body of article
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Optional Appendices go here
+%
+% The \ appendix command resets counters and redefines section heads
+%
+% After typing \appendix
+%
+%\section{Here Is Appendix Title}
+% will show
+% A: Here Is Appendix Title
+%
+\appendix
+%\section{Here is a sample appendix}
+\section{The Neural Network}
+\label{sec:org178cb67}
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=.9\linewidth]{figs/conv.pdf}
+\caption{\label{fig:apdx:conv}A pictoral representation of a convolution modifying an input.}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=.9\linewidth]{figs/network_viz.pdf}
+\caption{\label{fig:apdx:nn-arch}The architecture of the neural network}
+\end{figure}
+\section{Parameters}
+\label{sec:org6ff5c52}
+\begin{sidewaystable}[htbp]
+\caption{\label{tab:parameters}Parameters used for the Streampower-Diffusion model}
+\centering
+\begin{tabular}{rrrlrrrrrr}
+Rows (cells) & Columns (cells) & Grid Spacing (m) & Runtime (years) & Timestep (years) & Uplift Rate (\(\frac{m}{year}\)) & Diffusivity (\(\frac{m^2}{year}\)) & Streampower K (\(\frac{m^{0.4}}{year}\)) & Streampower m & Streampower n\\
+\hline
+300 & 100 & 5 & 3,000,000 & 500 & 0.001 & 0.005-0.02 & 0.00015-0.002 & 0.3 & 0.07\\
+\hline
+\end{tabular}
+\end{sidewaystable}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=.9\linewidth]{figs/target_distributions.pdf}
+\caption{\label{fig:apdx:dist}Distributions of the different target variables}
+\end{figure}
+\section{Targets}
+\label{sect:apdx:targets}
+In this work we look at four different targets: \(D/K\), \(K/D\), \(\log_{10}(D/K)\), and \(log_{10}(K/D)\).  While for the purposes of this study the choice of target does not change the fundamental geomorphic meaning, the distribution of the target variable, and its interaction with the error function can impact the performance of the machine learning method\cite{wilhelmHoneyShrunkTarget2020, nuytsWhenHowTarget2025}.  Because of differences in distributions (Figure \ref{fig:apdx:dist}) the differences in performance (Figure \ref{fig:comparison}) are not suprising, nor is the fact that the logarithm effectively equalizes the performance of the two different ratio targets.  However we include and focus on the results of the un-logged \(D/K\) target because of its high performance.  While all our training data is on positive targets, the target variables are normalized prior to training, and the network is trained to produce a number from a continuous range that surrounds zero and includes negative numbers.  While for our in-sample data, these negative values produced by the network become positive, the network has nothing that prevents it from producing a negative number, although that is meaningless for \(D/K\) and \(K/D\) values.  When we supply the network with inputs that are not generated from landscape evolution models (sections \ref{sec:valley-spacing} and \ref{sec:drainage-density}) the networks produce a coherent pattern of its predictions. but typically with negative numbers, because the inputs are so distinct from the training data.  While for the purposes of our interpretation, the coherent pattern is what matters, we present these results as performed on the \(\log_{10}(D/K)\) since for the logged values, negative numbers are technically meaningful.
+\section{Activation Maximization Output}
+\label{sec:orga4336e3}
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=.3\linewidth]{figs/max_6_16.png}
+\caption{\label{fig:apdx:actmax}A selected activation maximization image for a convolution of the network}
+\end{figure}
+\section{Shuffling}
+\label{sec:org11ca8c8}
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=.9\linewidth]{figs/shuffle_viz.pdf}
+\caption{\label{fig:apdx:shuffex}An example of the shuffling and swapping process on an input landspace}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Optional Glossary, Notation or Acronym section goes here:
+%
+% Glossary is only allowed in Reviews of Geophysics
+%  \begin{glossary}
+%  \term{Term}
+%   Term Definition here
+%  \term{Term}
+%   Term Definition here
+%  \term{Term}
+%   Term Definition here
+%  \end{glossary}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Acronyms
+%% NOTE that acronyms in the final published version will be spelled out when used in figure captions.
+%   \begin{acronyms}
+%   \acro{Acronym}
+%   Definition here
+%   \acro{EMOS}
+%   Ensemble model output statistics
+%   \acro{ECMWF}
+%   Centre for Medium-Range Weather Forecasts
+%   \end{acronyms}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Notation
+%   \begin{notation}
+%   \notation{$a+b$} Notation Definition here
+%   \notation{$e=mc^2$}
+%   Equation in German-born physicist Albert Einstein's theory of special
+%  relativity that showed that the increased relativistic mass ($m$) of a
+%  body comes from the energy of motion of the body—that is, its kinetic
+%  energy ($E$)—divided by the speed of light squared ($c^2$).
+%   \end{notation}
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% DATA SECTION and ACKNOWLEDGMENTS
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section*{Open Research Section}
+This section MUST contain a statement that describes where the data supporting the conclusions can be obtained. Data cannot be listed as ''Available from authors'' or stored solely in supporting information. Citations to archived data should be included in your reference list. Wiley will publish it as a separate section on the paper’s page. Examples and complete information are here:
+https://www.agu.org/Publish with AGU/Publish/Author Resources/Data for Authors
+
+\section*{As Applicable – Inclusion in Global Research Statement}
+The Authorship: Inclusion in Global Research policy aims to promote greater equity and transparency in research collaborations. AGU Publications encourage research collaborations between regions, countries, and communities and expect authors to include their local collaborators as co-authors when they meet the AGU Publications authorship criteria (described here: https://www.agu.org/publications/authors/policies\#authorship). Those who do not meet the criteria should be included in the Acknowledgement section. We encourage researchers to consider recommendations from The TRUST CODE - A Global Code of Conduct for Equitable Research Partnerships (https://www.globalcodeofconduct.org/) when conducting and reporting their research, as applicable, and encourage authors to include a disclosure statement pertaining to the ethical and scientific considerations of their research collaborations in an “Inclusion in Global Research Statement’ as a standalone section in the manuscript following the Conclusions section. This can include disclosure of permits, authorizations, permissions and/or any formal agreements with local communities or other authorities, additional acknowledgements of local help received, and/or description of end-users of the research. You can learn more about the policy in this editorial. Example statements can be found in the following published papers: 
+Holt et al. (https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2022JG007188), 
+Sánchez-Gutiérrez et al. (https://agupubs.onlinelibrary.wiley.com/doi/abs/10.1029/2023JG007554), 
+Tully et al. (https://agupubs.onlinelibrary.wiley.com/doi/epdf/10.1029/2022JG007128) 
+Please note that these statements are titled as “Global Research Collaboration Statements” from a previous pilot requirement in JGR Biogeosciences. The pilot has ended and statements should now be titled “Inclusion in Global Research Statement”.
+
+
+\section*{Conflict of Interest declaration}
+Please include a comprehensive conflict of interest statement that reflect all conflicts of interest for all involved authors. If there are no conflicts of interest please state, “The authors declare there are no conflicts of interest for this manuscript.”
+
+
+\acknowledgments
+Enter acknowledgments here. This section is to acknowledge funding, thank colleagues, enter any secondary affiliations, and so on.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% REFERENCES and BIBLIOGRAPHY
+%
+% \bibliography{<name of your .bib file>} don't specify the file extension
+% don't specify bibliographystyle
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\bibliography{references}
+
+
+%Reference citation instructions and examples:
+%
+% Please use ONLY \cite and \citeA for reference citations.
+% \cite for parenthetical references
+% ...as shown in recent studies (Simpson et al., 2019)
+% \citeA for in-text citations
+% ...Simpson et al. (2019) have shown...
+%
+%
+%...as shown by \citeA{jskilby}.
+%...as shown by \citeA{lewin76}, \citeA{carson86}, \citeA{bartoldy02}, and \citeA{rinaldi03}.
+%...has been shown \cite{jskilbye}.
+%...has been shown \cite{lewin76,carson86,bartoldy02,rinaldi03}.
+%... \cite <i.e.>[]{lewin76,carson86,bartoldy02,rinaldi03}.
+%...has been shown by \cite <e.g.,>[and others]{lewin76}.
+%
+
+% DO NOT use other cite commands (e.g., \citeA, \cite, \citeyear, \nocite, \citealp, etc.).
+%
+
+
+
+\end{document}
+
+
+
+More Information and Advice:
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  SECTION HEADS
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Capitalize the first letter of each word (except for
+% prepositions, conjunctions, and articles that are
+% three or fewer letters).
+
+% AGU follows standard outline style; therefore, there cannot be a section 1 without
+% a section 2, or a section 2.3.1 without a section 2.3.2.
+% Please make sure your section numbers are balanced.
+% ---------------
+% Level 1 head
+%
+% Use the \section{} command to identify level 1 heads;
+% type the appropriate head wording between the curly
+% brackets, as shown below.
+%
+%An example:
+%\section{Level 1 Head: Introduction}
+%
+% ---------------
+% Level 2 head
+%
+% Use the \subsection{} command to identify level 2 heads.
+%An example:
+%\subsection{Level 2 Head}
+%
+% ---------------
+% Level 3 head
+%
+% Use the \subsubsection{} command to identify level 3 heads
+%An example:
+%\subsubsection{Level 3 Head}
+%
+%---------------
+% Level 4 head
+%
+% Use the \subsubsubsection{} command to identify level 3 heads
+% An example:
+%\subsubsubsection{Level 4 Head} An example.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  IN-TEXT LISTS
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Do not use bulleted lists; enumerated lists are okay.
+% \begin{enumerate}
+% \item
+% \item
+% \item
+% \end{enumerate}
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  EQUATIONS
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Single-line equations are centered.
+% Equation arrays will appear left-aligned.
+
+Math coded inside display math mode \[ ...\]
+ will not be numbered, e.g.,:
+ \[ x^2=y^2 + z^2\]
+
+ Math coded inside \begin{equation} and \end{equation} will
+ be automatically numbered, e.g.,:
+ \begin{equation}
+ x^2=y^2 + z^2
+ \end{equation}
+
+
+% To create multiline equations, use the
+% \begin{eqnarray} and \end{eqnarray} environment
+% as demonstrated below.
+\begin{eqnarray}
+  x_{1} & = & (x - x_{0}) \cos \Theta \nonumber \\
+        && + (y - y_{0}) \sin \Theta  \nonumber \\
+  y_{1} & = & -(x - x_{0}) \sin \Theta \nonumber \\
+        && + (y - y_{0}) \cos \Theta.
+\end{eqnarray}
+
+%If you don't want an equation number, use the star form:
+%\begin{eqnarray*}...\end{eqnarray*}
+
+% Break each line at a sign of operation
+% (+, -, etc.) if possible, with the sign of operation
+% on the new line.
+
+% Indent second and subsequent lines to align with
+% the first character following the equal sign on the
+% first line.
+
+% Use an \hspace{} command to insert horizontal space
+% into your equation if necessary. Place an appropriate
+% unit of measure between the curly braces, e.g.
+% \hspace{1in}; you may have to experiment to achieve
+% the correct amount of space.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  EQUATION NUMBERING: COUNTER
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% You may change equation numbering by resetting
+% the equation counter or by explicitly numbering
+% an equation.
+
+% To explicitly number an equation, type \eqnum{}
+% (with the desired number between the brackets)
+% after the \begin{equation} or \begin{eqnarray}
+% command.  The \eqnum{} command will affect only
+% the equation it appears with; LaTeX will number
+% any equations appearing later in the manuscript
+% according to the equation counter.
+%
+
+% If you have a multiline equation that needs only
+% one equation number, use a \nonumber command in
+% front of the double backslashes (\\) as shown in
+% the multiline equation above.
+
+% If you are using line numbers, remember to surround
+% equations with \begin{linenomath*}...\end{linenomath*}
+
+%  To add line numbers to lines in equations:
+%  \begin{linenomath*}
+%  \begin{equation}
+%  \end{equation}
+%  \end{linenomath*}
+
+
+
