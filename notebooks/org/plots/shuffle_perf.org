@@ -94,7 +94,7 @@ def plot_shuf_perf(axs):
             x="true_labels",
             y="predictions",
             hue="test_type",
-            fill=True,
+            fill=true,
             ax=ax,
         )
         ax.set_title(f"{data_label} — {target_label}")
