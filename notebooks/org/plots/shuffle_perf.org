@@ -60,6 +60,15 @@ logacc_logKoD = all_df[
     (all_df["target"] == "logKoD") &
     (all_df["data"] == "log10flowacc")
 ]
+curvature_logDoK = all_df[
+    (all_df["target"] == "logDoK") &
+    (all_df["data"] == "curvature")
+]
+curvature_logKoD = all_df[
+    (all_df["target"] == "logKoD") &
+    (all_df["data"] == "curvature")
+]
+
 #+end_src
 
 #+RESULTS:
@@ -84,7 +93,7 @@ def plot_shuf_perf(axs):
             x="true_labels",
             y="predictions",
             hue="test_type",
-            fill=True,
+            fill=true,
             ax=ax,
         )
         ax.set_title(f"{data_label} — {target_label}")
@@ -110,8 +119,9 @@ for i, ax in enumerate(axs.flatten()):
         ax.legend().remove()
 fig.suptitle("Shuffle/Swap Robustness — All Input/Target Combinations",
              fontsize=plt.rcParams["axes.titlesize"], y=1.01)
-plot_styles.save_figure(fig, "shuffle_perf")
-plt.close(fig)
+plot_styles.save_figure(fig, "all_shuffle_perf", directory=PROJECT_ROOT / "paper/figs")
+fig.show()
 #+end_src
 
 #+RESULTS:
+: None

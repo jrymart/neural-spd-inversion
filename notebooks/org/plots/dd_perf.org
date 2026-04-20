@@ -42,6 +42,7 @@ def plot_dd(ax):
 #+begin_src python
 fig, ax = plt.subplots()
 plot_dd(ax)
+plot_styles.save_figure(fig, "drainage_density", PROJECT_ROOT / "paper" / "figs")
 fig.show()
 #+end_src
 
