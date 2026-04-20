@@ -95,7 +95,7 @@
 % \affiliation{3}{Third Affiliation}
 % \affiliation{4}{Fourth Affiliation}
 
-\affiliation{=number=}{=Affiliation Address=}
+%\affiliation{=number=}{=Affiliation Address=}
 %(repeat as many times as is necessary)
 
 
@@ -108,7 +108,7 @@
 
 % Example: \correspondingauthor{First and Last Name}{email@address.edu}
 
-\correspondingauthor{=name=}{=email address=}
+\correspondingauthor{Jo Martin}{jo.martin@colorado.edu}
 
 
 
@@ -154,14 +154,11 @@
 %% \begin{abstract} starts the second page
 
 \begin{abstract}
-[ enter your Abstract here ]
+Understanding the connection between topography and the processes and properties that shape landscapes both helps us better understand landscape evolution, and allows us to use topography to infer information relevant for a wide range of human activities.  However this remains challenging due to the complexity of spatial signals in topography.  Deep learning methods, like convolutional neural networks are a promising tool for capturing the spatial patterns necessary to correlation with the relevant process and property parameters, but remained under utilized because of the large amounts of data needed to train them and because of the belief that deep learning methods are ``black boxes'' that do not increase our theoretical understanding of the problems involved.  In this work, we train a convolutional neural network to invert topography generated from a landscape evolution model into the model parameters, and interpret the models learning.  We find that the neural network performs with a very high degree of accuracy, and has learned a relationship between the model parameters and the valley spacing and drainage density of the landscape that matches prior work.  We also find that the model learns more robustly when given topographic derivatives like slope and curvature, instead of just elevation.
 \end{abstract}
 
 \section*{Plain Language Summary}
-Enter your Plain Language Summary here or delete this section.
-Here are instructions on writing a Plain Language Summary: 
-https://www.agu.org/Share-and-Advocate/Share/Community/Plain-language-summary
-
+The surface of the earth contains patterns that relate to the materials that make it up and the forces that act on it.  However many connections between these patterns and the materials and forces remain unknown.  Neural networks are a promising tool that could help solve this, but we don't know if they can be used to discover these relationships, and we don't know how to learn what relationships and patterns a neural network understands.  In this paper we train a neural network to take the topography of a simulated landscape and return the values that control the simulation.  The neural network is able to do this very accurately.  We also experiment on the neural network to prove that it connects the simulation values to the spacing of valleys and density of river networks in the same way that scientists do.  We also discover that the neural network works better when it is given slope and curvature data instead of just the elevation of the simulation.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -204,7 +201,7 @@ This treatment of landscape evolution as a simple advection-diffusion system is 
 The SPD model describes changes in elevation \(z(x,y,t)\) across time and is formulated as
 \begin{linenomath*}
   \[\frac{\partial z}{\partial t}= D\nabla^2 z - KA^m|\nabla z|^n +U\]
-\end{lineomath*}
+\end{linenomath*}
 where \(D\) is a diffusivity-like gravitational soil transport coefficient, \(K\) is the fluvial erosion coefficient, \(U\) is the uplift rate relative to a given base level, \(A\) is the upstream contributing drainage area, \(\nabla z\) is the gradient magnitude in the steepest downhill direction, and \(m\) and \(n\) are constants that depend on the specific derivation of the streampower equation.  In this paper we use values 0.3 and 0.7 for \(m\) and \(n\) respectively, which derives from the assumption that the rate of fluvial erosion is proportional to bed shear stress \cite{howardModelingFluvialErosion1994}.  The SPD mode is effectively a nonlinear advection-diffusion equation with a source term.
 
 The equation can be solved numerically to get an elevation field at a given point in time.
@@ -238,7 +235,7 @@ When looking at performance across other data types (Figure \ref{fig:comparison}
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=.9\linewidth]{figs/performance_raw.pdf}
-\caption{\label{fig:performance}Performance of the network trained to infer \(D/K\) from elevation data. (a) Density plot of performance of the test set (green) as well as histogram of the distribution of \(D/K\) (blue).  The network was trained on \(D/K\) values but presented in log-log space.}
+\caption{\label{fig:performance}Performance of the network trained to infer \(D/K\) from elevation data. (a) Density plot of performance of the test set (green) as well as histogram of the distribution of \(D/K\) (blue).  The network was trained on \(D/K\) values but presented in log-log space. (b) an example low \(D/K\) landscape.  (c) an example high \(D/K\) landscape}
 \end{figure}
 
 \begin{figure}[htbp]
@@ -268,7 +265,7 @@ The results show an increasing correlation between valley spacing and inferred \
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=.9\linewidth]{figs/valley_dd_perf.pdf}
-\caption{\label{fig:sinedd}Performance of the network targeting \(\log_{10}(\frac{K}{D})\) trained on elevation data when given (a) 2D sine waves or (b) drainage density masks as input}
+\caption{\label{fig:sinedd}Performance of the network targeting \(\log_{10}(K/D)\) trained on elevation data when given (a) 2D sine waves or (b) channel pixel density masks as input.}
 \end{figure}
 \subsection{Drainage Networks}
 \label{sec:drainage-density}
@@ -283,13 +280,13 @@ When the network trained to infer \(log_{10}(D/K)\) from slope is given the shuf
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=.9\linewidth]{figs/shuff_perf_paper.pdf}
-\caption{\label{fig:shuf-perf}Performance of the trained networks on shuffled datasets}
+\caption{\label{fig:shuf-perf}Performance of the network trained on unshuffled (a) elevation, and (b) slope when given shuffled datasets}
 \end{figure}
 \section{Inputs and Targets}
 \label{sec:org35b534c}
 The choice of what input to use (elevation, slope, curvature, or flow accumulation) as well as which output target to supply the neural network \(D/K\) or \(K/D\) has significant impacts on the final performance, although all options demonstrate some learning by the neural network.  All else being equal, the neural network performs better when trained with using topographic derivatives that are geomorphically meaningful--and relate to the governing equations.  Not only does performance increase on the test set, but the network is not ``confused'' when the input is shuffled around, as it is when given elevation.  This could be because slope and curvature are more evenly distributed across the landscape, which is not the case for elevation.  Prior work has found performance increases when neural networks trained on topographic tasks are given topographic derivatives \cite{maxwellExploringInfluenceInput2023}, but more work remains to be done to understand when a specific derivative is, or is not, helpful.  Do slope and curvature increase performance because they relate to the governing equation involved in the task, or because of the differences in their spatial distributions?  When moving from elevation to slope, the data is in some sense more ``geomorphically meaningful'', but information about the absolute value of elevation is lost.  Will slope always perform better than elevation or are there tasks where this information is critical, like in landscapes where there is an elevation dependent geomorphic process?
 
-As noted above, a 3x3 convolution should be able to approximate slope or curvature, and so with longer training time it is possible that the performance of the network using the elevation dataset would approach that of the networks trained on slope or curvature.  It is possible that a different architecture, like an initial single 3x3 convolution to learn slope prior to the first 10 channel convolutional layer would be necessary to equalize performance.  Additionally when using a derivative with a very skewed distribution of values, like flow accumulation, normalization should be considered to help the network train more efficiently.  A discrepancy in performance between different ratio targets is to be expected, as the distribution of the target variables will be different, and certain distributions will be harder or easier for a neural network to learn. This could be mitigated with normalization, although while in our experiments log normalization equalized performance between \(D/K\) and \(K/D\), both underperformed un-normalized \(D/K\).  While it is unsurprising that \(\frac{K}{D}\) leads to worse performance than \(D/K\), it is not intuitive that would display a stronger preference for flow accumulation data.  This could be due to similarities in distribution between the input and the target, but should be further investigated.
+As noted above, a 3x3 convolution should be able to approximate slope or curvature, and so with longer training time it is possible that the performance of the network using the elevation dataset would approach that of the networks trained on slope or curvature.  It is possible that a different architecture, like an initial single 3x3 convolution to learn slope prior to the first 10 channel convolutional layer would be necessary to equalize performance.  Additionally when using a derivative with a very skewed distribution of values, like flow accumulation, normalization should be considered to help the network train more efficiently.  A discrepancy in performance between different ratio targets is to be expected, as the distribution of the target variables will be different, and certain distributions will be harder or easier for a neural network to learn. This could be mitigated with normalization, although while in our experiments log normalization equalized performance between \(D/K\) and \(K/D\), both underperformed un-normalized \(D/K\).  While it is unsurprising that \(K/D\) leads to worse performance than \(D/K\), it is not intuitive that would display a stronger preference for flow accumulation data.  This could be due to similarities in distribution between the input and the target, but should be further investigated.
 \section{Conclusions}
 \label{sec:org47a994a}
 
@@ -334,27 +331,40 @@ This paper also demonstrates that neural networks cannot be used without an unde
 \includegraphics[width=.9\linewidth]{figs/network_viz.pdf}
 \caption{\label{fig:apdx:nn-arch}The architecture of the neural network}
 \end{figure}
+\clearpage
 \section{Parameters}
 \label{sec:org6ff5c52}
-\begin{sidewaystable}[htbp]
-\caption{\label{tab:parameters}Parameters used for the Streampower-Diffusion model}
+\begin{table}[htbp]
+\caption{Model parameters for the Streampower-Diffusion base case.}
 \centering
-\begin{tabular}{rrrlrrrrrr}
-Rows (cells) & Columns (cells) & Grid Spacing (m) & Runtime (years) & Timestep (years) & Uplift Rate (\(\frac{m}{year}\)) & Diffusivity (\(\frac{m^2}{year}\)) & Streampower K (\(\frac{m^{0.4}}{year}\)) & Streampower m & Streampower n\\
-\hline
-300 & 100 & 5 & 3,000,000 & 500 & 0.001 & 0.005-0.02 & 0.00015-0.002 & 0.3 & 0.07\\
-\hline
+\begin{tabular}{l|l|c|l}
+\toprule
+  \textbf{Parameter} & \textbf{Symbol} & \textbf{Value} & \textbf{Units} \\
+  \midrule
+  \hline
+Grid Rows          & $N_r$           & 300            & cells \\
+Grid Columns       & $N_c$           & 100            & cells \\
+Grid Spacing       & $\Delta x$      & 5              & m \\
+Total Runtime      & $t_{final}$     & 3,000,000      & years \\
+Timestep           & $\Delta t$      & 500            & years \\
+Uplift Rate        & $U$             & 0.001          & $m/year$ \\
+Diffusivity        & $D$             & 0.005--0.02    & $m^2/year$ \\
+Streampower Coeff. & $K$             & 0.00015--0.002 & $m^{0.4}/year$ \\
+Slope Exponent     & $n$             & 0.7            & -- \\
+Area Exponent      & $m$             & 0.3            & -- \\
+\bottomrule
 \end{tabular}
-\end{sidewaystable}
-
+\end{table}
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=.9\linewidth]{figs/target_distributions.pdf}
 \caption{\label{fig:apdx:dist}Distributions of the different target variables}
 \end{figure}
+\clearpage
 \section{Targets}
 \label{sect:apdx:targets}
 In this work we look at four different targets: \(D/K\), \(K/D\), \(\log_{10}(D/K)\), and \(log_{10}(K/D)\).  While for the purposes of this study the choice of target does not change the fundamental geomorphic meaning, the distribution of the target variable, and its interaction with the error function can impact the performance of the machine learning method\cite{wilhelmHoneyShrunkTarget2020, nuytsWhenHowTarget2025}.  Because of differences in distributions (Figure \ref{fig:apdx:dist}) the differences in performance (Figure \ref{fig:comparison}) are not suprising, nor is the fact that the logarithm effectively equalizes the performance of the two different ratio targets.  However we include and focus on the results of the un-logged \(D/K\) target because of its high performance.  While all our training data is on positive targets, the target variables are normalized prior to training, and the network is trained to produce a number from a continuous range that surrounds zero and includes negative numbers.  While for our in-sample data, these negative values produced by the network become positive, the network has nothing that prevents it from producing a negative number, although that is meaningless for \(D/K\) and \(K/D\) values.  When we supply the network with inputs that are not generated from landscape evolution models (sections \ref{sec:valley-spacing} and \ref{sec:drainage-density}) the networks produce a coherent pattern of its predictions. but typically with negative numbers, because the inputs are so distinct from the training data.  While for the purposes of our interpretation, the coherent pattern is what matters, we present these results as performed on the \(\log_{10}(D/K)\) since for the logged values, negative numbers are technically meaningful.
+\clearpage
 \section{Activation Maximization Output}
 \label{sec:orga4336e3}
 \begin{figure}[htbp]
@@ -362,6 +372,7 @@ In this work we look at four different targets: \(D/K\), \(K/D\), \(\log_{10}(D/
 \includegraphics[width=.3\linewidth]{figs/max_6_16.png}
 \caption{\label{fig:apdx:actmax}A selected activation maximization image for a convolution of the network}
 \end{figure}
+\clearpage
 \section{Shuffling}
 \label{sec:org11ca8c8}
 \begin{figure}[htbp]
@@ -418,24 +429,14 @@ In this work we look at four different targets: \(D/K\), \(K/D\), \(\log_{10}(D/
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section*{Open Research Section}
-This section MUST contain a statement that describes where the data supporting the conclusions can be obtained. Data cannot be listed as ''Available from authors'' or stored solely in supporting information. Citations to archived data should be included in your reference list. Wiley will publish it as a separate section on the paper’s page. Examples and complete information are here:
-https://www.agu.org/Publish with AGU/Publish/Author Resources/Data for Authors
-
-\section*{As Applicable – Inclusion in Global Research Statement}
-The Authorship: Inclusion in Global Research policy aims to promote greater equity and transparency in research collaborations. AGU Publications encourage research collaborations between regions, countries, and communities and expect authors to include their local collaborators as co-authors when they meet the AGU Publications authorship criteria (described here: https://www.agu.org/publications/authors/policies\#authorship). Those who do not meet the criteria should be included in the Acknowledgement section. We encourage researchers to consider recommendations from The TRUST CODE - A Global Code of Conduct for Equitable Research Partnerships (https://www.globalcodeofconduct.org/) when conducting and reporting their research, as applicable, and encourage authors to include a disclosure statement pertaining to the ethical and scientific considerations of their research collaborations in an “Inclusion in Global Research Statement’ as a standalone section in the manuscript following the Conclusions section. This can include disclosure of permits, authorizations, permissions and/or any formal agreements with local communities or other authorities, additional acknowledgements of local help received, and/or description of end-users of the research. You can learn more about the policy in this editorial. Example statements can be found in the following published papers: 
-Holt et al. (https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2022JG007188), 
-Sánchez-Gutiérrez et al. (https://agupubs.onlinelibrary.wiley.com/doi/abs/10.1029/2023JG007554), 
-Tully et al. (https://agupubs.onlinelibrary.wiley.com/doi/epdf/10.1029/2022JG007128) 
-Please note that these statements are titled as “Global Research Collaboration Statements” from a previous pilot requirement in JGR Biogeosciences. The pilot has ended and statements should now be titled “Inclusion in Global Research Statement”.
-
+The full parameters and final model outputs of the data used in this study is archived and available at .  The code used to process the data, train and evaluate the neural networks, and generate figures for this paper is archived and avaialble at as well as on github.
 
 \section*{Conflict of Interest declaration}
-Please include a comprehensive conflict of interest statement that reflect all conflicts of interest for all involved authors. If there are no conflicts of interest please state, “The authors declare there are no conflicts of interest for this manuscript.”
+The authors declare there are no conflicts of interest for this manuscript.
 
 
 \acknowledgments
-Enter acknowledgments here. This section is to acknowledge funding, thank colleagues, enter any secondary affiliations, and so on.
-
+This research was supported by NSF grant xxx and the Colorado Groundwater Association Harlan Ecker Memorial Scholarship.  
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % REFERENCES and BIBLIOGRAPHY
