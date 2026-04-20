@@ -38,10 +38,6 @@ with sqlite3.connect(DB_PATH) as conn:
     FROM model_run_params
 '''
     params = pd.read_sql(query, conn)
-    params = pd.read_sql(
-        "SELECT model_run_id, D, K FROM model_runs",  # adjust table/column names
-        conn,
-    )
 
 # --- 3. Merge ---
 df = df.merge(params, on='model_run_id', how='left')
