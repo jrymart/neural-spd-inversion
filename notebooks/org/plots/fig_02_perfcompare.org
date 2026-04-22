@@ -1,5 +1,5 @@
 #+title: Perf Compare
-#+PROPERTY: header-args:python :python /home/jo/cub/research/projects/neural-spd-inversion-proj/neural-spd-inversion/.venv/bin/python :session perf-comp
+#+PROPERTY: header-args:python :python ../../../.venv/bin/python :session perf-comp
 
 * Overview
 This figure compares NRMSE across input data types, faceted by target-variable
@@ -105,4 +105,3 @@ fig.show()
 #+end_src
 
 #+RESULTS:
-: None
