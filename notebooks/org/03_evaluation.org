@@ -1,6 +1,7 @@
 #+title: Evaluation
-#+PROPERTY: header-args:jupyter-python :tangle ../../scripts/evaluation.py
+#+PROPERTY: header-args:jupyter-python :tangle ../../scripts/03_evaluation.py
 
+This notebook evaluates all trained neural networks on the test set.  It functions very similarly to the training notebook, so look there for a more detailed overview.
 #+begin_src jupyter-python
 import torch
 from neural_spd.train_peclet_model import PecletModelTrainer
@@ -61,44 +62,4 @@ if IS_HEADLESS:
 else:
     for run in runs:
         eval_neural_net(*run)
-       
-        # If data['type']=='dem':
-        #     for second_data in data_types:
-        #         weights_path = WEIGHTS_PATH / f"dem_{second_data['type']}_{seed}_weights.pt"
-        #         if not weights_path.exists() or retrain:
-        #             inputs_mean = np.stack([v['inputs_mean'] for k,v in statistics.items() if k in ('dem', second_data['type'])])[:, np.newaxis, np.newaxis]
-        #             inputs_std= np.stack([v['inputs_std'] for k,v in statistics.items() if k in ('dem', second_data['type'])])[:, np.newaxis, np.newaxis]
-        #             trainer = PecletModelTrainer(DB_PATH,
-        #                                          [data['data_path'], second_data['data_path']],
-        #                                          ThreeLayerCNNRegressor(channels=2),
-        #                                          LABEL_QUERY,
-        #                                          epochs = NUM_EPOCHS,
-        #                                          learning_rate = LEARNING_RATE,
-        #                                          inputs_mean = inputs_mean,
-        #                                          inputs_std = inputs_std,
-        #                                          **statistics['labels']
-        #                                          )
-        #             trainer.load_weights(weights_path)
-        #             trainer.evaluate()
-        #             csv_path = RESULTS_DIR / f"dem_{second_data['type']}_{seed}_results.csv}"
-        #             trainer.test_df.to_csv(csv_path)
-
 #+end_src
-
-We also train a "jumbo" model with larger layers.
-#+begin_src jupyter-python
-# weights_path = WEIGHTS_PATH / 'dem_jumbo_run_weights.pt'
-# torch.manual_seed(NN_SEEDS[0])
-# traier = PecletModelTrainer(DB_PATH,
-#                             MODEL_DEM_PATH,
-#                             JumboThreeLayerCNNRegressor,
-#                             LABEL_QUERY,
-#                             epochs = NUM_EPOCHS,
-#                             learning_rate = LEARNING_RATE,
-#                             **stats['dem'],
-#                             **stats['labels'])
-# trainer.load_weights(weights_path)
-# trainer.evaluate()
-# csv_path = RESULTS_DIR / 'dem_jumbo_run_results.pt')
-# trainer.test_df.to_csv(csv_path)
-#+End_src

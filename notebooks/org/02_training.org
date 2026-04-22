@@ -1,9 +1,12 @@
 #+title: Training
-#+PROPERTY: header-args:jupyter-python :tangle ../../scripts/training.py
+#+PROPERTY: header-args:jupyter-python :tangle ../../scripts/02_training.py
 
 * Training Neural Networks to Infer the Peclet Number
 
-This notebook trains convolutional neural networks to infer the D/K ratio of 2D streampower-diffusion landscape evolution models
+This notebook trains convolutional neural networks to infer various parameters of 2D streampower-diffusion landscape evolution models from the output topography or topographic derivatives.  Of particular note are the following parameters:
+
+- ~DATA_TYPES~ :: The various data types (elevation, slope, etc) to use as an input
+- ~LABELS~ :: The various targets (\(D/K\), \(D/K\),  \(\log_{10}(D/K)\), etc) for the neural network 
 
 #+begin_src jupyter-python
 import torch
@@ -27,6 +30,7 @@ DB_PATH = Path(os.getenv('DB_PATH', DB_PATH))
 from itertools import product
 #+end_src
 
+If this is being run in Colab, we want to copy over the data to the local Colab instance.  If you are using the big tangled colab script, this has probably already been done.  Maybe this should be removed.
 #+begin_src jupyter-python :tangle no
 from neural_spd.config import IN_COLAB
 if IN_COLAB:
@@ -39,6 +43,7 @@ with open(MODEL_STATS_PATH, 'r') as f:
     statistics = json.load(f)
 #+end_src
 
+This function trains a neural network for a given parameter combination.  The ~PecletModelTrainer~ object saves checkpoints, and this function will reload from that checkpoint (if existing).  This can be helpful, since the training 80+ neural networks can sometimes get interrupted.
 #+begin_src jupyter-python
 def train_neural_net(seed, noise, data_type, label, reload_from_checkpoint=True):
     label_key, label_query = label
@@ -68,6 +73,7 @@ def train_neural_net(seed, noise, data_type, label, reload_from_checkpoint=True)
 
 #+end_src
 
+This creates all possible combinations and runs this.  This is really only useful when being run as from the SLURM script, which allows it to run an arbitrary parameter combination that corresponds to a specific SLURM job.  This could be adapated to use Python mulitprocessing for running locally, but it hasn't.
 #+begin_src jupyter-python
 runs = list(product(NN_SEEDS, NOISE_LEVELS, DATA_TYPES, LABELS.items()))
 if IS_HEADLESS:
@@ -76,27 +82,4 @@ if IS_HEADLESS:
 else:
     for run in runs:
         train_neural_net(*run)
-#+end_src
-
-We also train a "jumbo" model with larger layers.
-#+begin_src jupyter-python
-# weights_path = WEIGHTS_PATH / 'dem_jumbo_run_weights.pt'
-# if not weights_path.exists() or RETRAIN_MODELS:
-#     torch.manual_seed(NN_SEEDS[0])
-#     # Use the first data type and label for jumbo model
-#     first_label_key, first_label_query = list(LABELS.items())[0]
-#     data_stats = statistics['0'][DATA_TYPES[0]]  # First data type, no noise
-#     label_stats = statistics[first_label_key]
-#     dataset_path = DATA_PATH / '0' / DATA_TYPES[0]
-    
-#     trainer = PecletModelTrainer(DB_PATH,
-#                                 dataset_path,
-#                                 JumboThreeLayerCNNRegressor(),
-#                                 first_label_query,
-#                                 epochs=NUM_EPOCHS,
-#                                 learning_rate=LEARNING_RATE,
-#                                 **data_stats,
-#                                 **label_stats)
-#     trainer.train()
-#     trainer.save_weights(weights_path)
 #+end_src

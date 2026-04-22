@@ -1,5 +1,6 @@
 #+title: Shuffled
-#+PROPERTY: header-args:jupyter-python :tangle ../../scripts/shuffle_eval.py
+#+PROPERTY: header-args:python :python ../../.venv/bin/python :session shuffling
+#+PROPERTY: header-args:jupyter-python :tangle ../../scripts/04c_shuffle_test.py
 
 * Overview
 This notebook evaluates each trained model on the shuffled and swapped datasets.  This tests how reliant the network is on global structure for its interpretation.

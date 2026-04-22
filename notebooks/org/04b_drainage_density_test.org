@@ -1,0 +1,83 @@
+#+title: 04b Drainage Density Test
+#+PROPERTY: header-args:python :python ../../.venv/bin/python :session drainagedensity
+#+PROPERTY: header-args:jupyter-python :tangle ../../scripts/04b_drainage_density.py
+Now we create a dataset of varying drainage density and see how the trained network is able to infer it.  
+
+#+begin_src jypyter-python
+import sqlite3
+from landlab_torch_tools import AdaptiveThresholdDataset
+from neural_spd.ThreeLayerCNNRegressor import ThreeLayerCNNRegressor
+from neural_spd.config import WEIGHTS_PATH, DB_PATH, MODEL_STATS_PATH, DATA_PATH, RESULTS_PATH
+from pathlib import Path
+import json
+import matplotlib.pyplot as plt
+from torch.utils.data import DataLoader
+import torch
+import numpy as np
+import pandas as pd
+#+end_src
+
+The ~AdaptiveThresholdDataset~ takes in an input array, and returns a series of binary masks at evenly spaced thresholds of data.  Here we select the flow accumulation raster for suitably low \(D/K\) run (a.k.a one that is highly dissected) and create what are functionally channel masks with different upstream area thresholds.
+#+begin_src jypyter-python
+connection = sqlite3.connect(DB_PATH)
+cursor = connection.cursor()
+cursor.execute('SELECT model_run_id, "model_param.diffuser.D"/"model_param.streampower.k" FROM model_run_params')
+Dks = cursor.fetchall()
+Dks.sort(key = lambda x: x[1])
+low_Dk_run = Dks[int(len(Dks)/10)][0]
+low_Dk_array = torch.unsqueeze(torch.tensor(np.load(DATA_PATH / "0" / "flowacc" / f"{low_Dk_run}.npy")[5:-5,5:-5]), 0)
+threshold_dataset = AdaptiveThresholdDataset(
+    input_array = low_Dk_array,
+    num_thresholds = 1000,
+    percentile_range=(1,99),
+    return_threshold=True
+)
+#+end_src
+
+We select the weights for the neural networks trained to predict \(\log_{10}(D/K)\) from elevation.
+#+begin_src jypyter-python
+with open(MODEL_STATS_PATH, 'r') as f:
+    stats = json.load(f)
+labels_mean = stats['logDoK']['labels_mean']
+labels_std = stats['logDoK']['labels_std']
+weight_ids = ["n0_elevation_0_logDoK",
+                "n0_elevation_10_logDoK",
+                "n0_elevation_20_logDoK",
+                "n0_elevation_30_logDoK",
+               ]
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+#+end_src
+
+For each set of weights,  load the neural network, and test it against the drainage density dataset.  We calculate an explicit drainage density based on pixel size.
+#+begin_src jypyter-python
+def run_dd_test(weight_id):
+    weights_path = WEIGHTS_PATH / f"{weight_id}_weights.pt"
+    loader = DataLoader(threshold_dataset, 64, shuffle=False)
+    model = ThreeLayerCNNRegressor().to(device)
+    model.load_state_dict(torch.load(weights_path, map_location=device))
+    model.eval()
+    drainage_densities = []
+    thresholds = []
+    norm_labels = []
+    with torch.no_grad():
+        for data, threshold in loader:
+            data = data.float().to(device)
+            drainage_density = (data.sum(axis=(1,2,3))*5)/(np.prod(data.shape)*5*5)
+            norm_label = model(data)
+            drainage_densities.extend(drainage_density.cpu().numpy().tolist())
+            norm_labels.extend(norm_label.cpu().numpy().flatten().tolist())
+            thresholds.extend(threshold.numpy().tolist())
+    labels = [l*labels_std+labels_mean for l in norm_labels]
+    return drainage_densities, labels
+#+end_src
+
+Save the results as csv files for later analysis.
+#+begin_src jypyter-python
+for weight_id in weight_ids:
+    draiange_densities, labels = run_dd_test(weight_id)
+    dd_df = pd.DataFrame({
+        "drainage_density": draiange_densities,
+        "logDoK": labels
+    })
+    dd_df.to_csv(RESULTS_PATH / "dd" / f"{weight_id}_dd.csv", index=False)
+#+end_src

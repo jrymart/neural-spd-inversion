@@ -1,7 +1,8 @@
 #+title: Valley Test
+#+PROPERTY: header-args:python :python ../../.venv/bin/python :session valleyspacing
+#+PROPERTY: header-args:jupyter-python :tangle ../../scripts/04a_valley_eval.py
+To test if the network has learned a valley spacing relationship, we feed it a sine wave dataset to see if it has a coherent response.  This is very similar to the training notebook, just evaluating on a different dataset, so look there for more detailed commentary.
 
-#+PROPERTY: header-args:jupyter-python :tangle ../../scripts/valley_eval.py
-To test if the network has learned a valley spacing relationship, we feed it a sine wave dataset to see if it has a coherent response.
 
 #+begin_src jupyter-python
 from landlab_torch_tools import SineTopographyDataset
@@ -21,6 +22,7 @@ with open(MODEL_STATS_PATH) as f:
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 #+end_src
 
+The ~SineTopographyDataset~ is a pytorch dataset that  is a series of 2D sine waves (with a slight bend at the center) with varying periodicity (which we interpret as valley spacing).  The dataset does not return valley spacing as a label, but instead what is functionally the number of valleys.  We convert to the valley spacing before saving the results
 #+begin_src jupyter-python
 def eval_neural_net_on_sine(seed, noise, data_type, label):
     label_key, label_query = label

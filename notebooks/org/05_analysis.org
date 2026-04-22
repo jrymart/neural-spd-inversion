@@ -1,9 +1,8 @@
 #+title: Analysis
-#+PROPERTY: header-args:python :python /home/jo/cub/research/projects/neural-spd-inversion-proj/neural-spd-inversion/.venv/bin/python :session sinforms
-#+PROPERTY: header-args:python :tangle ../../scripts/analysis.py
+#+PROPERTY: header-args:python :python ../../.venv/bin/python :session analysis
+#+PROPERTY: header-args:python :tangle ../../scripts/05_analysis.py
 
-
-We want to understand performance of the neural networks, and how these vary across weight initialization and for data input.  To do this we need to load in our test results, and calculate some errors, and control to a baseline.
+Here we concatenate performance of the networks as evaluated on the test set as well as valley spacing test, draiange density test, and shuffling tests.  We also calculate bulk performance (primarily RMSE) for the network
 #+begin_src python
 import os
 import pandas as pd
@@ -16,8 +15,7 @@ import re
 from itertools import product
 #+end_src
 
-
-#+RESULTS:
+For a given directory containing results of the experiment, merge all the files, and calculate error
 #+begin_src python
 def merge_and_calc_error(directory, test_type=None):
     dfs = []
@@ -77,8 +75,7 @@ def merge_and_calc_error(directory, test_type=None):
 #+end_src
 #+RESULTS:
 
-Now we save the dataframes for plotting later.
-
+Here we process all of our test cases
 #+begin_src python
 from pathlib import Path
 all_df, rmse_df = merge_and_calc_error(Path("results"))

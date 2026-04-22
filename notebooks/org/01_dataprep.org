@@ -1,5 +1,5 @@
 #+title: Data Download and Prep
-#+PROPERTY: header-args:jupyter-python :tangle ../../scripts/dataprep.py
+#+PROPERTY: header-args:jupyter-python :tangle ../../scripts/01_dataprep.py
 This project uses a collection of [[https://landlab.csdms.io/][Landlab]] model runs.  This notebook goes over a brief explanation of the model set up and parameters and then downloading and processing of the model runs from Zenodo.
 
 * The Model
@@ -52,14 +52,15 @@ class SimpleLem(LandlabModel):
         self.current_time += dt
 #+end_src
 
-  The model is initialized with random noise as elevation, an uplift rate, D8 flow router and accumulator and a diffusion and streampower erosion component with parameters defiend by the study.  The parameters of this study are as follows:
+  The model is initialized with random noise as elevation, an uplift rate, D8 flow router and accumulator and a diffusion and streampower erosion component with parameters defined by the study.  The parameters of this study are as follows:
++--------------+-----------------+------------------+-----------------+------------------+------------------------------+------------------------------------+-----------------------------------------+---------------+---------------+
+| Rows (cells) | Columns (cells) | Grid Spacing (m) | Runtime (years) | Timestep (years) | Uplift Rate \(\frac{m}{year}\)| Diffusivity \(\frac{m^2}{year}\)   | Streampower K \(\frac{m^{0.4}}{year}\)  | Streampower m | Streampower n |
++--------------+-----------------+------------------+-----------------+------------------+------------------------------+------------------------------------+-----------------------------------------+---------------+---------------+
+| 300          | 100             | 5                | 3,000,000       | 500 0.001            | 0.005-0.02                   | 0.00015-0.002                      | 0.3                                     | 0.07          |       
++--------------+-----------------+------------------+-----------------+------------------+------------------------------+------------------------------------+-----------------------------------------+---------------+---------------+
 
- +-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
- | Rows (cells) | Columns (cells) | Grid Spacing (m) | Runtime (years) | Timestep (years) | Uplift Rate (\frac{m}{year}) | Diffusivity (\(\frac{m^2}{year}\)) | Streampower K (\(\frac{m^{0.4}}/year\)) | Streampower m | Streampower n |
- +-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
- | 300 | 100 | 5 | 3,000,000 | 0.001 | 0.005-0.02 | 0.00015-0.002 | 0.3 | 0.07 |
- +-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
-This parameter set was run with 10 different random seeds, and 30 linearly spaced values across the parameter range for a dataset of 9000 model runs.  The final Landlab Grids of the model runs along with parameter information and associated database for the Landlab batcher utility, are available on Zenodo: [[https://doi.org/10.5281/zenodo.15311644]].
+  
+ This parameter set was run with 10 different random seeds, and 30 linearly spaced values across the parameter range for a dataset of 9000 model runs.  The final Landlab Grids of the model runs along with parameter information and associated database for the Landlab batcher utility, are available on Zenodo: [[https://doi.org/10.5281/zenodo.15311644]].
 
 * Downloading Model Topography
 [[https://www.fatiando.org/pooch/latest/index.html][Pooch]] is used to download the data files from Zenodo.  If you have previously downloaded the data pooch should not re-download.
@@ -258,6 +259,7 @@ with open(MODEL_STATS_PATH, 'w') as f:
 #+end_src
 
 * Data Processing Validation
+This code was written by the Google Gemini LLM
 #+begin_src jupyter-python
 import matplotlib.pyplot as plt
 import numpy as np
