@@ -15,6 +15,7 @@ import pandas as pd
 import seaborn as sns
 from neural_spd.config import PROJECT_ROOT
 from neural_spd import plot_styles
+from neural_spd.plot_styles import cm
 plot_styles.apply()
 
 target_dist_path = PROJECT_ROOT / "analysis/all_test_performance.csv"
@@ -70,7 +71,7 @@ def plot_target_dists(axs):
 * Generate plots
 #+begin_src python
 plot_styles.double_column()
-fig, axs = plt.subplots(2, 2, figsize=(6.75, 4.5))
+fig, axs = plt.subplots(2, 2, figsize=(17*cm, 10*cm))
 plot_target_dists(axs)
 plot_styles.save_figure(fig, "target_distributions", PROJECT_ROOT / "paper/figs")
 fig.show()

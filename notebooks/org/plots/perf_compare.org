@@ -16,6 +16,7 @@ import pandas as pd
 import seaborn as sns
 from neural_spd.config import PROJECT_ROOT
 from neural_spd import plot_styles
+from neural_spd.plot_styles import cm
 plot_styles.apply()
 PERF_METRICS_PATH = PROJECT_ROOT / "analysis/overall_performance.csv"
 target_names = {
@@ -83,7 +84,7 @@ def plot_perf_comp(ax):
 * Generate plots
 #+begin_src python
 plot_styles.double_column()
-fig, ax = plt.subplots(figsize=(6.75, 3.0))
+fig, ax = plt.subplots(figsize=(17*cm, 8.5*cm))
 plot_perf_comp(ax)
 plot_styles.save_figure(fig, "perf_compare", PROJECT_ROOT / "paper" / "figs")
 fig.show()

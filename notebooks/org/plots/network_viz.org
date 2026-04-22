@@ -14,7 +14,7 @@ from neural_spd.config import PROJECT_ROOT
 from matplotlib.lines import Line2D
 import numpy as np
 from neural_spd import plot_styles
-from neural_spd.plot_styles import COLORS
+from neural_spd.plot_styles import COLORS, cm
 plot_styles.apply()
 #+end_src
 
@@ -112,7 +112,7 @@ def plot_network(ax):
 * Generate Plots
 #+begin_src python
 plot_styles.double_column()
-fig, ax = plt.subplots(figsize=(6.75, 5.0))
+fig, ax = plt.subplots(figsize=(17*cm, 17*cm))
 plot_network(ax)
 plot_styles.save_figure(fig, "network_viz", PROJECT_ROOT / "paper/figs")
 fig.show()

@@ -72,10 +72,10 @@ GREEN_CMAP_COLORS = [COLORS["white"], COLORS["green_light"],
 # ============================================================================
 # RCPARAMS
 # ============================================================================
-
+cm = 1/2.54
 _rcparams = {
     # --- Figure ---
-    "figure.figsize":        (3.5, 3.0),     # single-column width (inches)
+    "figure.figsize":        (8.5*cm, 7.5*cm),     # single-column width (inches)
     "figure.dpi":            300,
     "figure.facecolor":      COLORS["white"],
     "figure.edgecolor":      "none",
@@ -84,7 +84,7 @@ _rcparams = {
     # --- Font ---
     "font.family":           "sans-serif",
     "font.sans-serif":       ["Helvetica Neue", "Arial", "DejaVu Sans"],
-    "font.size":             8,
+    "font.size":             10,
     "mathtext.fontset":      "dejavusans",  # consistent with sans-serif body
 
     # --- Axes ---
@@ -92,10 +92,10 @@ _rcparams = {
     "axes.edgecolor":        COLORS["gray_dark"],
     "axes.linewidth":        0.6,
     "axes.grid":             False,
-    "axes.titlesize":        9,
+    "axes.titlesize":        11,
     "axes.titleweight":      "bold",
     "axes.titlepad":         6,
-    "axes.labelsize":        8,
+    "axes.labelsize":        10,
     "axes.labelpad":         4,
     "axes.labelcolor":       COLORS["black"],
     "axes.prop_cycle":       plt.cycler("color", PALETTE),
@@ -104,8 +104,8 @@ _rcparams = {
     "axes.axisbelow":        True,
 
     # --- Ticks ---
-    "xtick.labelsize":       7,
-    "ytick.labelsize":       7,
+    "xtick.labelsize":       9,
+    "ytick.labelsize":       9,
     "xtick.color":           COLORS["gray_dark"],
     "ytick.color":           COLORS["gray_dark"],
     "xtick.direction":       "out",
@@ -123,7 +123,7 @@ _rcparams = {
     "grid.alpha":            0.7,
 
     # --- Legend ---
-    "legend.fontsize":       7,
+    "legend.fontsize":       9,
     "legend.frameon":        True,
     "legend.framealpha":     0.9,
     "legend.edgecolor":      COLORS["gray_light"],
@@ -187,24 +187,24 @@ def apply():
 def double_column():
     """Switch to full-page figure width (6.75 in, GRL standard ~174 mm)."""
     mpl.rcParams.update({
-        "figure.figsize": (6.75, 3.0),
+        "figure.figsize": (17*cm, 8.5*cm),
         "font.size": 9,
         "axes.titlesize": 10,
-        "axes.labelsize": 9,
-        "xtick.labelsize": 8,
-        "ytick.labelsize": 8,
-        "legend.fontsize": 8,
+        "axes.labelsize": 10,
+        "xtick.labelsize": 9,
+        "ytick.labelsize": 9,
+        "legend.fontsize": 9,
     })
 
 def single_column():
     """Switch back to single-column width (3.5 in, GRL standard ~84 mm)."""
     mpl.rcParams.update({
-        "figure.figsize": (3.5, 3.0),
-        "font.size": 8,
-        "axes.titlesize": 9,
-        "axes.labelsize": 8,
-        "xtick.labelsize": 7,
-        "ytick.labelsize": 7,
+        "figure.figsize": (8.5*cm, 8.5*cm),
+        "font.size": 9,
+        "axes.titlesize": 10,
+        "axes.labelsize": 10,
+        "xtick.labelsize": 9,
+        "ytick.labelsize": 9,
         "legend.fontsize": 7,
     })
 

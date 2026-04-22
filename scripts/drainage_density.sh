@@ -1,19 +1,19 @@
 #!/bin/bash
-#SBATCH --job-name=drainage_density
-#SBATCH --output=logs/drainage_density_%j.log
-#SBATCH --qos=blanca-csdms
-#SBATCH --nodes=1
-#SBATCH --ntasks=1
-#SBATCH --cpus-per-task=1
-#SBATCH --mem=1G
-#SBATCH --time=00:15:00
+#sbatch --job-name=drainage_density
+#sbatch --output=logs/drainage_density_%j.log
+#sbatch --qos=blanca-csdms
+#sbatch --nodes=1
+#sbatch --ntasks=1
+#sbatch --cpus-per-task=1
+#sbatch --mem=1g
+#sbatch --time=00:15:00
 
-# 1. Environment Preparation
-# Load the base Python module available on your cluster
+# 1. environment preparation
+# load the base python module available on your cluster
 
-export UV_CACHE_DIR="/projects/joma0457/.uv_cache"
-export PATH="$HOME/.local/bin:$PATH"
+export uv_cache_dir="/projects/joma0457/.uv_cache"
+export path="$home/.local/bin:$path"
 
-echo "Running drainage density experiment"
+echo "running drainage density experiment"
 uv run scripts/drainage_density.py
-echo "Experiment complete."
+echo "experiment complete."

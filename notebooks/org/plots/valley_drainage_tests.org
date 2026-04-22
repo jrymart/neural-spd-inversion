@@ -13,6 +13,7 @@ import pandas as pd
 import seaborn as sns
 from neural_spd.config import PROJECT_ROOT
 from neural_spd import plot_styles
+from neural_spd.plot_styles import cm
 from itertools import product
 plot_styles.apply()
 sine_perf = PROJECT_ROOT / "analysis/sine_all_performance.csv"
@@ -64,7 +65,7 @@ def plot_perf(axs):
 
 * Generate Plots
 #+begin_src python
-fig, axs = plt.subplots(1,2, sharey=True, figsize=(6.5, 3.25))
+fig, axs = plt.subplots(1,2, sharey=True, figsize=(17*cm, 8.5*cm))
 plot_perf(axs)
 plot_styles.save_figure(fig, "valley_dd_perf", PROJECT_ROOT / "paper" / "figs")
 fig.show()
