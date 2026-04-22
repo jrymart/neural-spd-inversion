@@ -25,6 +25,7 @@ import seaborn as sns
 from matplotlib.lines import Line2D
 from neural_spd.config import PROJECT_ROOT
 from neural_spd import plot_styles
+from neural_spd.plot_styles import cm
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 plot_styles.apply()
 PERF_METRICS_PATH = PROJECT_ROOT / "analysis/overall_performance.csv"
@@ -112,14 +113,14 @@ def plot_raw_perf(ax):
         ax_inset.axis("off")
         ax_card.set_xticks([]); ax_card.set_yticks([])
         ax_card.text(0.05, 1.05, label, transform=ax_inset.transAxes, 
-                fontsize=6, fontweight='bold', va='bottom')
+                fontsize=9, fontweight='bold', va='bottom')
 #        ax_card.axis("off")
         ax_card.spines[:].set_visible(False)
         #for spine in ax_card.spines.values():
         #    spine.set_linewidth(0.5)
         #    spine.set_color('gray')
         ax_card.text(0.5, -0.05, sub_label, transform=ax_inset.transAxes, 
-                fontsize=6, ha='center', va='top')
+                fontsize=9, ha='center', va='top')
     
     ax.set_xscale("log")
     ax.set_yscale("log")
@@ -183,7 +184,7 @@ def plot_raw_perf(ax):
     ]
     add_landscape_inset(low_hsh, [0.0,0.0,0.15,0.4], "(b)",  "Low D/K")
     add_landscape_inset(high_hsh, [0.85,0.0,0.15,0.4], "(c)", "High D/K")
-    ax.text(1.5, 250, "(a)", fontsize=6, fontweight="bold")
+    ax.text(1.5, 250, "(a)", fontsize=9, fontweight="bold")
     ax.legend(handles=legend_elements, loc="upper left")
 #+end_src
 
@@ -193,7 +194,7 @@ def plot_raw_perf(ax):
 * Generate Plots
 #+begin_src python
 plot_styles.single_column()
-fig, ax = plt.subplots(figsize=(3.5, 3.5))
+fig, ax = plt.subplots(figsize=(17*cm, 17*cm))
 plot_raw_perf(ax)
 plot_styles.save_figure(fig, "performance_raw", PROJECT_ROOT / "paper" / "figs")
 fig.show()

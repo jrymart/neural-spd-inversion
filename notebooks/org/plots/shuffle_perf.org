@@ -13,6 +13,7 @@ import pandas as pd
 import seaborn as sns
 from neural_spd.config import PROJECT_ROOT
 from neural_spd import plot_styles
+from neural_spd.plot_styles import cm
 import numpy as np
 plot_styles.apply()
 reg_perf = PROJECT_ROOT / "analysis/all_test_performance.csv"
@@ -112,7 +113,7 @@ def plot_shuf_perf(axs):
 * Generate plots
 #+begin_src python
 plot_styles.double_column()
-fig, axs = plt.subplots(3, 2, figsize=(6.75, 8.5))
+fig, axs = plt.subplots(3, 2, figsize=(17*cm, 20*cm))
 plot_shuf_perf(axs)
 for i, ax in enumerate(axs.flatten()):
     if i != 0:
