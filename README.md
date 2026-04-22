@@ -34,5 +34,8 @@ uv sync --extra appendix
 ```
 `pygraphviz` requires the graphviz C library to run, which cannot be installed and setup with uv.
 
+## Configuration
+The project can be configuration through the file `src/neural_spd/config.py`.  There are a variety of options here that can be changed, primarily to change what topographic derivatives the networks are trained on, and things like the epochs, learning rate, and batch size of the training.  Changing these, and other variables in this file fundamentally change the results of this study, and so should be changed with full understanding of the workflow and code.  If you are interested in adapting this for a similar but distinct experiment, please feel free to contact jo.martin@colorado.edu for assistance.
+
 
 
