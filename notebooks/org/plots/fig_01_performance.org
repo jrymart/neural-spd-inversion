@@ -1,6 +1,6 @@
 #+title: Raw Performance
 
-#+PROPERTY: header-args:python :python /home/jo/cub/research/projects/neural-spd-inversion-proj/neural-spd-inversion/.venv/bin/python :session perf-fig
+#+PROPERTY: header-args:python :python ../../../.venv/bin/python :session perf-fig
 
 
 * Overview
@@ -23,7 +23,7 @@ import pandas as pd
 import sqlite3
 import seaborn as sns
 from matplotlib.lines import Line2D
-from neural_spd.config import PROJECT_ROOT
+from neural_spd.config import PROJECT_ROOT, DB_PATH
 from neural_spd import plot_styles
 from neural_spd.plot_styles import cm
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
@@ -125,13 +125,12 @@ def plot_raw_perf(ax):
     ax.set_xscale("log")
     ax.set_yscale("log")
     ax.set_xlabel("True $D/K$")
-    ax.set_ylabel("Predicted $D/K$")
+    ax.set_ylabel("Inferred $D/K$")
 
-    # Scatter of individual predictions (subtle, behind KDE)
-    ax.scatter(
+    ax2 = ax.twinx()
+    ax2.hist(
         best_raw_perf_df["true_labels"],
-        best_raw_perf_df["predictions"],
-        s=3, alpha=0.15, color=plot_styles.COLORS["gray_mid"],
+        alpha=0.15, color=plot_styles.COLORS["gray_mid"],
         edgecolor="none", rasterized=True, zorder=1,
     )
 
@@ -145,6 +144,7 @@ def plot_raw_perf(ax):
         alpha=0.7,
         levels=6,
         cmap="pub_greens",
+        label='Predict vs. True density',
         zorder=2,
     )
 
@@ -172,20 +172,20 @@ def plot_raw_perf(ax):
     )
 
     # Legend
-    legend_elements = [
-        Line2D([0], [0], marker="o", color="none",
-               markerfacecolor=plot_styles.COLORS["gray_mid"],
-               markersize=3, alpha=0.5, label="Test samples"),
-        Line2D([0], [0], marker="s", color="none",
-               markerfacecolor=plot_styles.COLORS["green_dark"],
-               markersize=5, label="KDE density"),
-        Line2D([0], [0], color=plot_styles.COLORS["black"],
-               linestyle="--", linewidth=0.8, label="1 : 1"),
-    ]
+#    legend_elements = [
+#        Line2D([0], [0], marker="o", color="none",
+#               markerfacecolor=plot_styles.COLORS["gray_mid"],
+#               markersize=3, alpha=0.5, label="Test samples"),
+#        Line2D([0], [0], marker="s", color="none",
+#               markerfacecolor=plot_styles.COLORS["green_dark"],
+#               markersize=5, label="KDE density"),
+#        Line2D([0], [0], color=plot_styles.COLORS["black"],
+#               linestyle="--", linewidth=0.8, label="1 : 1"),
+    #]
     add_landscape_inset(low_hsh, [0.0,0.0,0.15,0.4], "(b)",  "Low D/K")
     add_landscape_inset(high_hsh, [0.85,0.0,0.15,0.4], "(c)", "High D/K")
     ax.text(1.5, 250, "(a)", fontsize=9, fontweight="bold")
-    ax.legend(handles=legend_elements, loc="upper left")
+    ax.legend(loc="upper left")
 #+end_src
 
 #+RESULTS:
