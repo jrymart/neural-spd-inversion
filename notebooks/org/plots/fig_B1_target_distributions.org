@@ -68,14 +68,14 @@ def plot_target_dists(axs):
             ticker.FuncFormatter(lambda x, _: f"{int(x):,}"))
 
         # Summary statistics
-        med = np.median(vals)
-        ax.axvline(med, color=plot_styles.COLORS["black"],
-                   linestyle=":", linewidth=0.8, zorder=3)
-        ax.text(0.97, 0.93,
-                f"median = {med:.1f}" if abs(med) > 1 else f"median = {med:.2f}",
-                transform=ax.transAxes, ha="right", va="top",
-                fontsize=plt.rcParams["legend.fontsize"],
-                color=plot_styles.COLORS["gray_dark"])
+        # med = np.median(vals)
+        # ax.axvline(med, color=plot_styles.COLORS["black"],
+        #            linestyle=":", linewidth=0.8, zorder=3)
+        # ax.text(0.97, 0.93,
+        #         f"median = {med:.1f}" if abs(med) > 1 else f"median = {med:.2f}",
+        #         transform=ax.transAxes, ha="right", va="top",
+        #         fontsize=plt.rcParams["legend.fontsize"],
+        #         color=plot_styles.COLORS["gray_dark"])
 
         # Panel label
         plot_styles.panel_label(ax, letter, x=-0.12)
@@ -87,7 +87,7 @@ def plot_target_dists(axs):
 * Generate plots
 #+begin_src python
 plot_styles.double_column()
-fig, axs = plt.subplots(2, 2, figsize=(17*cm, 10*cm))
+fig, axs = plt.subplots(2, 2, figsize=(17*cm, 17*cm))
 plot_target_dists(axs)
 plot_styles.save_figure(fig, "target_distributions", PROJECT_ROOT / "paper/figs")
 fig.show()

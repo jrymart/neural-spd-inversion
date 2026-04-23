@@ -21,6 +21,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import sqlite3
+import cmcrameri as cmc
 import seaborn as sns
 from matplotlib.lines import Line2D
 from neural_spd.config import PROJECT_ROOT, DB_PATH
@@ -149,6 +150,7 @@ def plot_raw_perf(ax):
         ax=ax2,
         alpha=0.25,
         edgecolor="none",
+        zorder=1,
     )
     # one-to-one line
     lims = [best_raw_perf_df["true_labels"].min(),

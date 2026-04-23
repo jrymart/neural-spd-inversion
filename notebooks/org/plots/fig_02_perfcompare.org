@@ -10,13 +10,12 @@ and make the scale difference between families visible.
 
 ** Data source
 : analysis/overall_performance.csv
-
 * Setup
 #+begin_src python
 import matplotlib.pyplot as plt
 import pandas as pd
-import numpy as np
 import seaborn as sns
+from cmcrameri import cm as cmaps
 from neural_spd.config import PROJECT_ROOT
 from neural_spd import plot_styles
 from neural_spd.plot_styles import cm
@@ -30,13 +29,11 @@ target_names = {
 }
 data_names = {
     'elevation': "Elevation",
-    'flowacc': "Flow Acc.",
-    'log10flowacc': r"$\log_{10}$(Flow Acc.)",
+    'flowacc': "Flow Acc",
+    'log10flowacc': r"$\log_{10}(\mathrm{Flow\ Acc})$",
     'slope': "Slope",
     'curvature': "Curvature"
 }
-# order for x-axis: derived features first, then raw
-_DATA_ORDER = ["Slope", "Curvature", r"$\log_{10}$(Flow Acc.)", "Flow Acc.", "Elevation"]
 #+end_src
 
 #+RESULTS:
@@ -46,12 +43,7 @@ _DATA_ORDER = ["Slope", "Curvature", r"$\log_{10}$(Flow Acc.)", "Flow Acc.", "El
 #+begin_src python
 perf_metrics_df = pd.read_csv(PERF_METRICS_PATH)
 perf_metrics_df["target"] = perf_metrics_df["target"].map(target_names)
-perf_metrics_df["data"] = perf_metrics_df["data"].map(data_names)
-
-# Split into linear and log-transformed target families
-linear_df = perf_metrics_df[perf_metrics_df["target"].isin(["$D/K$", "$K/D$"])]
-log_df    = perf_metrics_df[perf_metrics_df["target"].isin(
-    [r"$\log_{10}(D/K)$", r"$\log_{10}(K/D)$"])]
+perf_metrics_df["data"] = perf_metrics_df["data"].map(data_names) 
 #+end_src
 
 #+RESULTS:
@@ -59,37 +51,34 @@ log_df    = perf_metrics_df[perf_metrics_df["target"].isin(
 
 * Plotting function
 #+begin_src python
-_LIN_HUE   = ["$D/K$", "$K/D$"]
-_LOG_HUE   = [r"$\log_{10}(D/K)$", r"$\log_{10}(K/D)$"]
-_LIN_PAL   = [plot_styles.COLORS["green_dark"], plot_styles.COLORS["blue"]]
-_LOG_PAL   = [plot_styles.COLORS["green_dark"], plot_styles.COLORS["blue"]]
+# Single-hue sequential: two greens for D/K family, two blues for K/D family
+_PERF_HUE_ORDER = ["$D/K$", r"$\log_{10}(D/K)$", "$K/D$", r"$\log_{10}(K/D)$"]
+_PERF_PALETTE   = [
+    plot_styles.COLORS["green_dark"],  # D/K      — dark green
+    "#82bb8e",                         # log(D/K) — light green
+    "#1d5f8a",                         # K/D      — dark blue
+    "#7aadcc",                         # log(K/D) — light blue
+]
 
-def _bar_panel(ax, df, hue_order, palette, title):
+def plot_perf_comp(ax):
     sns.barplot(
-        data=df,
+        data=perf_metrics_df,
         x="data", y="nrmse", hue="target",
-        hue_order=hue_order,
-        order=_DATA_ORDER,
+        hue_order=_PERF_HUE_ORDER,
         ax=ax,
-        palette=palette,
+        palette="cmc.batlow",
+        #palette=_PERF_PALETTE,
         edgecolor="none",
-        capsize=0.05,
+        capsize=0.04,
         err_kws={"linewidth": 0.8},
     )
     ax.set_ylabel("NRMSE")
-    ax.set_xlabel("")
-    ax.set_title(title)
+    ax.set_xlabel("Input Data Type")
     ax.legend(title="Target", loc="upper right")
-    ax.tick_params(axis="x", labelrotation=25)
+    ax.tick_params(axis="x", labelrotation=15)
     for label in ax.get_xticklabels():
         label.set_ha("right")
 
-def plot_perf_comp(axs):
-    _bar_panel(axs[0], linear_df, _LIN_HUE, _LIN_PAL, "Linear targets")
-    _bar_panel(axs[1], log_df,    _LOG_HUE,  _LOG_PAL, "Log-transformed targets")
-    # panel labels
-    for ax, letter in zip(axs, "ab"):
-        plot_styles.panel_label(ax, letter, x=-0.08)
 #+end_src
 
 #+RESULTS:
@@ -105,3 +94,5 @@ fig.show()
 #+end_src
 
 #+RESULTS:
+: None
+

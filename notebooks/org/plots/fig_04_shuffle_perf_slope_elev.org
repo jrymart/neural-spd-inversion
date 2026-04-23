@@ -11,6 +11,7 @@ import seaborn as sns
 from neural_spd.config import PROJECT_ROOT
 from neural_spd import plot_styles
 from neural_spd.plot_styles import cm
+import cmcrameri as cmc
 import numpy as np
 plot_styles.apply()
 reg_perf = PROJECT_ROOT / "analysis/all_test_performance.csv"
@@ -43,8 +44,9 @@ def plot_shuf_perf(axs):
             x="true_labels",
             y="predictions",
             hue="test_type",
-            s=2,
-            edgecolor=None,
+            palette="cmc.batlow",
+            s=4,
+            #edgecolor=None,
             #fill=True,
             ax=axs[0],
         )
@@ -56,12 +58,14 @@ def plot_shuf_perf(axs):
     lims = [elev_logDoK["true_labels"].min(), elev_logDoK["true_labels"].max()]
     axs[0].plot(lims, lims, color=plot_styles.COLORS["gray_mid"],
             linestyle="--", linewidth=0.8, zorder=3)
-    sns.kdeplot(
+    sns.scatterplot(
             data=slope_logDoK,
             x="true_labels",
             y="predictions",
             hue="test_type",
-            fill=True,
+            s=4,
+            #fill=True,
+            palette="cmc.batlow",
             ax=axs[1],
         )
 #    axs[1].set_title(r"Slope — $\log_{10}(D/K)$")
@@ -70,6 +74,9 @@ def plot_shuf_perf(axs):
     axs[1].set_ylabel(r"Predicted $\log_{10}(D/K)$")
     # add 1:1 reference line
     lims = [slope_logDoK["true_labels"].min(), slope_logDoK["true_labels"].max()]
+    leg = axs[0].get_legend()
+    for handle in leg.legend_handles:
+        handle.set_markersize(6)
     axs[1].plot(lims, lims, color=plot_styles.COLORS["gray_mid"],
             linestyle="--", linewidth=0.8, zorder=3)
     axs[1].legend().remove()
@@ -89,4 +96,3 @@ fig.show()
 #+end_src
 
 #+RESULTS:
-: None

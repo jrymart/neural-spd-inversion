@@ -12,6 +12,7 @@ This figure shows the effect of the shuffling and swapping on the input topograp
 #+begin_src python
 import sqlite3
 import numpy as np
+import cmcrameri
 from landlab_torch_tools import HorizontalSwap, GridShuffle
 from neural_spd.config import PROJECT_ROOT
 import matplotlib.pyplot as plt
@@ -66,14 +67,14 @@ def plot_maps(axs, elev, elev_hswap, elev_shuff):
     vmax = elev.max()
     for ax, data, title, letter in zip(
             axs, [elev, elev_hswap, elev_shuff], _TITLES, "abc"):
-        im = ax.imshow(data, cmap="terrain", vmin=vmin, vmax=vmax,
+        im = ax.imshow(data, cmap="cmc.batlow", vmin=vmin, vmax=vmax,
                        interpolation="nearest")
         ax.set_title(title)
         ax.set_xticks([])
         ax.set_yticks([])
         for spine in ax.spines.values():
             spine.set_visible(False)
-        plot_styles.panel_label(ax, letter)
+        #plot_styles.panel_label(ax, letter)
     # shared colorbar on the rightmost panel
     divider = make_axes_locatable(axs[-1])
     cax = divider.append_axes("right", size="5%", pad=0.05)
