@@ -1,0 +1,97 @@
+#+title: Target Distributions
+#+PROPERTY: header-args:python :python /home/jo/cub/research/projects/neural-spd-inversion-proj/neural-spd-inversion/.venv/bin/python :session target-dist
+
+* Overview
+This figure shows the distribution of the four target variables used for
+training: \(D/K\), \(K/D\), and their log₁₀ transforms.
+:scope: appendix
+
+** Data source
+: analysis/all_test_performance.csv
+
+* Setup
+#+begin_src python
+import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
+import pandas as pd
+import numpy as np
+from neural_spd.config import PROJECT_ROOT
+from neural_spd import plot_styles
+from neural_spd.plot_styles import cm
+plot_styles.apply()
+
+target_dist_path = PROJECT_ROOT / "analysis/all_test_performance.csv"
+# Panel order: linear pair, then log pair
+_PANEL_ORDER = ["DoK", "KoD", "logDoK", "logKoD"]
+_PANEL_LABELS = {
+    "DoK":    "$D/K$",
+    "KoD":    "$K/D$",
+    "logDoK": r"$\log_{10}(D/K)$",
+    "logKoD": r"$\log_{10}(K/D)$",
+}
+#+end_src
+
+#+RESULTS:
+: None
+
+* Load and select data
+#+begin_src python
+target_dist_df = pd.read_csv(target_dist_path)
+# one seed, one noise level, one data type — true_labels are identical across
+# data types (same model runs), so this gives the true test-set size (1800)
+target_dist_df = target_dist_df[
+    (target_dist_df["seed"]  == 0) &
+    (target_dist_df["noise"] == 0) &
+    (target_dist_df["data"]  == "elevation")
+]
+target_dfs = {t: target_dist_df[target_dist_df["target"] == t]
+              for t in _PANEL_ORDER}
+#+end_src
+
+#+RESULTS:
+: None
+
+* Plotting function
+#+begin_src python
+def plot_target_dists(axs):
+    for ax, target, letter in zip(axs.flat, _PANEL_ORDER, "abcd"):
+        df = target_dfs[target]
+        vals = df["true_labels"]
+
+        ax.hist(vals, bins=50,
+                color=plot_styles.COLORS["green_dark"],
+                edgecolor="white", linewidth=0.3,
+                alpha=0.85)
+        ax.set_xlabel(_PANEL_LABELS[target])
+        ax.set_ylabel("Count")
+        ax.yaxis.set_major_formatter(
+            ticker.FuncFormatter(lambda x, _: f"{int(x):,}"))
+
+        # Summary statistics
+        # med = np.median(vals)
+        # ax.axvline(med, color=plot_styles.COLORS["black"],
+        #            linestyle=":", linewidth=0.8, zorder=3)
+        # ax.text(0.97, 0.93,
+        #         f"median = {med:.1f}" if abs(med) > 1 else f"median = {med:.2f}",
+        #         transform=ax.transAxes, ha="right", va="top",
+        #         fontsize=plt.rcParams["legend.fontsize"],
+        #         color=plot_styles.COLORS["gray_dark"])
+
+        # Panel label
+        plot_styles.panel_label(ax, letter, x=-0.12)
+#+end_src
+
+#+RESULTS:
+: None
+
+* Generate plots
+#+begin_src python
+plot_styles.double_column()
+fig, axs = plt.subplots(2, 2, figsize=(17*cm, 17*cm))
+plot_target_dists(axs)
+plot_styles.save_figure(fig, "target_distributions", PROJECT_ROOT / "paper/figs")
+fig.show()
+#+end_src
+
+#+RESULTS:
+: None

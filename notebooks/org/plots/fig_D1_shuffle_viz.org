@@ -1,0 +1,99 @@
+#+title: Shuffle Viz
+#+PROPERTY: header-args:python :python /home/jo/cub/research/projects/neural-spd-inversion-proj/neural-spd-inversion/.venv/bin/python :session shuff-viz
+
+* Overview
+This figure shows the effect of the shuffling and swapping on the input topography
+:scope: paper
+:figure: 5
+
+** Data source
+
+* Setup
+#+begin_src python
+import sqlite3
+import numpy as np
+import cmcrameri
+from landlab_torch_tools import HorizontalSwap, GridShuffle
+from neural_spd.config import PROJECT_ROOT
+import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+from neural_spd import plot_styles
+from neural_spd.plot_styles import cm
+import torch
+plot_styles.apply()
+db_path = PROJECT_ROOT / "model_runs.db"
+data_dir = PROJECT_ROOT / "data/0/elevation"
+#+end_src
+
+#+RESULTS:
+: None
+
+* Load and shuffle data
+
+** Select characteristic dataset
+#+begin_src python
+connection = sqlite3.connect(db_path)
+cursor = connection.cursor()
+cursor.execute("SELECT model_run_id, \"model_param.diffuser.D\" / \"model_param.streampower.k\" FROM model_run_params")
+results = cursor.fetchall()
+# sort by second row
+results.sort(key=lambda x: x[1])
+# select 10th percentile run
+tenth_percentile_index = int(len(results) * 0.1)
+selected_run_id = results[tenth_percentile_index][0]
+elev = torch.tensor(np.load(data_dir / f"{selected_run_id}.npy"))
+#+end_src
+
+#+RESULTS:
+: None
+
+** Apply shuffling and swapping
+#+begin_src python
+hswap = HorizontalSwap()
+shuff = GridShuffle()
+elev_hswap = hswap(elev)
+elev_shuff = shuff(elev)
+#+end_src
+
+#+RESULTS:
+: None
+
+* Plotting function
+#+begin_src python
+_TITLES = ["Original", "Horizontal Swap", "Grid Shuffle"]
+
+def plot_maps(axs, elev, elev_hswap, elev_shuff):
+    vmin = elev.min()
+    vmax = elev.max()
+    for ax, data, title, letter in zip(
+            axs, [elev, elev_hswap, elev_shuff], _TITLES, "abc"):
+        im = ax.imshow(data, cmap="cmc.batlow", vmin=vmin, vmax=vmax,
+                       interpolation="nearest")
+        ax.set_title(title)
+        ax.set_xticks([])
+        ax.set_yticks([])
+        for spine in ax.spines.values():
+            spine.set_visible(False)
+        #plot_styles.panel_label(ax, letter)
+    # shared colorbar on the rightmost panel
+    divider = make_axes_locatable(axs[-1])
+    cax = divider.append_axes("right", size="5%", pad=0.05)
+    cb = plt.colorbar(im, cax=cax)
+    cb.set_label("Elevation (m)", fontsize=plt.rcParams["axes.labelsize"])
+    cb.ax.tick_params(labelsize=plt.rcParams["xtick.labelsize"])
+#+end_src
+
+#+RESULTS:
+: None
+
+* Generate plots
+#+begin_src python
+plot_styles.double_column()
+fig, axs = plt.subplots(1, 3, figsize=(17*cm, 8.5*cm))
+plot_maps(axs, elev, elev_hswap, elev_shuff)
+plot_styles.save_figure(fig, "shuffle_viz", PROJECT_ROOT  / "paper/figs")
+fig.show()
+#+end_src
+
+#+RESULTS:
+: None

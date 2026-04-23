@@ -1,0 +1,98 @@
+#+title: Perf Compare
+#+PROPERTY: header-args:python :python ../../../.venv/bin/python :session perf-comp
+
+* Overview
+This figure compares NRMSE across input data types, faceted by target-variable
+family (linear vs log-transformed).  Two panels keep the bar count manageable
+and make the scale difference between families visible.
+:scope: paper
+:figure: 2
+
+** Data source
+: analysis/overall_performance.csv
+* Setup
+#+begin_src python
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
+from cmcrameri import cm as cmaps
+from neural_spd.config import PROJECT_ROOT
+from neural_spd import plot_styles
+from neural_spd.plot_styles import cm
+plot_styles.apply()
+PERF_METRICS_PATH = PROJECT_ROOT / "analysis/overall_performance.csv"
+target_names = {
+    'DoK': "$D/K$",
+    'KoD': "$K/D$",
+    'logDoK': r"$\log_{10}(D/K)$",
+    'logKoD': r"$\log_{10}(K/D)$"
+}
+data_names = {
+    'elevation': "Elevation",
+    'flowacc': "Flow Acc",
+    'log10flowacc': r"$\log_{10}(\mathrm{Flow\ Acc})$",
+    'slope': "Slope",
+    'curvature': "Curvature"
+}
+#+end_src
+
+#+RESULTS:
+: None
+
+* Load data
+#+begin_src python
+perf_metrics_df = pd.read_csv(PERF_METRICS_PATH)
+perf_metrics_df["target"] = perf_metrics_df["target"].map(target_names)
+perf_metrics_df["data"] = perf_metrics_df["data"].map(data_names) 
+#+end_src
+
+#+RESULTS:
+: None
+
+* Plotting function
+#+begin_src python
+# Single-hue sequential: two greens for D/K family, two blues for K/D family
+_PERF_HUE_ORDER = ["$D/K$", r"$\log_{10}(D/K)$", "$K/D$", r"$\log_{10}(K/D)$"]
+_PERF_PALETTE   = [
+    plot_styles.COLORS["green_dark"],  # D/K      — dark green
+    "#82bb8e",                         # log(D/K) — light green
+    "#1d5f8a",                         # K/D      — dark blue
+    "#7aadcc",                         # log(K/D) — light blue
+]
+
+def plot_perf_comp(ax):
+    sns.barplot(
+        data=perf_metrics_df,
+        x="data", y="nrmse", hue="target",
+        hue_order=_PERF_HUE_ORDER,
+        ax=ax,
+        palette="cmc.batlow",
+        #palette=_PERF_PALETTE,
+        edgecolor="none",
+        capsize=0.04,
+        err_kws={"linewidth": 0.8},
+    )
+    ax.set_ylabel("NRMSE")
+    ax.set_xlabel("Input Data Type")
+    ax.legend(title="Target", loc="upper right")
+    ax.tick_params(axis="x", labelrotation=15)
+    for label in ax.get_xticklabels():
+        label.set_ha("right")
+
+#+end_src
+
+#+RESULTS:
+: None
+
+* Generate plots
+#+begin_src python
+plot_styles.double_column()
+fig, ax = plt.subplots(figsize=(17*cm, 8.5*cm))
+plot_perf_comp(ax)
+plot_styles.save_figure(fig, "perf_compare", PROJECT_ROOT / "paper" / "figs")
+fig.show()
+#+end_src
+
+#+RESULTS:
+: None
+

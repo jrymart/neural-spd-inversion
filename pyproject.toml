@@ -15,7 +15,8 @@ dependencies = ["pooch",
                 "matplotlib",
                 "seaborn",
                 "scikit-learn",
-                "landlab_torch_tools"]
+                "landlab_torch_tools",
+                "cmcrameri"]
 
 [project.optional-dependencies]
 appendix = [

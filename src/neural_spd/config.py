@@ -127,16 +127,3 @@ NUM_EPOCHS = 50
 LEARNING_RATE = 0.0001
 BATCH_SIZE=64
 
-# SLURM configuration
-SLURM_JOB_NAME = 'neural-spd-training'
-SLURM_PARTITION = 'gpu'  # Change based on your cluster
-SLURM_NODES = 1
-SLURM_NTASKS = 1
-SLURM_CPUS_PER_TASK = 4
-SLURM_MEMORY = '32G'
-SLURM_TIME = '24:00:00'
-SLURM_GPUS = 1  # Set to 0 if no GPU needed
-SLURM_MAIL_TYPE = 'END,FAIL'
-SLURM_MAIL_USER = 'your-email@domain.com'  # Update with actual email
-SLURM_OUTPUT = 'logs/slurm-%j.out'
-SLURM_ERROR = 'logs/slurm-%j.err'

@@ -1,0 +1,74 @@
+#+title: Valley Test
+#+PROPERTY: header-args:python :python ../../.venv/bin/python :session valleytesting
+#+PROPERTY: header-args:jupyter-python :tangle ../../scripts/04a_valley_test.py
+
+To test if the network has learned a valley spacing relationship, we feed it a sine wave dataset to see if it has a coherent response. This is very similar to the training notebook, just evaluating on a different dataset, so look there for more detailed commentary.
+
+#+begin_src jupyter-python
+from landlab_torch_tools import SineTopographyDataset
+import json
+from neural_spd.ThreeLayerCNNRegressor import ThreeLayerCNNRegressor
+from neural_spd.config import MODEL_STATS_PATH, WEIGHTS_PATH, NN_SEEDS, NUM_EPOCHS, LEARNING_RATE, NOISE_LEVELS, DATA_TYPES, LABELS, IS_HEADLESS, RESULTS_PATH, TOPO_DERIVATIVES, DB_PATH
+from neural_spd.train_peclet_model import PecletModelTrainer
+import torch
+import pandas as pd
+import os
+from itertools import product
+#+end_src
+
+#+begin_src jupyter-python
+with open(MODEL_STATS_PATH) as f:
+    stats = json.load(f)
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+#+end_src
+
+The ~SineTopographyDataset~ is a pytorch dataset that  is a series of 2D sine waves (with a slight bend at the center) with varying periodicity (which we interpret as valley spacing).  The dataset does not return valley spacing as a label, but instead what is functionally the number of valleys.  We convert to the valley spacing before saving the results
+
+#+begin_src jupyter-python
+def eval_neural_net_on_sine(seed, noise, data_type, label):
+    label_key, label_query = label
+    torch.manual_seed(seed)
+    weights_path = WEIGHTS_PATH / f"n{str(noise).replace('.','-')}_{data_type}_{seed}_{label_key}_weights.pt"
+    csv_path = RESULTS_PATH/ "sine" / f"n{str(noise).replace('.','-')}_{data_type}_{seed}_{label_key}_results.csv"
+    if not os.path.exists(csv_path):
+        print(f"evaluating {weights_path}")
+        label_stats = stats[label_key]
+        sineset = SineTopographyDataset(90, 290, 'y')
+        if data_type != 'elevation':
+            sineset.transform = TOPO_DERIVATIVES[data_type]
+        sineset.normalize = None
+        trainer = PecletModelTrainer(DB_PATH,
+                            None,
+                            ThreeLayerCNNRegressor().to(device),
+                            label_query,
+                            epochs = NUM_EPOCHS,
+                            learning_rate = LEARNING_RATE,
+                            train_dataset=sineset,
+                            test_dataset=sineset,
+                            ,**label_stats)
+        trainer.load_weights(weights_path)
+        trainer.evaluate()
+        # denomalrize predicted labels in trainer.test_df as model was trained on normalized values
+        trainer.test_df['predictions'] = trainer.test_df['predictions'] * label_stats['labels_std'] + label_stats['labels_mean']
+        # convert to valley spacing by taking 290*5 and dividing by the labels
+        trainer.test_df['true_labels'] = 290*5 / trainer.test_df['true_labels']
+        trainer.test_df.to_csv(csv_path)
+        
+
+    else:
+        print(f"{weights_path} already evaluated, skipping")
+
+
+
+#+end_src
+
+#+RESULTS:
+#+begin_src jupyter-python
+runs = list(product(NN_SEEDS, NOISE_LEVELS, DATA_TYPES, LABELS.items()))
+if IS_HEADLESS:
+    task_id = int(os.environ.get("SLURM_ARRAY_TASK_ID", 0))
+    eval_neural_net_on_sine(*runs[task_id])
+else:
+    for run in runs:
+        eval_neural_net_on_sine(*run)
+#+end_src

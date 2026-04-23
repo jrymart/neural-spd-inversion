@@ -1,0 +1,57 @@
+#+title: Topographic Variation
+#+PROPERTY: header-args:python :python ../../.venv/bin/python :session topovar
+#+PROPERTY: header-args:python :tangle ../../scripts/04d_calc_topo_variation.py
+
+#+begin_src python
+from neural_spd.config import DATA_PATH, DATA_TYPES, PROJECT_ROOT, DB_PATH  # adjust as needed
+import numpy as np
+import pandas as pd
+import sqlite3
+
+def between_tile_variance_fraction(arr, n_tiles=3):
+    H, W = arr.shape
+    H2, W2 = (H // n_tiles) * n_tiles, (W // n_tiles) * n_tiles
+    tile_h, tile_w = H2 // n_tiles, W2 // n_tiles
+    tiles = arr[:H2, :W2].reshape(n_tiles, tile_h, n_tiles, tile_w)
+    tile_means = tiles.mean(axis=(1, 3))
+    return tile_means.var() / arr[:H2, :W2].var()
+
+# --- 1. Compute between-tile fraction for every array ---
+records = []
+for data_type in DATA_TYPES:
+    i = 0
+    data_dir = DATA_PATH / "0" / data_type
+    for p in data_dir.iterdir():
+        if i%1000 == 0:
+            print(f"on run {i} ({p.stem})")
+        arr = np.load(p)
+        i+=1
+        records.append({
+            'model_run_id': p.stem,
+            'data_type': data_type,
+            'between_tile_fraction': between_tile_variance_fraction(arr),
+        })
+df = pd.DataFrame(records)
+
+# --- 2. Pull D and K (or D/K directly) in one query ---
+with sqlite3.connect(DB_PATH) as conn:
+    query = '''
+    SELECT
+        model_run_id,
+        log("model_param.diffuser.D" / "model_param.streampower.k") AS logDoK
+    FROM model_run_params
+'''
+    params = pd.read_sql(query, conn)
+
+# --- 3. Merge ---
+df = df.merge(params, on='model_run_id', how='left')
+
+# Sanity check: flag any runs that didn't match
+missing = df['logDoK'].isna().sum()
+if missing:
+    print(f"Warning: {missing} runs had no D/K in the database")
+
+df.to_csv(PROJECT_ROOT / "analysis" / "between_tile_fraction.csv", index=False)
+#+end_src
+#+RESULTS:
+: None

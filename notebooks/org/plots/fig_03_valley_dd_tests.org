@@ -1,0 +1,75 @@
+#+title: Valley Drainage Tests
+#+PROPERTY: header-args:python :python ../../../.venv/bin/python :session valley-dd-test
+* Overview
+This figure shows the performance of the network on the sine and draiange density datasets
+:cope: paper
+:figure: 3
+:data: analysis/sine_all_performance.csv, results/dd/n0_elevation_20_logDoK_dd.csv
+
+* Setup
+#+begin_src python
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
+from neural_spd.config import PROJECT_ROOT
+from neural_spd import plot_styles
+from neural_spd.plot_styles import cm
+from itertools import product
+plot_styles.apply()
+sine_perf = PROJECT_ROOT / "analysis/sine_all_performance.csv"
+sine_df = pd.read_csv(sine_perf)
+sine_df = sine_df[sine_df["target"] == "logDoK"]
+sine_df = sine_df[sine_df['seed']==20]
+sine_df = sine_df[sine_df['data'] =="elevation"]
+sine_df = sine_df[sine_df['noise']==0.0]
+result_file = PROJECT_ROOT / "results" / "dd" / "n0_elevation_20_logDoK_dd.csv"
+dd_df = pd.read_csv(result_file)
+
+#+end_src
+
+#+RESULTS:
+: None
+
+* Plotting Function
+#+begin_src python
+def plot_perf(axs):
+    sns.scatterplot(
+        data=sine_df,
+        x='true_labels',
+        y='predictions',
+        s=5,
+        palette="Set2",
+        edgecolor=None,
+        ax=axs[0]
+    )
+    sns.scatterplot(
+        data=dd_df,
+        x='drainage_density',
+        y='logDoK',
+        s=5,
+        palette="Set2",
+        edgecolor=None,
+        ax=axs[1]
+    )
+    axs[1].ticklabel_format(style='sci', axis='x', scilimits=(0,0), useMathText=True)
+    axs[0].set_xlabel("Valley Spacing ($m$)")
+    axs[0].set_ylabel(r"$\log_{10}(D/K)$")
+    axs[1].set_xlabel("Drainage Density ($m^{-1}$)")
+    axs[1].set_ylabel("")
+    axs[0].text(0,1.3, "(a)")
+    axs[1].text(0,1.3, "(b)")
+#+end_src
+
+#+RESULTS:
+: None
+
+* Generate Plots
+#+begin_src python
+fig, axs = plt.subplots(1,2, sharey=True, figsize=(17*cm, 8.5*cm))
+plot_perf(axs)
+plot_styles.save_figure(fig, "valley_dd_perf", PROJECT_ROOT / "paper" / "figs")
+fig.show()
+#+end_src
+
+#+RESULTS:
+: None

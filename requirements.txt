@@ -1,7 +1,0 @@
-numpy
-pooch
-pysheds
-pytorch
-pandas
-matplotlib
-landlab
