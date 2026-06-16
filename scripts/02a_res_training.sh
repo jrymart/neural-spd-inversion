@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=train-spd-net
-#SBATCH --output=logs/array_runs/training_%A_%a.log
+#SBATCH --output=logs/array_runs/res_training_%A_%a.log
 #SBATCH --nodes=1
 #SBATCH --partition=aa100,al40
 #SBATCH --gres=gpu:1
