@@ -70,5 +70,5 @@ uv run python -c "import os; print(f'PYTHON MODEL_STATS_PATH: {os.getenv(\"MODEL
 # 3. Run the script using 'uv run'
 # This automatically handles the virtual environment and your src/ imports
 echo "Starting training on noise: $SELECTED_NOISE and data: $SELECTED_TYPE..."
-uv run scripts/02_training.py
+uv run scripts/02a_res_training.py
 echo "Training complete."
