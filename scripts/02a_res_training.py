@@ -1,6 +1,6 @@
 import torch
 from neural_spd.train_peclet_model import PecletModelTrainer
-from neural_spd.ThreeLayerCNNRegressor import ThreeLayerCNNRegressor, JumboThreeLayerCNNRegressor
+from neural_spd.ThreeLayerCNNRegressor import NoPoolThreeLayerCNNRegressor, 
 import json
 import os
 import numpy as np
@@ -57,7 +57,7 @@ def train_neural_net_resolution(seed, noise, resolution_name, label, reload_from
         trainer = PecletModelTrainer(
             DB_PATH,
             data_path,  # Single elevation channel
-            ThreeLayerCNNRegressor(channels=1),  # Single channel
+            NoPoolThreeLayerCNNRegressor(channels=1),  # Single channel
             label_query,
             epochs=NUM_EPOCHS,
             learning_rate=LEARNING_RATE,
@@ -71,7 +71,7 @@ def train_neural_net_resolution(seed, noise, resolution_name, label, reload_from
     else:
         print(f"{weights_path} exists, skipping")
 
-resolutions=["res10m", "res15m", "res20m", "res25m"]
+resolutions=["res5m", "res7m", "res8m", "res10m", "res15m"]
 runs = list(product(NN_SEEDS, NOISE_LEVELS, resolutions, LABELS.items()))
 
      

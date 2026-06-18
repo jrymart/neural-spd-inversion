@@ -130,6 +130,8 @@ BATCH_SIZE=64
 # Resolution experiment configurations
 RESOLUTION_EXPERIMENTS = {
     'res5m': 5,    # baseline (existing data)
+    'res7m': 7,    # 1.4x downsampling
+    'res8m': 8,    # 1.6x downsampling
     'res10m': 10,  # 2x downsampling
     'res15m': 15,  # 3x downsampling
     'res20m': 20,  # 4x downsampling
