@@ -20,7 +20,7 @@ export PATH="$HOME/.local/bin:$PATH"
 
 SEEDS=(0 10 20 30)
 NOISE=("0" "0-1")
-RESOLUTIONS=("res10m", "res15m", "res20m", "res25m")
+RESOLUTIONS=("res10m" "res15m" "res20m" "res25m")
 LABELS=("DoK" "KoD" "logDoK" "logKoD")
 
 num_seeds=${#SEEDS[@]}
