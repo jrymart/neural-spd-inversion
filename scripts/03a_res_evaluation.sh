@@ -1,4 +1,4 @@
-A pictorial representation of a convolution modifying an input.#!/bin/bash
+#!/bin/bash
 #SBATCH --job-name=train-spd-net
 #SBATCH --output=logs/array_runs/res_evaluation_%A_%a.log
 #SBATCH --nodes=1

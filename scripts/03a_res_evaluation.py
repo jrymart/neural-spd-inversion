@@ -64,7 +64,7 @@ def eval_neural_net_resolution(seed, noise, resolution_name, label):
         print(f"{weights_path} already evaluated, skipping")
 
 resolutions=["res7m", "res8m", "res10m"]
-runs = list(product(NN_SEEDS, NOISE_LEVELS, DATA_TYPES, LABELS.items()))
+runs = list(product(NN_SEEDS, NOISE_LEVELS, resolutions, LABELS.items()))
 if IS_HEADLESS:
     task_id = int(os.environ.get("SLURM_ARRAY_TASK_ID", 0))
     eval_neural_net_resolution(*runs[task_id])
