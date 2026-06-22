@@ -1,6 +1,6 @@
 import torch
 from neural_spd.train_peclet_model import PecletModelTrainer
-from neural_spd.ThreeLayerCNNRegressor import ThreeLayerCNNRegressor, JumboThreeLayerCNNRegressor
+from neural_spd.ThreeLayerCNNRegressor import NoPoolThreeLayerCNNRegressor, JumboThreeLayerCNNRegressor
 import json
 import os
 import numpy as np
@@ -50,7 +50,7 @@ def eval_neural_net_resolution(seed, noise, resolution_name, label):
         trainer = PecletModelTrainer(
             DB_PATH,
             data_path,
-            ThreeLayerCNNRegressor(channels=1),
+            NoPoolThreeLayerCNNRegressor(channels=1),
             label_query,
             epochs=NUM_EPOCHS,
             learning_rate=LEARNING_RATE,
