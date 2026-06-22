@@ -1,6 +1,6 @@
-#!/bin/bash
+A pictorial representation of a convolution modifying an input.#!/bin/bash
 #SBATCH --job-name=train-spd-net
-#SBATCH --output=logs/array_runs/res_training_%A_%a.log
+#SBATCH --output=logs/array_runs/res_evaluation_%A_%a.log
 #SBATCH --nodes=1
 #SBATCH --partition=aa100,al40
 #SBATCH --gres=gpu:1
@@ -70,5 +70,5 @@ uv run python -c "import os; print(f'PYTHON MODEL_STATS_PATH: {os.getenv(\"MODEL
 # 3. Run the script using 'uv run'
 # This automatically handles the virtual environment and your src/ imports
 echo "Starting training on noise: $SELECTED_NOISE and data: $SELECTED_TYPE..."
-uv run scripts/03a_res_training.py
+uv run scripts/03a_res_evaluation.py
 echo "Training complete."
