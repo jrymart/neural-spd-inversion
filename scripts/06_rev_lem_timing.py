@@ -11,7 +11,9 @@ params = {
             ],
         },
     },
-    "clock": {"start": 0.0, "stop": 3000000, "step": 500},
+    "seed": 10,
+    "runtime": {
+    "clock": {"start": 0.0, "stop": 3000000, "step": 500}},
     "output": {
         "plot_times": [9999999],
         "save_times": [9999999],
@@ -28,7 +30,9 @@ params = {
 }
 start = time.perf_counter()
 lem = SimpleLem(params)
-while lem.current_time < params["clock"]["stop"]:
+lem.run_id = "timing_test"
+while lem.current_time < params['runtime']["clock"]["stop"]:
     lem.update(params["clock"]["step"])
 elapsed = time.perf_counter() - start
+print(lem.grid.shape)
 print(f"Elapsed time: {elapsed:.2f} seconds")

@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=train-spd-net
-#SBATCH --output=logs/array_runs/training_%A_%a.log
+#SBATCH --output=logs/train_timing_%A_%a.log
 #SBATCH --nodes=1
 #SBATCH --partition=aa100,al40
 #SBATCH --gres=gpu:1
@@ -62,7 +62,7 @@ export DATA_PATH="$SLURM_SCRATCH/neural-spd-inversion/data"
 export DB_PATH="$SLURM_SCRATCH/neural-spd-inversion/data/model_runs.db"
 export MODEL_STATS_PATH="$DATA_PATH/model_stats.json"
 export SLURM_CPUS_PER_TASK=$SLURM_CPUS_PER_TASK
-export TRAIN="True"
+export TIMING="True"
 
 echo "Checking Python environment variables..."
 uv run python -c "import os; print(f'PYTHON DATA_PATH: {os.getenv(\"DATA_PATH\")}')"
