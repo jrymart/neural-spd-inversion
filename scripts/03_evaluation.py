@@ -4,7 +4,7 @@ from neural_spd.ThreeLayerCNNRegressor import ThreeLayerCNNRegressor, JumboThree
 import json
 import os
 import numpy as np
-
+import time
 from pathlib import Path
 from neural_spd.config import MODEL_STATS_PATH, DB_PATH, MODEL_DEM_PATH, MODEL_SLOPE_PATH, MODEL_ACC_PATH, MODEL_CURV_PATH, WEIGHTS_PATH, NN_SEEDS, NUM_EPOCHS, LEARNING_RATE, RETRAIN_MODELS, NOISE_LEVELS, DATA_TYPES, LABELS, DATA_PATH, LOG_PATH, IS_HEADLESS, CHECKPOINT_PATH, BATCH_SIZE, RESULTS_PATH
 # Use environment variables if set (for HPC scratch filesystem)
@@ -15,17 +15,21 @@ MODEL_STATS_PATH = Path(os.getenv('MODEL_STATS_PATH', MODEL_STATS_PATH))
 DB_PATH = DATA_PATH / "model_runs.db"
 DB_PATH = Path(os.getenv('DB_PATH', DB_PATH))
 from itertools import product
+TIMING = os.getenv('TIMING', 'false').lower() == 'true'
+
 
 with open(MODEL_STATS_PATH, 'r') as f:
     statistics = json.load(f)
 
 def eval_neural_net(seed, noise, data_type, label):
+    if TIMING:
+        start = time.perf_counter()
     label_key, label_query = label
     torch.manual_seed(seed)
     weights_path = WEIGHTS_PATH / f"n{str(noise).replace('.','-')}_{data_type}_{seed}_{label_key}_weights.pt"
     csv_path = RESULTS_PATH/ f"n{str(noise).replace('.','-')}_{data_type}_{seed}_{label_key}_results.csv"
     dataset_path = DATA_PATH / str(noise).replace('.','_') / data_type
-    if not os.path.exists(csv_path) or RETRAIN_MODELS:
+    if not os.path.exists(csv_path) or RETRAIN_MODELS or TIMING:
         print(f"evaluating {weights_path}")
         label_stats = statistics[label_key]
         data_stats = statistics[str(noise).replace('.', '-')][data_type]
@@ -39,7 +43,13 @@ def eval_neural_net(seed, noise, data_type, label):
                                     **label_stats)
         trainer.load_weights(weights_path)
         trainer.evaluate()
-        trainer.test_df.to_csv(csv_path)
+        if not os.path.exists(csv_path) or RETRAIN_MODELS:
+            trainer.test_df.to_csv(csv_path)
+        if TIMING:
+            torch.cuda.synchronize()
+            end = time.perf_counter()
+            elapsed_time = end - start
+            print(f"Evaluation time for {weights_path}: {elapsed_time} seconds for {len(trainer.test_df)} samples")
     else:
         print(f"{weights_path} already evaluated, skipping")
 

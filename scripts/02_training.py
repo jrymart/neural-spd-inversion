@@ -1,4 +1,5 @@
 import torch
+import time
 from neural_spd.train_peclet_model import PecletModelTrainer
 from neural_spd.ThreeLayerCNNRegressor import ThreeLayerCNNRegressor, JumboThreeLayerCNNRegressor
 import json
@@ -16,19 +17,22 @@ MODEL_STATS_PATH = DATA_PATH / "model_stats.json"
 MODEL_STATS_PATH = Path(os.getenv('MODEL_STATS_PATH', MODEL_STATS_PATH))
 DB_PATH = DATA_PATH / "model_runs.db"
 DB_PATH = Path(os.getenv('DB_PATH', DB_PATH))
+TIMING = os.getenv('TIMING', 'false').lower() == 'true'
 from itertools import product
 
 with open(MODEL_STATS_PATH, 'r') as f:
     statistics = json.load(f)
 
 def train_neural_net(seed, noise, data_type, label, reload_from_checkpoint=True):
+    if TIMING:
+        start = time.perf_counter()
     label_key, label_query = label
     torch.manual_seed(seed)
     weights_path = WEIGHTS_PATH / f"n{str(noise).replace('.', '-')}_{data_type}_{seed}_{label_key}_weights.pt"
     log_path = LOG_PATH / f"n{str(noise).replace('.', '-')}_{data_type}_{seed}_{label_key}_training_log.json"
     dataset_path = DATA_PATH / str(noise).replace('.', '-') / data_type
     checkpoint_path = CHECKPOINT_PATH / f"n{str(noise).replace('.', '-')}_{data_type}_{seed}_{label_key}_checkpoint.pt"
-    if not weights_path.exists() or RETRAIN_MODELS:
+    if not weights_path.exists() or RETRAIN_MODELS or TIMING:
         print(f"Training {weights_path}")
         label_stats = statistics[label_key]
         data_stats = statistics[str(noise).replace('.', '-')][data_type]
@@ -41,9 +45,16 @@ def train_neural_net(seed, noise, data_type, label, reload_from_checkpoint=True)
                                     batch_size=BATCH_SIZE,
                                     **data_stats,
                                     **label_stats)
+    
         trainer.train(checkpoint_path=checkpoint_path, reload_from_checkpoint=reload_from_checkpoint)
-        trainer.save_weights(weights_path)
-        trainer.save_training_history(log_path)
+        if not weights_path.exists() or RETRAIN_MODELS:
+            trainer.save_weights(weights_path)
+            trainer.save_training_history(log_path)
+    if TIMING:
+        torch.cuda.synchronize()  # Ensure all CUDA operations are complete
+        end = time.perf_counter()
+        elapsed_time = end - start
+        print(f"Training time for {weights_path}: {elapsed_time} seconds")
     else:
         print(f"{weights_path} exists, skipping")
 
