@@ -1,0 +1,11 @@
+Metadata-Version: 2.4
+Name: model_base
+Version: 0.1.0
+Summary: Bse class for landlab models
+Author: Greg Tucker
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: GPLv3
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.11
+Requires-Dist: numpy
+Requires-Dist: landlab
