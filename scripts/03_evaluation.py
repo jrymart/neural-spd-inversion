@@ -17,7 +17,7 @@ DB_PATH = Path(os.getenv('DB_PATH', DB_PATH))
 from itertools import product
 TIMING = os.getenv('TIMING', 'false').lower() == 'true'
 
-
+TIMING = True
 with open(MODEL_STATS_PATH, 'r') as f:
     statistics = json.load(f)
 
@@ -46,7 +46,8 @@ def eval_neural_net(seed, noise, data_type, label):
         if not os.path.exists(csv_path) or RETRAIN_MODELS:
             trainer.test_df.to_csv(csv_path)
         if TIMING:
-            torch.cuda.synchronize()
+            if torch.cuda.is_available():
+                torch.cuda.synchronize()
             end = time.perf_counter()
             elapsed_time = end - start
             print(f"Evaluation time for {weights_path}: {elapsed_time} seconds for {len(trainer.test_df)} samples")
@@ -104,6 +105,7 @@ if IS_HEADLESS:
 else:
     for run in runs:
         eval_neural_net(*run)
+        break
 
 # Resolution experiment evaluation (only if environment variable set)
 if os.getenv('RUN_RESOLUTION_EXPERIMENTS', 'false').lower() == 'true':

@@ -17,6 +17,8 @@ import numpy as np
 import pandas as pd
 #+end_src
 
+#+RESULTS:
+
 The ~AdaptiveThresholdDataset~ takes in an input array, and returns a series of binary masks at evenly spaced thresholds of data.  Here we select the flow accumulation raster for suitably low \(D/K\) run (a.k.a one that is highly dissected) and create what are functionally channel masks with different upstream area thresholds.
 
 #+begin_src python
@@ -72,6 +74,10 @@ def run_dd_test(weight_id):
             thresholds.extend(threshold.numpy().tolist())
     labels = [l*labels_std+labels_mean for l in norm_labels]
     return drainage_densities, labels
+#+end_src
+
+#+begin_src python
+import matplotlib.pyplot as plt
 #+end_src
 
 Save the results as csv files for later analysis.

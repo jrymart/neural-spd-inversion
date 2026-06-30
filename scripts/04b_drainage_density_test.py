@@ -55,6 +55,8 @@ def run_dd_test(weight_id):
     labels = [l*labels_std+labels_mean for l in norm_labels]
     return drainage_densities, labels
 
+import matplotlib.pyplot as plt
+
 for weight_id in weight_ids:
     draiange_densities, labels = run_dd_test(weight_id)
     dd_df = pd.DataFrame({
