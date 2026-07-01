@@ -33,11 +33,11 @@ label_idx=$(( SLURM_ARRAY_TASK_ID % num_labels ))
 type1_idx=$(( (SLURM_ARRAY_TASK_ID / num_labels) % num_types ))
 type2_idx=$(( (SLURM_ARRAY_TASK_ID / (num_labels * num_types)) % num_types ))
 noise_idx=$(( (SLURM_ARRAY_TASK_ID / (num_labels * num_types * num_types)) % num_noise ))
-seed_idx=$(( SLURM_ARRAY_TASK_ID / (num_labels * num_types * num_noise) ))
+seed_idx=$(( SLURM_ARRAY_TASK_ID / (num_labels * num_types * num_types * num_noise) ))
 
 SELECTED_NOISE=${NOISE[$noise_idx]}
-SELECTED_TYPE1=${TYPES[$type_idx1]}
-SELECTED_TYPE2=${TYPES[$type_idx2]}
+SELECTED_TYPE1=${TYPES[$type1_idx]}
+SELECTED_TYPE2=${TYPES[$type2_idx]}
 
 
 TASK_DATA="$SLURM_SCRATCH/neural-spd-inversion/data/$SELECTED_NOISE/"
