@@ -1,0 +1,64 @@
+import json
+from landlab_torch_tools import LandlabBatchDataset, GridShuffle, HorizontalSwap
+from neural_spd.ThreeLayerCNNRegressor import ThreeLayerCNNRegressor
+from neural_spd.config import MODEL_STATS_PATH, DB_PATH, MODEL_DEM_PATH, MODEL_SLOPE_PATH, MODEL_ACC_PATH, MODEL_CURV_PATH, WEIGHTS_PATH, NN_SEEDS, NUM_EPOCHS, LEARNING_RATE, RETRAIN_MODELS, NOISE_LEVELS, DATA_TYPES, LABELS, DATA_PATH, LOG_PATH, IS_HEADLESS, CHECKPOINT_PATH, BATCH_SIZE, RESULTS_PATH
+from neural_spd.train_peclet_model import PecletModelTrainer
+import torch
+import pandas as pd
+import matplotlib.pyplot as plt
+from itertools import product
+import os
+
+stats_path = DATA_PATH / "model_stats.json"
+db_path = DATA_PATH / "model_runs.db"
+label = 'logDoK'
+swap_results_path = "../analysis/swap_results.csv"
+shuff_results_path = "../analysis/shuffle_results.csv"
+weight_path = WEIGHTS_PATH/ "n0_elevation_0_log_DoK_weights.pt"
+transforms = {'swap': HorizontalSwap(),
+              'shuffle': GridShuffle()}
+result_dirs = [RESULTS_PATH / "shuffle" / key for key in transforms.keys()]
+for d in result_dirs:
+    d.mkdir(parents=True, exist_ok=True)
+batch_size = 64
+
+with open(MODEL_STATS_PATH, 'r') as f:
+    statistics = json.load(f)
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+def eval_neural_net(seed, noise, data_type, label, transform=None):
+    label_key, label_query = label
+    if transform is not None:
+        transform_key, transform = transform
+    torch.manual_seed(seed)
+    dataset_path = DATA_PATH / str(noise).replace('.','_') / data_type
+    weights_path = WEIGHTS_PATH / f"n{str(noise).replace('.','-')}_{data_type}_{seed}_{label_key}_weights.pt"
+    csv_path = RESULTS_PATH/ "shuffle" / transform_key / f"n{str(noise).replace('.','-')}_{data_type}_{seed}_{label_key}_results.csv"
+
+    if not os.path.exists(csv_path):
+        print(f"evaluating {weights_path}")
+        label_stats = statistics[label_key]
+        data_stats = statistics[str(noise).replace('.', '-')][data_type]
+        trainer = PecletModelTrainer(DB_PATH,
+                                    dataset_path,
+                                    ThreeLayerCNNRegressor().to(device),
+                                    label_query,
+                                    epochs = NUM_EPOCHS,
+                                    test_transform=transform,
+                                    learning_rate = LEARNING_RATE,
+                                    **data_stats,
+                                    **label_stats)
+        trainer.load_weights(weights_path)
+        trainer.evaluate()
+        trainer.test_df.to_csv(csv_path)
+    else:
+        print(f"{weights_path} already evaluated, skipping")
+
+runs = list(product(NN_SEEDS, NOISE_LEVELS, DATA_TYPES, LABELS.items(), transforms.items()))
+if IS_HEADLESS:
+    task_id = int(os.environ.get("SLURM_ARRAY_TASK_ID", 0))
+    eval_neural_net(*runs[task_id])
+else:
+    for run in runs:
+        eval_neural_net(*run)

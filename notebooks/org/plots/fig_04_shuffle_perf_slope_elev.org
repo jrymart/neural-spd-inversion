@@ -6,6 +6,7 @@ This figure shows the performance of the elevation and slope networks on shuffle
 * Setup
 #+begin_src python
 import matplotlib.pyplot as plt
+from matplotlib.patches import Polygon
 import pandas as pd
 import seaborn as sns
 from neural_spd.config import PROJECT_ROOT
@@ -56,8 +57,8 @@ def plot_shuf_perf(axs):
     axs[0].set_ylabel(r"Predicted $\log_{10}(D/K)$")
     # add 1:1 reference line
     lims = [elev_logDoK["true_labels"].min(), elev_logDoK["true_labels"].max()]
-    axs[0].plot(lims, lims, color=plot_styles.COLORS["gray_mid"],
-            linestyle="--", linewidth=0.8, zorder=3)
+    axs[0].plot(lims, lims, color='black',#plot_styles.COLORS["gray_mid"],
+            linestyle="--", linewidth=1, zorder=3, label='1-1 line')
     sns.scatterplot(
             data=slope_logDoK,
             x="true_labels",
@@ -77,9 +78,17 @@ def plot_shuf_perf(axs):
     leg = axs[0].get_legend()
     for handle in leg.legend_handles:
         handle.set_markersize(6)
-    axs[1].plot(lims, lims, color=plot_styles.COLORS["gray_mid"],
-            linestyle="--", linewidth=0.8, zorder=3)
+    axs[1].plot(lims, lims, color='black',#plot_styles.COLORS["gray_mid"],
+            linestyle="--", linewidth=1, zorder=3)
     axs[1].legend().remove()
+    vertices = np.array([
+        [1.5, -13.8],
+        [2.15, -12],
+        [2.15, -11],
+        [1.5, -12.8]
+    ])
+    patch = Polygon(vertices, closed=True, facecolor='none', edgecolor='red', linewidth=1)
+    axs[0].add_patch(patch)
 
 #+end_src
 
@@ -96,3 +105,4 @@ fig.show()
 #+end_src
 
 #+RESULTS:
+: None

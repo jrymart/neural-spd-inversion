@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "model_base"
+version = "0.1.0"
+authors = [
+        { name="Greg Tucker"},
+]
+description = "Bse class for landlab models"
+requires-python = ">=3.11"
+classifiers = [
+            "Programming Language :: Python :: 3",
+            "License :: OSI Approved :: GPLv3",
+            "Operating System :: OS Independent"
+]
+dependencies = [
+    "numpy",
+    "landlab"
+]
+

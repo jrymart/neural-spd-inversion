@@ -127,3 +127,32 @@ NUM_EPOCHS = 50
 LEARNING_RATE = 0.0001
 BATCH_SIZE=64
 
+# Resolution experiment configurations
+RESOLUTION_EXPERIMENTS = {
+    'res5m': 5,    # baseline (existing data)
+    'res7m': 7,    # 1.4x downsampling
+    'res8m': 8,    # 1.6x downsampling
+    'res10m': 10,  # 2x downsampling
+    'res15m': 15,  # 3x downsampling
+    'res20m': 20,  # 4x downsampling
+    'res25m': 25,  # 5x downsampling
+}
+
+# Active experiment (can be set via environment variable)
+ACTIVE_RESOLUTION = os.getenv('RESOLUTION_EXPERIMENT', 'res5m')
+
+# Helper functions
+def get_resolution_experiment_path(noise_level, resolution_name='res5m'):
+    """Get data path for specific resolution experiment and noise level."""
+    noise_str = str(noise_level).replace('.', '-')
+    if resolution_name == 'res5m':
+        # Use standard path for baseline 5m resolution
+        return DATA_PATH / noise_str
+    else:
+        # Use resolution-specific subdirectory
+        return DATA_PATH / resolution_name / noise_str
+
+def get_resolution_value(resolution_name='res5m'):
+    """Get resolution in meters for a resolution experiment."""
+    return RESOLUTION_EXPERIMENTS[resolution_name]
+
